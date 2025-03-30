@@ -601,4 +601,63 @@ kable(
 
 
 
+```{r}
+# Fit the Poisson regression model (assuming promo_data_clean is your dataset)
+model_poisson <- glm(total_malaria_episodes ~ study_arm + age_at_enrollment_years + gravidity + education_level,
+                     family = poisson(link = "log"), data = promo_data_clean)
+
+# Calculate the dispersion parameter using Pearson residuals
+dispersion_parameter <- sum(residuals(model_poisson, type = "pearson")^2) / model_poisson$df.residual
+cat("Dispersion parameter (Pearson):", dispersion_parameter, "\n")
+
+# Alternatively, check the ratio of the residual deviance to the degrees of freedom
+ratio_deviance <- model_poisson$deviance / model_poisson$df.residual
+cat("Residual deviance / DF:", ratio_deviance, "\n")
+
+# Optionally, plot Pearson residuals vs fitted values to visually assess overdispersion
+plot(fitted(model_poisson), residuals(model_poisson, type = "pearson"),
+     xlab = "Fitted values", ylab = "Pearson residuals",
+     main = "Residuals vs Fitted Values")
+abline(h = 0, col = "red", lty = 2)
+
+```
+
+
+
+
+
+
+```{r}
+# Load the MASS package for negative binomial regression
+library(MASS)
+
+# Fit a negative binomial regression model
+model_nb <- glm.nb(total_malaria_episodes ~ study_arm + age_at_enrollment_years + gravidity + education_level,
+                   data = promo_data_clean)
+
+# Check the model summary
+summary(model_nb)
+
+# Tidy the model output using broom, exponentiating to get IRRs and 95% CIs
+library(broom)
+model_nb_summary <- tidy(model_nb, exponentiate = TRUE, conf.int = TRUE)
+
+# Print the tidied model summary to inspect coefficients
+print(model_nb_summary)
+
+# Optionally, extract the treatment effect if needed (assuming treatment variable is 'study_armSP')
+treatment_effect_nb <- model_nb_summary %>% dplyr::filter(term == "study_armSP")
+print(treatment_effect_nb)
+
+```
+
+
+
+
+
+
+
+
+
+
 
