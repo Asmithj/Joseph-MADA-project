@@ -201,6 +201,97 @@ ggplot(data = promo_data_clean, aes(x = total_malaria_episodes)) +
 
 ## Basic statistical analysis
 
+*Table 2: Association Between Malaria Episodes and Risk of Preterm Birth*
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+# Create cleaned table
+table_preterm_pars_clean <- tribble(
+  ~Variable, ~`Adjusted Odds Ratio (aOR)`, ~`95% CI Lower`, ~`95% CI Upper`, ~`p-value`,
+  "Total malaria episodes during pregnancy", 1.04, 0.95, 1.14, 0.401,
+  "Age at enrollment (years)", 0.99, 0.96, 1.03, 0.697,
+  "Gravidity", 0.91, 0.82, 1.02, 0.106,
+  "Parity", 1.17, 1.05, 1.30, 0.005,
+  "Hypertension", 0.89, 0.65, 1.22, 0.463,
+  "Diabetes mellitus", 1.22, 0.88, 1.69, 0.237
+)
+
+# Display table nicely
+kable(table_preterm_pars_clean,
+      caption = "",
+      col.names = c("", "Adjusted Odds Ratio (aOR)", "95% CI Lower", "95% CI Upper", "p-value")) %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+```
+
+
+
+&nbsp;
+&nbsp;
+
+
+
+
+*Table 3: Association Between Malaria Episodes and Risk of Stillbirth*
+```{r}
+# – Stillbirth Model 
+library(logistf)
+
+# Run parsimonious stillbirth model
+model_stillbirth_pars <- logistf(
+  stillbirth_bin ~ total_malaria_episodes_during_pregnancy +
+    age_at_enrollment_years + gravidity + parity +
+    hypertension + diabetes_mellitus,
+  data = promo_data_clean
+)
+
+# Extract and format results
+table_stillbirth_pars <- data.frame(
+  `Exposure and Adjustment Variables` = names(model_stillbirth_pars$coefficients),
+  `Adjusted Odds Ratio (aOR)` = round(exp(model_stillbirth_pars$coefficients), 2),
+  `95% CI Lower` = round(exp(model_stillbirth_pars$ci.lower), 2),
+  `95% CI Upper` = round(exp(model_stillbirth_pars$ci.upper), 2),
+  `p-value` = signif(model_stillbirth_pars$prob, 3)
+)
+
+# Display in manuscript-ready table
+kable(table_stillbirth_pars,
+      caption = "**") %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+```
+
+
+&nbsp;
+&nbsp;
+
+
+*Association between Malaria Episodes and Adverse Birth Outcomes*
+In adjusted logistic regression analysis (Table 4a), the number of malaria episodes during pregnancy was not significantly associated with preterm birth (aOR: 1.04; 95% CI: 0.95–1.14; p = 0.401). Similarly, the penalized Firth logistic regression model showed no significant association between malaria episodes and stillbirth (aOR: 0.96; 95% CI: 0.83–1.10; p = 0.559) (Table 4b). No significant associations were observed with age at enrollment, gravidity, or hypertension for either outcome.
+
+*Effect of Treatment Arm on Malaria Episode Incidence*
+A Poisson regression model assessing malaria episode incidence by treatment arm found no significant difference between the DP and SP treatment groups (IRR: 1.02; 95% CI: 0.92–1.12; p = 0.756) after adjusting for age, gravidity, and education level (Table 4c).
+
+A summary of these primary outcome analyses is presented in Table 4.
+
+
+
+
+&nbsp;
+&nbsp;
+
+
+
+
+
+
+
+
+
+
+
 *To get some further insight into your data, if reasonable you could compute simple statistics (e.g. simple models with 1 predictor) to look for associations between your outcome(s) and each individual predictor variable. Though note that unless you pre-specified the outcome and main exposure, any "p\<0.05 means statistical significance" interpretation is not valid.*
 
 ## Full analysis

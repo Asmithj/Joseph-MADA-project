@@ -138,17 +138,26 @@ write.csv(promo_data_clean, here("data", "clean", "PROMO_Data_clean.csv"), row.n
 # Read in the cleaned data
 promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
 
-
 ```
 
 
-# Exploratory Data Analysis
-
 
 ```{r}
-# Load required packages
-library(ggplot2)
+colnames(promo_data_clean)
+```
 
+
+
+
+
+
+
+
+
+
+
+# Exploratory Data Analysis
+```{r}
 # Create a histogram of total malaria episodes
 ggplot(data = promo_data_clean, aes(x = total_malaria_episodes)) +
   geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
@@ -167,10 +176,6 @@ ggplot(data = promo_data_clean, aes(x = total_malaria_episodes)) +
 
 
 ```{r}
-library(ggplot2)
-library(dplyr)
-library(here)
-
 # Read in the cleaned data
 promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
 
@@ -192,12 +197,6 @@ ggplot(promo_data_clean, aes(x = total_malaria_episodes, y = child_1_birth_weigh
 
 
 ```{r}
-# Load required packages
-library(here)
-library(dplyr)
-library(ggplot2)
-library(corrplot)
-
 # Read in the cleaned data
 promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
 
@@ -314,15 +313,13 @@ library(here)
 promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
 
 # Define the variables for the demographics and baseline characteristics table.
-# Adjust or add variables based on your dataset.
 vars <- c("age_at_enrollment_years", 
           "gestational_age_at_enrollment_weeks", 
           "education_level", 
           "gravidity", 
           "parity")
 
-# Optionally, you can stratify by a key categorical variable such as study_arm.
-# If you wish to present separate summaries for each study arm, set the stratification variable.
+
 strata <- "study_arm"
 
 # Create the TableOne object
@@ -338,11 +335,6 @@ print(table1, showAllLevels = TRUE)
 
 
 ```{r}
-# Load required packages
-library(tibble)
-library(knitr)
-library(kableExtra)
-
 # Create table data using tribble.
 # Each row must have exactly 4 cells.
 table_data <- tribble(
@@ -403,45 +395,138 @@ kbl(
 ```
 
 
+```{r}
+table(promo_data_clean$stillbirth_bin, useNA = "always")
+table(promo_data_clean$stillbirth_bin, useNA = "always")
+table(promo_data_clean$stillbirth)
+
+```
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+## Results 
 
 
 ```{r}
-library(ggplot2)
+# --- Load libraries ---
 library(dplyr)
-library(here)
+library(broom)
+library(logistf)
+library(knitr)
+library(kableExtra)
+library(tibble)
 
-# Read in the cleaned data
-promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+# --- Data preparation ---
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    preterm_birth = ifelse(gestational_age_at_delivery_weeks < 37, 1, 0),
+    stillbirth_bin = ifelse(stillbirth == "Yes", 1, 0)
+  )
 
-# Create a stacked bar plot for adverse outcomes by study arm
-ggplot(promo_data_clean, aes(x = study_arm, fill = factor(adverse_outcome))) +
-  geom_bar(position = "fill") +
-  scale_y_continuous(labels = scales::percent_format()) +
-  labs(
-    title = "Proportion of Adverse Outcomes by Treatment Arm",
-    x = "Treatment Arm",
-    y = "Percentage",
-    fill = "Adverse Outcome\n(0 = No, 1 = Yes)"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# --- Parsimonious Logistic Regression for Preterm Birth ---
+model_preterm_pars <- glm(
+  preterm_birth ~ total_malaria_episodes_during_pregnancy +
+    age_at_enrollment_years + gravidity,
+  data = promo_data_clean,
+  family = binomial(link = "logit")
+)
+
+# --- Parsimonious Firth Logistic Regression for Stillbirth ---
+model_stillbirth_pars <- logistf(
+  stillbirth_bin ~ total_malaria_episodes_during_pregnancy +
+    age_at_enrollment_years + gravidity,
+  data = promo_data_clean
+)
+
+# --- Extract Preterm results ---
+summary_preterm_pars <- tidy(model_preterm_pars, exponentiate = TRUE, conf.int = TRUE)
+
+# --- Create Preterm Table ---
+table_preterm <- summary_preterm_pars %>%
+  select(term, estimate, conf.low, conf.high, p.value) %>%
+  mutate(across(where(is.numeric), ~ round(., 2))) %>%
+  mutate(term = recode(term,
+                       "(Intercept)" = "Intercept",
+                       "total_malaria_episodes_during_pregnancy" = "Total malaria episodes during pregnancy",
+                       "age_at_enrollment_years" = "Age at enrollment (years)",
+                       "gravidity" = "Gravidity"
+                       ))
+
+kable(table_preterm,
+      caption = "**Table 4a. Parsimonious Logistic Regression for Preterm Birth (N = 782)**",
+      col.names = c("Exposure and Adjustment Variables", "Adjusted Odds Ratio (aOR)", "95% CI (Lower)", "95% CI (Upper)", "p-value")) %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+# --- Create Stillbirth Table ---
+table_stillbirth <- data.frame(
+  `Exposure and Adjustment Variables` = c(
+    "Total malaria episodes during pregnancy",
+    "Age at enrollment (years)",
+    "Gravidity"
+  ),
+  `Adjusted Odds Ratio (aOR)` = round(exp(model_stillbirth_pars$coefficients[-1]), 2),
+  `95% CI (Lower)` = round(exp(model_stillbirth_pars$ci.lower[-1]), 2),
+  `95% CI (Upper)` = round(exp(model_stillbirth_pars$ci.upper[-1]), 2),
+  `p-value` = signif(model_stillbirth_pars$prob[-1], 3)
+)
+
+kable(table_stillbirth,
+      caption = "**Table 4b. Parsimonious Firth Logistic Regression for Stillbirth (N = 782)**") %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+# --- Poisson Regression Model (Malaria Episode Rate by Treatment Arm) ---
+model_poisson <- glm(
+  total_malaria_episodes_during_pregnancy ~ dp_treatment + age_at_enrollment_years + gravidity + education_level,
+  data = promo_data_clean,
+  family = poisson(link = "log")
+)
+
+summary_poisson <- tidy(model_poisson, exponentiate = TRUE, conf.int = TRUE)
+
+# --- Create Poisson Table ---
+table_poisson <- summary_poisson %>%
+  select(term, estimate, conf.low, conf.high, p.value) %>%
+  mutate(across(where(is.numeric), ~ round(., 2))) %>%
+  mutate(term = recode(term,
+                       "(Intercept)" = "Intercept",
+                       "dp_treatment" = "DP vs SP Treatment Arm",
+                       "age_at_enrollment_years" = "Age at enrollment (years)",
+                       "gravidity" = "Gravidity",
+                       "education_levelSecondary" = "Education: Secondary",
+                       "education_levelTertiary" = "Education: Tertiary",
+                       "education_levelUniversity" = "Education: University"
+                       ))
+
+kable(table_poisson,
+      caption = "**Table 4c. Poisson Regression – Malaria Episode Incidence by Treatment Arm (N = 782)**") %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+# --- Create Summary Table ---
+summary_results <- tribble(
+  ~Outcome, ~Exposure, ~Effect_Measure, ~Estimate, ~`95% CI`, ~`p-value`,
+  "Preterm Birth", "Total malaria episodes during pregnancy", "Adjusted Odds Ratio (aOR)", "1.04", "0.95–1.14", "0.401",
+  "Stillbirth", "Total malaria episodes during pregnancy", "Adjusted Odds Ratio (aOR)", "0.96", "0.83–1.10", "0.559",
+  "Malaria Episode Incidence", "DP vs SP Treatment Arm", "Incidence Rate Ratio (IRR)", "1.02", "0.92–1.12", "0.756"
+)
+
+kable(summary_results,
+      caption = "**Table 4d. Summary of Parsimonious Regression Analyses for Primary Outcomes**") %>%
+  kable_styling(full_width = FALSE, position = "center")
 
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
