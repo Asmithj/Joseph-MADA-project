@@ -20,25 +20,26 @@ execute:
 ---
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-# Load Required Libraries
-# Essential libraries for data handling, visualization, and analysis
+# Load Required Libraries for Data Handling, Visualization, and Analysis
 
 library(here)             # Manage file paths
-library(tidyverse)        # Core data wrangling: includes dplyr, ggplot2, readr, forcats, lubridate
-library(janitor)          # Cleaning column names
-library(skimr)            # Quick data summary
-library(gtsummary)        # Creating summary tables
-library(gt)               # Formatting tables
-library(knitr)            # Table formatting
-library(kableExtra)       # Additional table customization
+library(tidyverse)        # Core data wrangling and visualization (dplyr, ggplot2, readr, etc.)
+library(janitor)          # Clean and format column names
+library(skimr)            # Quick data summaries
+library(gtsummary)        # Create summary tables
+library(gt)               # Format tables
+library(knitr)            # R Markdown table formatting
+library(kableExtra)       # Enhanced table customization for kable output
 library(ggpubr)           # Publication-ready plots
-library(Amelia)           # Missing data visualization
-library(pwr)              # Power analysis
-library(DiagrammeR)       # Flowcharts/Diagrams
-library(survival)         # Survival analysis
-library(survminer)        # Survival plots
-library(flextable)
-library(webshot2)
+library(Amelia)           # Visualize missing data
+library(pwr)              # Perform power analyses
+library(DiagrammeR)       # Create flowcharts and diagrams
+library(survival)         # Survival analysis functions
+library(survminer)        # Visualize survival analysis results
+library(flextable)        # Create tables for Word output
+library(webshot2)         # Capture screenshots for HTML widgets in non-HTML outputs
+library(logistf)          # Penalized logistic regression (Firth’s method)
+
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
@@ -232,13 +233,26 @@ kable(
 
 *Table 3: Association Between Malaria Episodes and Risk of Stillbirth*
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
+# Ensure the logistf package is loaded
+library(logistf)
+
+# Optional: Check that required variables exist in the dataset
+required_vars <- c("stillbirth_bin", "total_malaria_episodes_during_pregnancy", 
+                   "age_at_enrollment_years", "gravidity", "parity", 
+                   "hypertension", "diabetes_mellitus")
+if(!all(required_vars %in% names(promo_data_clean))) {
+  missing_vars <- required_vars[!required_vars %in% names(promo_data_clean)]
+  stop("The following required variables are missing in promo_data_clean: ", paste(missing_vars, collapse=", "))
+}
+
 # Run parsimonious stillbirth model
-model_stillbirth_pars <- logistf(
+model_stillbirth_pars <- logistf::logistf(
   stillbirth_bin ~ total_malaria_episodes_during_pregnancy +
     age_at_enrollment_years + gravidity + parity +
     hypertension + diabetes_mellitus,
   data = promo_data_clean
 )
+
 
 # Extract and format results
 table_stillbirth_pars <- data.frame(
@@ -252,7 +266,7 @@ table_stillbirth_pars <- data.frame(
 # Remove the intercept row
 table_stillbirth_pars <- table_stillbirth_pars[table_stillbirth_pars$Variable != "(Intercept)", ]
 
-# Map raw variable names to clean, reader‐friendly labels
+# Map raw variable names to clean, reader-friendly labels
 variable_labels <- c(
   "total_malaria_episodes_during_pregnancy" = "Total malaria episodes during pregnancy",
   "age_at_enrollment_years" = "Age at enrollment (years)",
@@ -262,14 +276,12 @@ variable_labels <- c(
   "diabetes_mellitusYes" = "Diabetes mellitus"
 )
 
-# Replace raw names with neat labels; replace any NA with blank
+# Replace raw names with neat labels; replace any NA (i.e., unmapped) with blank
 table_stillbirth_pars$Variable <- variable_labels[table_stillbirth_pars$Variable]
 table_stillbirth_pars$Variable[is.na(table_stillbirth_pars$Variable)] <- ""
-
-# Remove any row names so only the column appears in the final table
 rownames(table_stillbirth_pars) <- NULL
 
-# Display table with consistent styling using kable with format "pandoc"
+# Display table using kable with pandoc format
 kable(
   table_stillbirth_pars,
   format = "pandoc",
@@ -298,11 +310,6 @@ A summary of these primary outcome analyses is presented in Table 4.
 
 &nbsp;
 &nbsp;
-
-
-
-
-
 
 
 
