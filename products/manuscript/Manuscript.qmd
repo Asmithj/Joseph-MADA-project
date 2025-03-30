@@ -7,7 +7,7 @@ format:
     number-sections: true
     prefer-html: true
     highlight-style: github
-    output-dir: "products/manuscript"
+output-dir: "C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-project/products/manuscript"
 bibliography: ../../assets/dataanalysis-references.bib
 csl: ../../assets/american-journal-of-epidemiology.csl
 ---
