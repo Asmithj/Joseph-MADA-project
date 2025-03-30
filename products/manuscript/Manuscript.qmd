@@ -39,8 +39,6 @@ PROMO_Data <- read_csv(here("data", "raw-data", "PROMO_Data.csv"))
 
 
 promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
-
-
 ```
 
 **Authors**
@@ -121,13 +119,9 @@ This section will assess whether placental malaria is associated with preterm bi
 
 Table 1. Baseline Characteristics of IPTp Trial Participants
 
-```{r, echo=FALSE, eval=knitr::is_html_output(), message=FALSE, warning=FALSE}
-library(flextable)
-table_data %>%
-  flextable() %>%
-  autofit()
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
-# Create table_data as before:
+# Create table data
 table_data <- tribble(
   ~Characteristic, ~Subcategory, ~`Monthly SP (n=391)`, ~`Monthly DP (n=391)`,
   "Age, years", "", "23 (19–27)", "23 (19–27)",
@@ -153,10 +147,24 @@ table_data <- tribble(
   "", "University", "66 (16.8%)", "70 (18.0%)"
 )
 
-# Render the table with pandoc format:
-kable(table_data, format = "pandoc", caption = "Table 1. Baseline Characteristics")
+# Render the table in DOCX-compatible format
+kable(
+  table_data,
+  format = "pandoc",
+  caption =
+)
 
 ```
+
+
+
+
+
+
+
+
+
+
 
 Figure 1: Distribution of Total Malaria Episodes
 
