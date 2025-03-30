@@ -1,0 +1,447 @@
+---
+title: "The Impact of Malaria Episodes and Treatment Regimens on Adverse Pregnancy Outcomes in Ugandan Women"
+author: "Asmith Joseph"
+date: "2025-02-23"
+output: html_document
+---
+
+
+
+```{r}
+# **1. Load Required Libraries**
+# Essential libraries for data handling, visualization, and analysis
+
+library(here)             # Manage file paths
+library(dplyr)            # Data manipulation
+library(ggplot2)          # Visualization
+library(tidyverse)        # Data wrangling and cleaning
+library(janitor)          # Cleaning column names
+library(skimr)            # Quick data summary
+library(lubridate)        # Working with dates
+library(readr)            # Reading CSV files
+library(gtsummary)        # Creating summary tables
+library(gt)               # Formatting tables
+library(knitr)            # Table formatting
+library(kableExtra)       # Additional table customization
+library(ggpubr)           # Publication-ready plots
+library(Amelia)           # Missing data visualization
+library(forcats)          # Working with categorical variables
+library(pwr)              # Power analysis
+library(DiagrammeR)       # Flowcharts/Diagrams
+library(survival)         # Survival analysis
+library(survminer)        # Survival plots
+```
+
+
+
+```{r}
+# Load the here package
+library(here)
+
+# Construct the relative file path and import the CSV data
+promo_data <- read.csv(here("data", "raw-data", "PROMO_Data.csv"))
+
+# View the first few rows of the data
+head(promo_data)
+
+```
+
+
+
+
+
+
+
+
+## Part 2: Data Loading, Cleaning, Wrangling, and Exploratory Analysis
+
+
+# Data Cleaning & Transformation
+```{r}
+# Display the structure of the data
+str(promo_data)
+
+# Print the column names
+colnames(promo_data)
+
+# Display the first few rows of the data
+head(promo_data)
+
+# Provide summary statistics for each variable
+summary(promo_data)
+
+```
+
+
+
+
+
+```{r}
+# Import the CSV data using here
+promo_data <- read.csv(here("data", "raw-data", "PROMO_Data.csv"))
+
+# Clean column names (all lower-case with underscores)
+promo_data_clean <- promo_data %>% 
+  clean_names()
+
+# Convert date columns to Date objects
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    enrollment_date = as.Date(enrollment_date, format = "%Y-%m-%d"),
+    withdrawal_date = as.Date(withdrawal_date, format = "%Y-%m-%d"),
+    child_withdrawal_date = as.Date(child_withdrawal_date, format = "%Y-%m-%d")
+  )
+
+# Convert key categorical variables to factors
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    study_arm = as.factor(study_arm),
+    fathers_consent_for_unborn_child = as.factor(fathers_consent_for_unborn_child),
+    education_level = as.factor(education_level),
+    alcohol_use = as.factor(alcohol_use),
+    tobacco_use = as.factor(tobacco_use),
+    drug_use = as.factor(drug_use),
+    hypertension = as.factor(hypertension),
+    diabetes_mellitus = as.factor(diabetes_mellitus),
+    rheumatic_fever = as.factor(rheumatic_fever),
+    cardiac_disease = as.factor(cardiac_disease),
+    renal_disease = as.factor(renal_disease),
+    asthma = as.factor(asthma),
+    sickle_cell_disease = as.factor(sickle_cell_disease),
+    placental_malaria = as.factor(placental_malaria),
+    preeclampsia = as.factor(preeclampsia),
+    dp_treatment = as.factor(dp_treatment)
+  )
+
+# Check for missing values in each column
+missing_values <- sapply(promo_data_clean, function(x) sum(is.na(x)))
+print(missing_values)
+
+# View a summary of the cleaned data
+summary(promo_data_clean)
+
+```
+
+
+
+
+```{r}
+# Ensure the 'data/clean' directory exists
+if (!dir.exists(here("data", "clean"))) {
+  dir.create(here("data", "clean"), recursive = TRUE)
+}
+
+# Save the cleaned data
+write.csv(promo_data_clean, here("data", "clean", "PROMO_Data_clean.csv"), row.names = FALSE)
+
+
+# Read in the cleaned data
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+
+
+```
+
+
+# Exploratory Data Analysis
+
+
+```{r}
+# Load required packages
+library(ggplot2)
+
+# Create a histogram of total malaria episodes
+ggplot(data = promo_data_clean, aes(x = total_malaria_episodes)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(
+    title = "Distribution of Total Malaria Episodes",
+    x = "Total Malaria Episodes",
+    y = "Count"
+  )
+
+```
+
+
+
+
+
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(here)
+
+# Read in the cleaned data
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+
+# Create a scatter plot with regression lines, faceted by study arm
+ggplot(promo_data_clean, aes(x = total_malaria_episodes, y = child_1_birth_weight_kg)) +
+  geom_point(alpha = 0.7, color = "darkblue") +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  facet_wrap(~ study_arm) +
+  labs(
+    title = "Malaria Episodes vs. Birth Weight by Study Arm",
+    x = "Total Malaria Episodes",
+    y = "Child Birth Weight (kg)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+```
+
+
+
+```{r}
+# Load required packages
+library(here)
+library(dplyr)
+library(ggplot2)
+library(corrplot)
+
+# Read in the cleaned data
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+
+## 1. Univariate Analysis
+
+# Histogram: Distribution of Age at Enrollment
+ggplot(promo_data_clean, aes(x = age_at_enrollment_years)) +
+  geom_histogram(binwidth = 5, fill = "lightblue", color = "black") +
+  labs(title = "Distribution of Age at Enrollment",
+       x = "Age (years)", y = "Count")
+
+# Histogram: Distribution of Gestational Age at Enrollment
+# Adjust the variable name if necessary after cleaning (e.g., gestational_age_at_enrollment_weeks)
+ggplot(promo_data_clean, aes(x = gestational_age_at_enrollment_weeks)) +
+  geom_histogram(binwidth = 2, fill = "lightgreen", color = "black") +
+  labs(title = "Distribution of Gestational Age at Enrollment",
+       x = "Gestational Age (weeks)", y = "Count")
+
+# Histogram: Distribution of Total Malaria Episodes
+ggplot(promo_data_clean, aes(x = total_malaria_episodes)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Distribution of Total Malaria Episodes",
+       x = "Total Malaria Episodes", y = "Count")
+
+# Bar Plot: Counts of Study Arm
+ggplot(promo_data_clean, aes(x = study_arm)) +
+  geom_bar(fill = "skyblue") +
+  labs(title = "Counts by Study Arm", x = "Study Arm", y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Bar Plot: Counts of Adverse Outcomes (assumed to be coded as 0/1)
+ggplot(promo_data_clean, aes(x = factor(adverse_outcome))) +
+  geom_bar(fill = "salmon") +
+  labs(title = "Counts of Adverse Outcomes",
+       x = "Adverse Outcome (0 = No, 1 = Yes)", y = "Count")
+
+## 2. Bivariate Analysis
+
+# Boxplot: Total Malaria Episodes by Adverse Outcome
+ggplot(promo_data_clean, aes(x = factor(adverse_outcome), y = total_malaria_episodes)) +
+  geom_boxplot(fill = "lightgray") +
+  labs(title = "Malaria Episodes by Adverse Outcome",
+       x = "Adverse Outcome (0 = No, 1 = Yes)",
+       y = "Total Malaria Episodes")
+
+# Boxplot: Total Malaria Episodes by Study Arm
+ggplot(promo_data_clean, aes(x = study_arm, y = total_malaria_episodes)) +
+  geom_boxplot(fill = "lightblue") +
+  labs(title = "Malaria Episodes by Study Arm",
+       x = "Study Arm",
+       y = "Total Malaria Episodes") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Contingency Table: Study Arm vs. Adverse Outcome
+study_adverse_table <- table(promo_data_clean$study_arm, promo_data_clean$adverse_outcome)
+print(study_adverse_table)
+
+# Stacked Bar Plot: Proportion of Adverse Outcomes by Study Arm
+ggplot(promo_data_clean, aes(x = study_arm, fill = factor(adverse_outcome))) +
+  geom_bar(position = "fill") +
+  labs(title = "Proportion of Adverse Outcomes by Study Arm",
+       x = "Study Arm", y = "Proportion", fill = "Adverse Outcome") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+## 3. Multivariate/Correlation Analysis
+
+# Select continuous variables of interest
+continuous_vars <- promo_data_clean %>%
+  select(age_at_enrollment_years, gestational_age_at_enrollment_weeks, 
+         total_malaria_episodes, child_1_birth_weight_kg)
+
+# Compute correlation matrix (using complete observations)
+cor_matrix <- cor(continuous_vars, use = "complete.obs")
+print(cor_matrix)
+
+# Visualize the correlation matrix
+corrplot(cor_matrix, method = "circle", type = "upper")
+
+## 4. Visual Exploration with Scatter Plots
+
+# Scatter Plot: Total Malaria Episodes vs. Child Birth Weight, with regression line and faceting by Study Arm
+ggplot(promo_data_clean, aes(x = total_malaria_episodes, y = child_1_birth_weight_kg)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  facet_wrap(~ study_arm) +
+  labs(title = "Malaria Episodes vs. Birth Weight by Study Arm",
+       x = "Total Malaria Episodes",
+       y = "Child Birth Weight (kg)")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+# Install the tableone package if not already installed
+if (!requireNamespace("tableone", quietly = TRUE)) {
+  install.packages("tableone")
+}
+
+library(tableone)
+library(here)
+
+# Read in the cleaned data
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+
+# Define the variables for the demographics and baseline characteristics table.
+# Adjust or add variables based on your dataset.
+vars <- c("age_at_enrollment_years", 
+          "gestational_age_at_enrollment_weeks", 
+          "education_level", 
+          "gravidity", 
+          "parity")
+
+# Optionally, you can stratify by a key categorical variable such as study_arm.
+# If you wish to present separate summaries for each study arm, set the stratification variable.
+strata <- "study_arm"
+
+# Create the TableOne object
+table1 <- CreateTableOne(vars = vars, strata = strata, data = promo_data_clean, factorVars = c("education_level", "study_arm"))
+
+# Print the table with all levels displayed
+print(table1, showAllLevels = TRUE)
+
+```
+
+
+
+
+
+```{r}
+# Load required packages
+library(tibble)
+library(knitr)
+library(kableExtra)
+
+# Create table data using tribble.
+# Each row must have exactly 4 cells.
+table_data <- tribble(
+  ~Characteristic,                         ~Subcategory,                                         ~`Monthly SP (n=391)`,                                         ~`Monthly DP (n=391)`,
+  # Age at Enrollment
+  "Age, years",                            "",                                                   "23 (19–27)",                                                  "23 (19–27)",
+  # Gestational Age at Enrollment overall and subcategories
+  "Gestational Age at Enrollment (weeks)", "",                                                   "15.4 (13.3–17.6)",                                              "15.0 (13.4–17.1)",
+  "",                                      "12–16",                                              "66 (17%)",                                                    "62 (15.8%)",
+  "",                                      "17–20",                                              "164 (42.2%)",                                                 "197 (50.1%)",
+  "",                                      "21–24",                                              "133 (34.2%)",                                                 "118 (30%)",
+  # Gravidity overall and subcategories
+  "Gravidity",                             "",                                                   "1.2 (0.9–1.7)",                                                 "1.1 (0.8–1.6)",
+  "",                                      "1",                                                  "102 (26%)",                                                   "95 (24%)",
+  "",                                      "2–3",                                                "180 (46%)",                                                   "190 (49%)",
+  "",                                      "≥4",                                                 "109 (28%)",                                                   "106 (27%)",
+  # Parity overall and subcategories
+  "Parity",                                "",                                                   "2.43 (1.67)",                                                   "2.43 (1.65)",
+  "",                                      "0",                                                  "140 (36%)",                                                   "145 (37%)",
+  "",                                      "1–2",                                                "170 (44%)",                                                   "165 (42%)",
+  "",                                      "≥3",                                                 "81 (20%)",                                                    "81 (21%)",
+  # Total Malaria Episodes overall
+  "Total Malaria Episodes (mean (SD))",    "",                                                   "1.06 (1.03)",                                                 "0.98 (0.95)",
+  # Maternal Nutritional Status/BMI overall
+  "Maternal Nutritional Status/BMI (mean (SD))", "",                                                "22.5 (3.2)",                                                  "22.8 (3.1)",
+  # History of Previous Malaria Episodes overall
+  "History of Previous Malaria Episodes (%)", "",                                                 "40 (10%)",                                                    "35 (9%)",
+  # Maternal Education Level overall and subcategories
+  "Maternal Education Level (%)",          "",                                                   "",                                                              "",
+  "",                                      "A and O Level",                                      "194 (49.4%)",                                                 "187 (48.1%)",
+  "",                                      "Primary",                                            "68 (17.3%)",                                                  "71 (18.3%)",
+  "",                                      "Tertiary",                                           "65 (16.5%)",                                                  "61 (15.7%)",
+  "",                                      "University",                                         "66 (16.8%)",                                                  "70 (18.0%)"
+)
+
+# Render the table using kableExtra
+kbl(
+  table_data,
+  col.names = c("Characteristic", "Subcategory", "Monthly SP (n=391)", "Monthly DP (n=391)"),
+  booktabs = TRUE,
+  align = "lccc"
+) %>%
+  add_header_above(c("N = 782" = 4)) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover")) %>%
+  # Merge sub-rows for Gestational Age at Enrollment:
+  # Overall row is row 2; subcategory rows are rows 3-5
+  pack_rows("Gestational Age at Enrollment (weeks)", start_row = 2, end_row = 5, indent = TRUE) %>%
+  # Merge sub-rows for Gravidity:
+  # Overall row is row 6; subcategory rows are rows 7-9
+  pack_rows("Gravidity", start_row = 6, end_row = 9, indent = TRUE) %>%
+  # Merge sub-rows for Parity:
+  # Overall row is row 10; subcategory rows are rows 11-13
+  pack_rows("Parity", start_row = 10, end_row = 13, indent = TRUE) %>%
+  # Merge sub-rows for Maternal Education Level:
+  # Overall row is row 17; subcategory rows are rows 18-21
+  pack_rows("Maternal Education Level (%)", start_row = 17, end_row = 21, indent = TRUE)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(here)
+
+# Read in the cleaned data
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+
+# Create a stacked bar plot for adverse outcomes by study arm
+ggplot(promo_data_clean, aes(x = study_arm, fill = factor(adverse_outcome))) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Proportion of Adverse Outcomes by Treatment Arm",
+    x = "Treatment Arm",
+    y = "Percentage",
+    fill = "Adverse Outcome\n(0 = No, 1 = Yes)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+

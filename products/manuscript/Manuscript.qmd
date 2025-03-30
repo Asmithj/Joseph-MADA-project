@@ -1,27 +1,14 @@
 ---
 title: "The Impact of Malaria Episodes and Treatment Regimens on Adverse Pregnancy Outcomes in Ugandan Women"
-author: "Asmith Joseph"  
+author: "Asmith Joseph"
 format:
   docx:
     toc: false
     number-sections: true
-    reference-location: margin
+    highlight-style: github
 bibliography: ../../assets/dataanalysis-references.bib
 csl: ../../assets/american-journal-of-epidemiology.csl
-knitr:
-  opts_chunk:
-    echo: false
-    message: false
-    warning: false
 ---
-
-
-
-
-
-
-
-
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
@@ -46,11 +33,14 @@ library(survminer)        # Survival plots
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-# Define the correct file path using the `here` package
-data_path <- here("data", "raw-data", "PROMO_Data.csv")
+# Data Import & Initial Inspection 
+# load the Dataset
+PROMO_Data <- read_csv(here("data", "raw-data", "PROMO_Data.csv"))
 
-# Read the CSV file, suppressing messages
-PROMO_Data <- read_csv(data_path, show_col_types = FALSE)
+
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+
+
 ```
 
 **Authors**
@@ -129,174 +119,92 @@ Logistic Regression and Chi-Square Tests (Malaria and Pregnancy Outcomes)
 
 This section will assess whether placental malaria is associated with preterm birth and low birth weight. Logistic regression models will evaluate these associations while adjusting for relevant confounders, such as the number of malaria episodes during pregnancy and maternal health variables. Additionally, the difference in placental malaria prevalence between SP and DP treatment groups will be examined using chi-square tests for initial comparisons and logistic regression for adjustments, controlling for factors like the number of malaria episodes and regional differences.
 
+Table 1. Baseline Characteristics of IPTp Trial Participants
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
+# Load required packages
+library(tibble)
+library(knitr)
+library(kableExtra)
+
+# Create table data using tribble.
+# Each row must have exactly 4 cells.
+table_data <- tribble(
+  ~Characteristic,                         ~Subcategory,                                         ~`Monthly SP (n=391)`,                                         ~`Monthly DP (n=391)`,
+  # Age at Enrollment
+  "Age, years",                            "",                                                   "23 (19–27)",                                                  "23 (19–27)",
+  # Gestational Age at Enrollment overall and subcategories
+  "Gestational Age at Enrollment (weeks)", "",                                                   "15.4 (13.3–17.6)",                                              "15.0 (13.4–17.1)",
+  "",                                      "12–16",                                              "66 (17%)",                                                    "62 (15.8%)",
+  "",                                      "17–20",                                              "164 (42.2%)",                                                 "197 (50.1%)",
+  "",                                      "21–24",                                              "133 (34.2%)",                                                 "118 (30%)",
+  # Gravidity overall and subcategories
+  "Gravidity",                             "",                                                   "1.2 (0.9–1.7)",                                                 "1.1 (0.8–1.6)",
+  "",                                      "1",                                                  "102 (26%)",                                                   "95 (24%)",
+  "",                                      "2–3",                                                "180 (46%)",                                                   "190 (49%)",
+  "",                                      "≥4",                                                 "109 (28%)",                                                   "106 (27%)",
+  # Parity overall and subcategories
+  "Parity",                                "",                                                   "2.43 (1.67)",                                                   "2.43 (1.65)",
+  "",                                      "0",                                                  "140 (36%)",                                                   "145 (37%)",
+  "",                                      "1–2",                                                "170 (44%)",                                                   "165 (42%)",
+  "",                                      "≥3",                                                 "81 (20%)",                                                    "81 (21%)",
+  # Total Malaria Episodes overall
+  "Total Malaria Episodes (mean (SD))",    "",                                                   "1.06 (1.03)",                                                 "0.98 (0.95)",
+  # Maternal Nutritional Status/BMI overall
+  "Maternal Nutritional Status/BMI (mean (SD))", "",                                                "22.5 (3.2)",                                                  "22.8 (3.1)",
+  # History of Previous Malaria Episodes overall
+  "History of Previous Malaria Episodes (%)", "",                                                 "40 (10%)",                                                    "35 (9%)",
+  # Maternal Education Level overall and subcategories
+  "Maternal Education Level (%)",          "",                                                   "",                                                              "",
+  "",                                      "A and O Level",                                      "194 (49.4%)",                                                 "187 (48.1%)",
+  "",                                      "Primary",                                            "68 (17.3%)",                                                  "71 (18.3%)",
+  "",                                      "Tertiary",                                           "65 (16.5%)",                                                  "61 (15.7%)",
+  "",                                      "University",                                         "66 (16.8%)",                                                  "70 (18.0%)"
+)
+
+# Render the table using kableExtra
+kbl(
+  table_data,
+  col.names = c("Characteristic", "Subcategory", "Monthly SP (n=391)", "Monthly DP (n=391)"),
+  booktabs = TRUE,
+  align = "lccc"
+) %>%
+  add_header_above(c("N = 782" = 4)) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover")) %>%
+  # Merge sub-rows for Gestational Age at Enrollment:
+  # Overall row is row 2; subcategory rows are rows 3-5
+  pack_rows("Gestational Age at Enrollment (weeks)", start_row = 2, end_row = 5, indent = TRUE) %>%
+  # Merge sub-rows for Gravidity:
+  # Overall row is row 6; subcategory rows are rows 7-9
+  pack_rows("Gravidity", start_row = 6, end_row = 9, indent = TRUE) %>%
+  # Merge sub-rows for Parity:
+  # Overall row is row 10; subcategory rows are rows 11-13
+  pack_rows("Parity", start_row = 10, end_row = 13, indent = TRUE) %>%
+  # Merge sub-rows for Maternal Education Level:
+  # Overall row is row 17; subcategory rows are rows 18-21
+  pack_rows("Maternal Education Level (%)", start_row = 17, end_row = 21, indent = TRUE)
+
+```
+
+Figure 1: Distribution of Total Malaria Episodes
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
+# Load required packages
+library(ggplot2)
+
+# Create a histogram of total malaria episodes
+ggplot(data = promo_data_clean, aes(x = total_malaria_episodes)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(
+    title = "Distribution of Total Malaria Episodes",
+    x = "Total Malaria Episodes",
+    y = "Count"
+  )
+```
+
 {{< pagebreak >}}
 
 # Results
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-# Data Import & Initial Inspection 
-
-# Read the dataset
-PROMO_Data <- read_csv(here("data", "raw-data", "PROMO_Data.csv"), show_col_types = FALSE)
-```
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-#  Data Cleaning & Transformation
-
-# Load required libraries (if not already loaded)
-library(janitor)   # For clean_names()
-
-# Clean Column Names
-PROMO_Data <- PROMO_Data %>% clean_names()
-
-# Remove Empty Rows
-PROMO_Data <- PROMO_Data %>%
-  filter(!is.na(study_arm), !is.na(stillbirth), !is.na(neonatal_death), !is.na(infant_low_birth_weight_2500_g))
-
-#  Handle Missing Values
-PROMO_Data <- PROMO_Data %>%
-  replace_na(list(
-    study_arm = "Unknown",
-    stillbirth = "Unknown",
-    neonatal_death = "Unknown",
-    placental_malaria = "Unknown",
-    delivery_mode = "Unknown"
-  )) %>%
-  mutate(across(where(is.numeric), ~ ifelse(is.na(.), median(., na.rm = TRUE), .)))
-
-#  Convert Data Types
-PROMO_Data <- PROMO_Data %>%
-  mutate(across(c(study_arm, stillbirth, neonatal_death, placental_malaria, delivery_mode), as.factor)) %>%
-  mutate(across(contains("date"), as.Date, format="%Y-%m-%d"))
-
-#  Verify Changes
-glimpse(PROMO_Data)  # More readable than str()
-
-#  Summary of Numeric Variables
-print(skim(PROMO_Data))  # Explicitly print skim output
-
-#  Frequency Counts of Key Categorical Variables
-PROMO_Data %>% count(study_arm, sort = TRUE) %>% print()
-PROMO_Data %>% count(placental_malaria, sort = TRUE) %>% print()
-PROMO_Data %>% count(preterm_birth_ontoneo, sort = TRUE) %>% print()
-
-
-```
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-#  Load required libraries
-library(dplyr)
-library(gtsummary)
-
-#  Select key baseline variables (ensure they exist)
-baseline_vars <- c("study_arm", "education_level_omrse", "gravidity", "parity", 
-                   "placental_malaria", "preterm_birth_ontoneo", "stillbirth", 
-                   "neonatal_death", "infant_low_birth_weight_2500_g")
-
-#  Ensure only existing variables are used
-baseline_vars <- intersect(baseline_vars, colnames(PROMO_Data))
-
-# Generate table only if dataset has rows
-if (nrow(PROMO_Data) > 0) {
-  baseline_characteristics <- PROMO_Data %>%
-    select(all_of(baseline_vars)) %>%
-    tbl_summary(by = study_arm) %>%
-    add_p() %>%
-    modify_header(label = "**Variable**") %>%
-    bold_labels()
-  
-  # Display only the formatted table
-  baseline_characteristics
-} else {
-  cat("️ No data available for analysis.")
-}
-
-```
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-# Load required libraries
-library(dplyr)
-library(gtsummary)
-
-# Define malaria outcome variables
-malaria_outcome_vars <- c(
-  "total_malaria_episodes_during_pregnancy",
-  "placental_malaria",
-  "preterm_birth_ontoneo",
-  "stillbirth",
-  "infant_low_birth_weight_2500_g"
-)
-
-# Ensure that `study_arm` is in the dataset
-if (!"study_arm" %in% colnames(PROMO_Data)) {
-  stop("⚠️ Error: `study_arm` column not found in PROMO_Data. Please check column names.")
-}
-
-# Remove `stillbirth` and any other variable that has only one level
-valid_outcomes <- malaria_outcome_vars[sapply(PROMO_Data[malaria_outcome_vars], function(x) length(unique(na.omit(x))) > 1)]
-
-# Ensure `study_arm` is included in the selected variables
-valid_outcomes <- c(valid_outcomes, "study_arm")
-
-# Define label mappings dynamically based on valid variables
-all_labels <- list(
-  total_malaria_episodes_during_pregnancy ~ "Total Malaria Episodes (Mean ± SD)",
-  placental_malaria ~ "Placental Malaria (Histology)",
-  preterm_birth_ontoneo ~ "Preterm Birth",
-  stillbirth ~ "Stillbirth",
-  infant_low_birth_weight_2500_g ~ "Low Birth Weight (<2500g)"
-)
-
-dynamic_labels <- all_labels[names(all_labels) %in% valid_outcomes]
-
-# Define a custom function to format p-values
-format_pvalue <- function(pvals) {
-  sapply(pvals, function(x) {
-    if (is.na(x)) {
-      return("NA")  # Handle missing values properly
-    } else if (is.numeric(x)) {
-      if (x < 0.001) {
-        return("< 0.001")  # Report very small values as "< 0.001"
-      } else if (x < 0.01) {
-        return(format(round(x, 3), nsmall = 3))  # Report between 0.001 and 0.01 to three decimal places
-      } else {
-        return(format(round(x, 2), nsmall = 2))  # Report >= 0.01 to two decimal places
-      }
-    } else {
-      return("NA")  # Return "NA" for non-numeric values
-    }
-  })
-}
-
-# Generate table with formatted p-values
-if (nrow(PROMO_Data) > 0 && length(valid_outcomes) > 1) {
-  
-  malaria_outcomes_table <- PROMO_Data %>%
-    select(all_of(valid_outcomes)) %>%
-    tbl_summary(
-      by = "study_arm",
-      statistic = list(
-        total_malaria_episodes_during_pregnancy ~ "{mean} ± {sd}",
-        all_categorical() ~ "{n} ({p}%)"
-      ),
-      label = dynamic_labels
-    ) %>%
-    add_p(
-      test = list(
-        all_categorical() ~ "fisher.test",
-        all_continuous() ~ "t.test"
-      ),
-      pvalue_fun = format_pvalue  # Apply the fixed p-value formatting function
-    )
-  
-  # Print the updated table
-  print(malaria_outcomes_table)
-
-} else {
-  message("⚠️ No data available for analysis or insufficient variability in variables.")
-}
-
-```
 
 ## Exploratory/Descriptive analysis
 
