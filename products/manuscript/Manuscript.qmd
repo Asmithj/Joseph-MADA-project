@@ -182,9 +182,6 @@ kable(
 
 **Figure 1: Distribution of Total Malaria Episodes**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-# Load required packages
-library(ggplot2)
-
 # Create a histogram of total malaria episodes
 ggplot(data = promo_data_clean, aes(x = total_malaria_episodes)) +
   geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
@@ -203,7 +200,7 @@ ggplot(data = promo_data_clean, aes(x = total_malaria_episodes)) +
 
 *Table 2: Association Between Malaria Episodes and Risk of Preterm Birth*
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Create cleaned table for Table 2
+
 table_preterm_pars_clean <- tribble(
   ~Variable, ~`Adjusted Odds Ratio (aOR)`, ~`95% CI Lower`, ~`95% CI Upper`, ~`p-value`,
   "Total malaria episodes during pregnancy", 1.04, 0.95, 1.14, 0.401,
@@ -215,9 +212,12 @@ table_preterm_pars_clean <- tribble(
 )
 
 # Display table with consistent styling
-kable(table_preterm_pars_clean,
-      caption = "",
-      col.names = c("", "Adjusted Odds Ratio (aOR)", "95% CI Lower", "95% CI Upper", "p-value")) %>%
+kable(
+  table_preterm_pars_clean,
+  format = "pandoc",
+  caption = "*Table 2: Association Between Malaria Episodes and Risk of Preterm Birth*",
+  col.names = c("Exposure and Adjustment Variables", "Adjusted Odds Ratio (aOR)", "95% CI Lower", "95% CI Upper", "p-value")
+) %>%
   kable_styling(full_width = FALSE, position = "center")
 
 ```
@@ -232,8 +232,6 @@ kable(table_preterm_pars_clean,
 
 *Table 3: Association Between Malaria Episodes and Risk of Stillbirth*
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-library(logistf)
-
 # Run parsimonious stillbirth model
 model_stillbirth_pars <- logistf(
   stillbirth_bin ~ total_malaria_episodes_during_pregnancy +
@@ -264,18 +262,20 @@ variable_labels <- c(
   "diabetes_mellitusYes" = "Diabetes mellitus"
 )
 
-# Replace raw names with neat labels; replace any NA (i.e., unmapped) with blank
+# Replace raw names with neat labels; replace any NA with blank
 table_stillbirth_pars$Variable <- variable_labels[table_stillbirth_pars$Variable]
 table_stillbirth_pars$Variable[is.na(table_stillbirth_pars$Variable)] <- ""
 
 # Remove any row names so only the column appears in the final table
 rownames(table_stillbirth_pars) <- NULL
 
-# Display table with consistent styling and without row names
-kable(table_stillbirth_pars,
-      row.names = FALSE,
-      caption = "*Table 3: Stillbirth Model*",
-      col.names = c("Exposure and Adjustment Variables", "Adjusted Odds Ratio (aOR)", "95% CI Lower", "95% CI Upper", "p-value")) %>%
+# Display table with consistent styling using kable with format "pandoc"
+kable(
+  table_stillbirth_pars,
+  format = "pandoc",
+  caption = "*Table 3: Association Between Malaria Episodes and Risk of Stillbirth*",
+  col.names = c("Exposure and Adjustment Variables", "Adjusted Odds Ratio (aOR)", "95% CI Lower", "95% CI Upper", "p-value")
+) %>%
   kable_styling(full_width = FALSE, position = "center")
 
 ```
