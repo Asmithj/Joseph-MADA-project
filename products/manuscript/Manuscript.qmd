@@ -6,6 +6,7 @@ format:
     toc: false
     number-sections: true
     highlight-style: github
+output-dir: "C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-project/products/manuscript"
 bibliography: ../../assets/dataanalysis-references.bib
 csl: ../../assets/american-journal-of-epidemiology.csl
 ---
@@ -122,6 +123,8 @@ This section will assess whether placental malaria is associated with preterm bi
 Table 1. Baseline Characteristics of IPTp Trial Participants
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
+# Code that generates HTML widget or output
+
 # Load required packages
 library(tibble)
 library(knitr)
@@ -189,6 +192,8 @@ kbl(
 Figure 1: Distribution of Total Malaria Episodes
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
+# Code that generates HTML widget or output
+
 # Load required packages
 library(ggplot2)
 
