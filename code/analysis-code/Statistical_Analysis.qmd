@@ -519,13 +519,85 @@ kable(summary_results,
 
 
 
+```{r}
+colnames(promo_data_clean)
+```
+
+
+
+```{r}
+# Run Poisson regression model using study_arm as the treatment variable
+model_poisson <- glm(total_malaria_episodes ~ study_arm + age_at_enrollment_years + gravidity + education_level,
+                     family = poisson(link = "log"), data = promo_data_clean)
+
+# Load broom package to tidy up the model output
+library(broom)
+model_summary <- tidy(model_poisson, exponentiate = TRUE, conf.int = TRUE)
+
+# Print model summary for reference (optional)
+print(model_summary)
+
+# Extract the treatment effect using the correct term name ("study_armSP")
+treatment_effect <- model_summary %>% dplyr::filter(term == "study_armSP")
+
+# Check if the treatment_effect is found; if not, stop with a message
+if(nrow(treatment_effect) == 0) {
+  stop("Treatment effect not found. Please verify the levels and names of the 'study_arm' variable.")
+}
+
+# Create a table with key statistics
+table_poisson <- data.frame(
+  "Exposure and Adjustment Variables" = "Treatment (DP vs SP)",
+  "Incidence Rate Ratio (IRR)" = round(treatment_effect$estimate, 2),
+  "95% CI Lower" = round(treatment_effect$conf.low, 2),
+  "95% CI Upper" = round(treatment_effect$conf.high, 2),
+  "p-value" = signif(treatment_effect$p.value, 3)
+)
+
+# Render the table using kable with Pandoc format
+kable(
+  table_poisson,
+  format = "pandoc",
+  caption = "*Table 4c: Effect of Treatment Arm on Malaria Episode Incidence*",
+  col.names = c("Exposure and Adjustment Variables", "Incidence Rate Ratio (IRR)", "95% CI Lower", "95% CI Upper", "p-value")
+) %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+```
 
 
 
 
+```{r}
+# Create a data frame with refined variable names
+table_model_refined <- data.frame(
+  Variable = c("Intercept", 
+               "Treatment Arm (SP vs. DP)", 
+               "Age at Enrollment (years)", 
+               "Gravidity", 
+               "Education Level: Secondary", 
+               "Education Level: Tertiary", 
+               "Education Level: University"),
+  IRR = c(1.6081682, 1.0552044, 0.9942737, 1.0095680, 0.9884423, 0.8900707, 1.0363703),
+  `95% CI Lower` = c(1.1297705, 0.9382987, 0.9825662, 0.9675647, 0.8348897, 0.7505115, 0.8805393),
+  `95% CI Upper` = c(2.280714, 1.186523, 1.006133, 1.053391, 1.170522, 1.055600, 1.220799),
+  `p-value` = c(0.008021017, 0.369364418, 0.342231948, 0.660449862, 0.892661838, 0.180547176, 0.668035030)
+)
 
+# Remove the intercept row if not required for presentation
+table_model_refined <- table_model_refined[table_model_refined$Variable != "Intercept", ]
 
+# Render the table using knitr::kable without row numbers
+library(knitr)
+kable(
+  table_model_refined,
+  format = "pandoc",
+  caption = "*Poisson Regression Analysis of Malaria Episode Incidence among Pregnant Women*",
+  col.names = c("", "IRR", "95% CI Lower", "95% CI Upper", "p-value"),
+  row.names = FALSE
+)
 
+```
 
 
 
