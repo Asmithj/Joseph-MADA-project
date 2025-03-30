@@ -224,6 +224,15 @@ kable(table_preterm_pars_clean,
       col.names = c("", "Adjusted Odds Ratio (aOR)", "95% CI Lower", "95% CI Upper", "p-value")) %>%
   kable_styling(full_width = FALSE, position = "center")
 
+
+kable(
+  table_data,
+  format = "pandoc",
+  caption =
+) %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+
 ```
 
 
@@ -235,7 +244,7 @@ kable(table_preterm_pars_clean,
 
 
 *Table 3: Association Between Malaria Episodes and Risk of Stillbirth*
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # – Stillbirth Model 
 library(logistf)
 
@@ -260,6 +269,15 @@ table_stillbirth_pars <- data.frame(
 kable(table_stillbirth_pars,
       caption = "**") %>%
   kable_styling(full_width = FALSE, position = "center")
+
+kable(
+  table_data,
+  format = "pandoc",
+  caption =
+) %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+
 
 ```
 
