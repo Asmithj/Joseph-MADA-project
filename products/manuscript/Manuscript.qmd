@@ -1,13 +1,22 @@
 ---
 title: "The Impact of Malaria Episodes and Treatment Regimens on Adverse Pregnancy Outcomes in Ugandan Women"
 author: "Asmith Joseph"
+bibliography: "../../assets/dataanalysis-references.bib"
+csl: "../../assets/american-journal-of-epidemiology.csl"
+
 format:
   docx:
-    toc: false
+    toc: true
     number-sections: true
-    highlight-style: github
-bibliography: ../../assets/dataanalysis-references.bib
-csl: ../../assets/american-journal-of-epidemiology.csl
+    output-file: "Manuscript.docx"  
+
+project:
+  output-dir: "C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-project/products/manuscript"
+
+execute:
+  echo: false
+  warning: false
+  message: false
 ---
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
@@ -85,7 +94,7 @@ In addition, the study will explore infant health outcomes and the role of place
 
 *Describe your methods. That should describe the data, the cleaning processes, and the analysis approaches. You might want to provide a shorter description here and all the details in the supplement.*
 
-## Schematic of workflow
+
 
 ## Data aquisition
 
@@ -117,8 +126,10 @@ Logistic Regression and Chi-Square Tests (Malaria and Pregnancy Outcomes)
 
 This section will assess whether placental malaria is associated with preterm birth and low birth weight. Logistic regression models will evaluate these associations while adjusting for relevant confounders, such as the number of malaria episodes during pregnancy and maternal health variables. Additionally, the difference in placental malaria prevalence between SP and DP treatment groups will be examined using chi-square tests for initial comparisons and logistic regression for adjustments, controlling for factors like the number of malaria episodes and regional differences.
 
-Table 1. Baseline Characteristics of IPTp Trial Participants
 
+
+
+**Table 1. Baseline Characteristics of IPTp Trial Participants**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 # Create table data
@@ -147,17 +158,20 @@ table_data <- tribble(
   "", "University", "66 (16.8%)", "70 (18.0%)"
 )
 
-# Render the table in DOCX-compatible format
 kable(
   table_data,
   format = "pandoc",
   caption =
-)
+) %>%
+  kable_styling(full_width = FALSE, position = "center")
+
 
 ```
 
 
 
+&nbsp;
+&nbsp;
 
 
 
@@ -166,8 +180,7 @@ kable(
 
 
 
-Figure 1: Distribution of Total Malaria Episodes
-
+**Figure 1: Distribution of Total Malaria Episodes**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # Load required packages
 library(ggplot2)
@@ -176,7 +189,7 @@ library(ggplot2)
 ggplot(data = promo_data_clean, aes(x = total_malaria_episodes)) +
   geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
   labs(
-    title = "Distribution of Total Malaria Episodes",
+    title =,
     x = "Total Malaria Episodes",
     y = "Count"
   )
@@ -185,10 +198,6 @@ ggplot(data = promo_data_clean, aes(x = total_malaria_episodes)) +
 {{< pagebreak >}}
 
 # Results
-
-## Exploratory/Descriptive analysis
-
-Note the loading of the data providing a **relative** path using the `../../` notation. (Two dots means a folder up). You never want to specify an **absolute** path like `C:\ahandel\myproject\results\` because if you share this with someone, it won't work for them since they don't have that path. You can also use the `here` R package to create paths. See examples of that below. I generally recommend the `here` package.
 
 ## Basic statistical analysis
 
