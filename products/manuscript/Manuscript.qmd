@@ -203,11 +203,7 @@ ggplot(data = promo_data_clean, aes(x = total_malaria_episodes)) +
 
 *Table 2: Association Between Malaria Episodes and Risk of Preterm Birth*
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-library(dplyr)
-library(knitr)
-library(kableExtra)
-
-# Create cleaned table
+# Create cleaned table for Table 2
 table_preterm_pars_clean <- tribble(
   ~Variable, ~`Adjusted Odds Ratio (aOR)`, ~`95% CI Lower`, ~`95% CI Upper`, ~`p-value`,
   "Total malaria episodes during pregnancy", 1.04, 0.95, 1.14, 0.401,
@@ -218,20 +214,11 @@ table_preterm_pars_clean <- tribble(
   "Diabetes mellitus", 1.22, 0.88, 1.69, 0.237
 )
 
-# Display table nicely
+# Display table with consistent styling
 kable(table_preterm_pars_clean,
       caption = "",
       col.names = c("", "Adjusted Odds Ratio (aOR)", "95% CI Lower", "95% CI Upper", "p-value")) %>%
   kable_styling(full_width = FALSE, position = "center")
-
-
-kable(
-  table_data,
-  format = "pandoc",
-  caption =
-) %>%
-  kable_styling(full_width = FALSE, position = "center")
-
 
 ```
 
@@ -245,7 +232,6 @@ kable(
 
 *Table 3: Association Between Malaria Episodes and Risk of Stillbirth*
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-# – Stillbirth Model 
 library(logistf)
 
 # Run parsimonious stillbirth model
@@ -258,26 +244,39 @@ model_stillbirth_pars <- logistf(
 
 # Extract and format results
 table_stillbirth_pars <- data.frame(
-  `Exposure and Adjustment Variables` = names(model_stillbirth_pars$coefficients),
+  Variable = names(model_stillbirth_pars$coefficients),
   `Adjusted Odds Ratio (aOR)` = round(exp(model_stillbirth_pars$coefficients), 2),
   `95% CI Lower` = round(exp(model_stillbirth_pars$ci.lower), 2),
   `95% CI Upper` = round(exp(model_stillbirth_pars$ci.upper), 2),
   `p-value` = signif(model_stillbirth_pars$prob, 3)
 )
 
-# Display in manuscript-ready table
+# Remove the intercept row
+table_stillbirth_pars <- table_stillbirth_pars[table_stillbirth_pars$Variable != "(Intercept)", ]
+
+# Map raw variable names to clean, reader‐friendly labels
+variable_labels <- c(
+  "total_malaria_episodes_during_pregnancy" = "Total malaria episodes during pregnancy",
+  "age_at_enrollment_years" = "Age at enrollment (years)",
+  "gravidity" = "Gravidity",
+  "parity" = "Parity",
+  "hypertensionYes" = "Hypertension",
+  "diabetes_mellitusYes" = "Diabetes mellitus"
+)
+
+# Replace raw names with neat labels; replace any NA (i.e., unmapped) with blank
+table_stillbirth_pars$Variable <- variable_labels[table_stillbirth_pars$Variable]
+table_stillbirth_pars$Variable[is.na(table_stillbirth_pars$Variable)] <- ""
+
+# Remove any row names so only the column appears in the final table
+rownames(table_stillbirth_pars) <- NULL
+
+# Display table with consistent styling and without row names
 kable(table_stillbirth_pars,
-      caption = "**") %>%
+      row.names = FALSE,
+      caption = "*Table 3: Stillbirth Model*",
+      col.names = c("Exposure and Adjustment Variables", "Adjusted Odds Ratio (aOR)", "95% CI Lower", "95% CI Upper", "p-value")) %>%
   kable_styling(full_width = FALSE, position = "center")
-
-kable(
-  table_data,
-  format = "pandoc",
-  caption =
-) %>%
-  kable_styling(full_width = FALSE, position = "center")
-
-
 
 ```
 
