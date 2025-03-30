@@ -1,5 +1,5 @@
 ---
-title: "Evaluating the Impact of Malaria Episodes and Preventive Treatment Regimens on Pregnancy Outcomes among Ugandan Women"
+title: "Impact of IPTp Regimen on Pregnancy Outcomes in a Malaria-Endemic Setting"
 bibliography: "../../assets/dataanalysis-references.bib"
 csl: "../../assets/american-journal-of-epidemiology.csl"
 
@@ -41,6 +41,9 @@ library(survminer)        # Visualize survival analysis results
 library(flextable)        # Create tables for Word output
 library(webshot2)         # Capture screenshots for HTML widgets in non-HTML outputs
 library(logistf)          # Penalized logistic regression (Firth’s method)
+library(ggeffects)
+library(car)
+library(broom)
 
 ```
 
@@ -75,100 +78,207 @@ $\dagger$ Disclaimer: The opinions expressed in this article are the author's ow
 
 # Introduction
 ## General Background Information
-Malaria is a life-threatening disease caused by Plasmodium parasites, which are transmitted to humans through the bite of an infected female Anopheles mosquito (Talapko et al., 2019). According to the World Health Organization, in 2022, approximately 249 million malaria cases were reported across 85 endemic countries—an increase of 5 million cases compared to 2021. Notably, Uganda alone contributed more than 597,000 cases during that period (WHO, 2023). Despite significant efforts in prevention and treatment, malaria remains a major global health challenge.
+Malaria remains a major public health challenge worldwide, particularly in Sub-Saharan Africa, where the disease disproportionately affects vulnerable populations. Caused by Plasmodium parasites transmitted through the bite of infected Anopheles mosquitoes, malaria accounted for an estimated 249 million cases globally in 2022, marking an increase of five million cases compared to the previous year. Uganda alone reported over 597,000 malaria cases during this period, reflecting the country's substantial malaria burden (World Health Organization, 2023; Talapko et al., 2019). Pregnant women represent one of the most vulnerable groups to malaria infection, facing an increased risk of severe clinical symptoms and poor pregnancy outcomes. Malaria during pregnancy has been associated with a range of adverse outcomes, including miscarriage, fetal loss, preterm birth, low birth weight, and neonatal mortality (Chua et al., 2021).
 
-Vulnerable groups such as pregnant women, children, and immunocompromised individuals are at the highest risk, and Africa continues to bear the heaviest burden of this disease. Pregnant women with malaria tend to experience more severe clinical symptoms and poorer outcomes, including heightened risks of miscarriage, fetal loss, premature birth, low birth weight in newborns, and neonatal death (Caroline Lin Lin Chua et al., 2021). A multifaceted approach incorporating insecticide-treated bed nets (ITNs) and chemoprevention strategies has proven effective in mitigating the adverse health outcomes associated with malaria during pregnancy. Despite this progress, a 2017 report reveals that only 22% of pregnant women in Sub-Saharan Africa received an entire course of IPTp (Bauserman et al., 2019), underscoring a significant disparity in treatment access. Addressing this issue, the study seeks to: (a) examine the association between the frequency of malaria episodes during pregnancy and adverse birth outcomes, such as preterm birth and stillbirth; (b) assess whether infants born to mothers treated with DP are less likely to experience low birth weight compared to those treated with SP; and (c) explore the relationship between placental malaria and adverse birth outcomes, including preterm birth and low birth weight.
+Efforts to mitigate the impact of malaria in pregnancy have centered on preventive strategies such as the use of insecticide-treated bed nets (ITNs) and chemoprophylaxis through intermittent preventive treatment during pregnancy (IPTp). Two widely used IPTp regimens are sulfadoxine-pyrimethamine (SP) and dihydroartemisinin-piperaquine (DP). While these preventive measures have shown significant benefits in reducing the risk of malaria-related complications, the effectiveness of these regimens may not be uniform across all contexts. In particular, emerging evidence suggests that the choice of IPTp regimen may influence how malaria episodes affect pregnancy outcomes. However, this potential effect modification remains underexplored in current literature. Additionally, maternal characteristics such as gravidity—the number of times a woman has been pregnant—may also play a role in shaping birth outcomes. Prior research has suggested that previous pregnancy experience may offer protective benefits against adverse outcomes, possibly due to improved physiological adaptation or better health-seeking behavior.
 
-
+This study addresses two research questions. First, it examines whether the type of IPTp regimen modifies the association between malaria episode frequency and adverse birth outcomes in Ugandan pregnant women. Preliminary analyses suggest a potential interaction between malaria episodes and the SP regimen, indicating that the impact of malaria may differ by treatment. Second, the study investigates whether increased gravidity reduces the risk of adverse birth outcomes among younger pregnant women under 25 years. Early findings point to a protective effect of prior pregnancies in this subgroup. By addressing these questions, this study aims to clarify how preventive treatment strategies and maternal reproductive history influence birth outcomes in malaria-endemic settings. The results may inform targeted interventions to improve maternal and neonatal health in Uganda and similar contexts
 
 
 # Methods
-The dataset used in this study was obtained from ClinEpiDB (Release #24, August 30, 2022) and originates from a double-blind randomized controlled trial evaluating monthly intermittent preventive treatment of malaria (IPTp) with sulfadoxine-pyrimethamine (SP) or dihydroartemisinin-piperaquine (DP) in HIV-uninfected pregnant women. Comprising 782 observations, the dataset captures detailed information on maternal health, pregnancy outcomes, and infant variables—with separate records maintained for each infant in cases of multiple births. Detailed metadata and documentation were accessed directly, ensuring clear definitions of variable protocols.
+This study analyzed data from a double-blind randomized controlled trial conducted in Uganda, obtained from ClinEpiDB (Release #24, August 30, 2022). The trial evaluated IPTp with either sulfadoxine-pyrimethamine (SP) or dihydroartemisinin-piperaquine (DP) among HIV-uninfected pregnant women. The dataset comprised 782 observations, including maternal, pregnancy, and infant health information. Multiple births were recorded separately, and variable definitions adhered to original trial protocols.
 
-The objective of this study is to examine the relationship between malaria exposure, treatment regimens, and adverse pregnancy outcomes. Specifically, we investigate whether an increased number of malaria episodes is associated with higher rates of preterm birth and stillbirth, and whether the DP regimen reduces these episodes compared to SP. We hypothesize that more malaria episodes increase the risk of adverse outcomes (Hypothesis 1) and that DP treatment results in fewer episodes than SP (Hypothesis 2). Additionally, the study assesses infant health outcomes by testing if infants born to DP-treated mothers have a lower incidence of low birth weight (Hypothesis 3) and if neonatal mortality rates differ between treatment groups (Hypothesis 4). Finally, we explore whether placental malaria is associated with adverse birth outcomes, such as preterm birth and low birth weight (Hypothesis 5).
+The analysis focused on two primary objectives: (1) to assess whether the IPTp regimen modifies the association between malaria episode frequency and adverse birth outcomes (preterm birth, low birth weight, and stillbirth), and (2) to evaluate whether increased gravidity is associated with lower risk of adverse outcomes among women under 25 years.
 
-Data were imported into R using standardized, rigorously tested functions to ensure accurate transfer. During import, date fields were converted to Date objects and categorical variables to factors. An initial inspection using functions like str() and summary(), alongside visual tools, confirmed data integrity and proper formatting. Missing data were systematically assessed; variables with more than 20% missing values were excluded, while those with less than 20% missing data were retained and imputed as necessary. 
+Data preparation and analysis were performed using R. Date fields were standardized, and categorical variables were coded as factors. Variables with more than 20% missing data were excluded; those with lower missingness were retained and imputed where appropriate. Descriptive statistics and visual inspection were used to assess data integrity.
+
+For the first research question, multivariable logistic regression models were fitted to examine the association between malaria episodes and adverse outcomes, including an interaction term for IPTp regimen. Covariates included maternal age, gravidity, and socioeconomic status. Predicted probabilities were calculated to facilitate interpretation of interaction effects.
+
+For the second question, a subgroup analysis restricted to women under 25 years assessed the association between gravidity and adverse birth outcomes, using logistic regression and adjusting for relevant covariates. Gravidity was treated as a continuous variable, and sensitivity analyses were performed to assess robustness.
+
+All statistical analyses were conducted using the most recent version of R (version 4.3.2).
+
 
 
 # Statistical analysis
 ## Exploratory/Descriptive analyses
-We conducted initial descriptive analyses to characterize key demographic and clinical features, including maternal age, parity, treatment allocation (SP versus DP), and the frequency of malaria episodes. Standard summary statistics and visualizations (e.g., histograms and box plots) were used to assess variable distributions and identify potential outliers, while missing data were evaluated and managed through imputation or exclusion as appropriate.
+Descriptive analyses were conducted to summarize key maternal and clinical characteristics, including maternal age, gravidity, treatment assignment (SP or DP), and malaria episode frequency. Standard summary statistics were used for continuous variables, and proportions were reported for categorical variables. Distributions were visually assessed to identify potential outliers, and missing data were handled through imputation or exclusion based on the extent of missingness.
 
-To examine maternal health outcomes, we used logistic regression to assess the association between the number of malaria episodes and adverse outcomes (preterm birth and stillbirth), adjusting for maternal age, parity, and socioeconomic status. We further compared malaria episode frequencies between treatment groups using Poisson or negative binomial regression models.
+For the first research question, we evaluated whether the IPTp regimen modified the association between malaria episode frequency and adverse birth outcomes (preterm birth, low birth weight, and stillbirth). Multivariable logistic regression models were fitted, including an interaction term between malaria episodes and IPTp regimen. Models were adjusted for potential confounders, including maternal age, gravidity, and socioeconomic status. Predicted probabilities were estimated to facilitate interpretation of interaction effects.
 
-For infant health outcomes, we employed chi-square tests to initially compare the proportions of low birth weight infants between treatment groups, followed by logistic regression to adjust for maternal nutrition, gestational age, and other relevant factors. Neonatal mortality was similarly evaluated.
+For the second research question, we conducted a subgroup analysis among pregnant women under 25 years of age to assess the association between gravidity and adverse birth outcomes. Logistic regression models were used, adjusting for relevant covariates, including maternal age, malaria episode frequency, and treatment regimen. Gravidity was treated as a continuous variable.
 
-Lastly, we used logistic regression to explore the relationship between placental malaria and adverse birth outcomes (preterm birth and low birth weight), also comparing its prevalence between the SP and DP groups while adjusting for confounders.
+
 
 &nbsp;
 &nbsp;
 
 
 
-**Table 1. Baseline Characteristics of IPTp Trial Participants**
+**Table 1: Baseline Characteristics of Study Participants by IPTp Treatment Arm**
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-
 # Create table data
 table_data <- tribble(
-  ~Characteristic, ~Subcategory, ~`Monthly SP (n=391)`, ~`Monthly DP (n=391)`,
-  "Age, years", "", "23 (19–27)", "23 (19–27)",
-  "Gestational Age at Enrollment (weeks)", "", "15.4 (13.3–17.6)", "15.0 (13.4–17.1)",
-  "", "12–16", "66 (17%)", "62 (15.8%)",
-  "", "17–20", "164 (42.2%)", "197 (50.1%)",
-  "", "21–24", "133 (34.2%)", "118 (30%)",
-  "Gravidity", "", "1.2 (0.9–1.7)", "1.1 (0.8–1.6)",
-  "", "1", "102 (26%)", "95 (24%)",
-  "", "2–3", "180 (46%)", "190 (49%)",
-  "", "≥4", "109 (28%)", "106 (27%)",
-  "Parity", "", "2.43 (1.67)", "2.43 (1.65)",
-  "", "0", "140 (36%)", "145 (37%)",
-  "", "1–2", "170 (44%)", "165 (42%)",
-  "", "≥3", "81 (20%)", "81 (21%)",
-  "Total Malaria Episodes (mean (SD))", "", "1.06 (1.03)", "0.98 (0.95)",
-  "Maternal Nutritional Status/BMI (mean (SD))", "", "22.5 (3.2)", "22.8 (3.1)",
-  "History of Previous Malaria Episodes (%)", "", "40 (10%)", "35 (9%)",
-  "Maternal Education Level (%)", "", "", "",
-  "", "A and O Level", "194 (49.4%)", "187 (48.1%)",
-  "", "Primary", "68 (17.3%)", "71 (18.3%)",
-  "", "Tertiary", "65 (16.5%)", "61 (15.7%)",
-  "", "University", "66 (16.8%)", "70 (18.0%)"
+  ~Characteristic,                           ~Subcategory,               ~`DP (N=4121)`,       ~`SP (N=3701)`,
+  "Age (years)",                             "",                         "25.0 (5.0)",         "25.0 (4.9)",
+  "Gestational Age (weeks)",                 "",                         "15.24 (1.97)",       "14.97 (1.94)",
+  "Maternal Education Level (%)",            "",                         "",                   "",
+  "",                                        "Primary",                  "262 (66.7%)",        "258 (66.4%)",
+  "",                                        "Tertiary",                 "65 (16.5%)",         "61 (15.7%)",
+  "",                                        "University",               "66 (16.8%)",         "70 (18.0%)",
+  "Gravidity",                               "",                         "",                   "",
+  "",                                        "1",                        "91 (22%)",           "56 (15%)",
+  "",                                        "2–3",                      "167 (41%)",          "166 (45%)",
+  "",                                        "≥4",                       "154 (37%)",          "148 (40%)",
+  "Parity",                                  "",                         "",                   "",
+  "",                                        "0",                        "79 (19%)",           "77 (21%)",
+  "",                                        "1–2",                      "175 (42%)",          "158 (43%)",
+  "",                                        "≥3",                       "158 (38%)",          "135 (36%)",
+  "Total Malaria Episodes",                  "",                         "",                   "",
+  "",                                        "1",                        "245 (59%)",          "216 (58%)",
+  "",                                        "2–3",                      "146 (35%)",          "127 (34%)",
+  "",                                        "≥4",                       "21 (5.1%)",          "27 (7.3%)",
+  "Total Malaria Episodes During Pregnancy", "",                         "",                   "",
+  "",                                        "1",                        "179 (43%)",          "165 (45%)",
+  "",                                        "2–3",                      "138 (33%)",          "120 (32%)",
+  "",                                        "≥4",                       "95 (23%)",           "85 (23%)",
+  "Malaria Infection Rate During Pregnancy", "",                         "1.01 (0.58)",        "1.05 (0.58)",
+  "Placental Malaria (Rogerson Criteria)",   "",                         "75 (18%)",           "72 (19%)",
+  "Preterm Births Count",                    "",                         "",                   "",
+  "",                                        "1",                        "391 (95%)",          "348 (94%)",
+  "",                                        "2",                        "21 (5.1%)",          "22 (5.9%)",
+  "Stillbirth bin",                          "",                         "37 (9.0%)",          "50 (14%)",
+  "Birthweight",                             "",                         "2.79 (0.64)",        "2.81 (0.62)",
+  "History of Previous Malaria Episodes (%)", "",                        "40 (10%)",           "35 (9%)"
 )
 
 kable(
   table_data,
   format = "pandoc",
-  caption =
-) %>%
+  caption = ""
+) %>% 
   kable_styling(full_width = FALSE, position = "center")
 
-
 ```
 
 
+&nbsp;
+&nbsp;
 
+
+**Figure 1: Distribution of Total Malaria Episodes by IPTp Treatment Arm**
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+
+ggplot(promo_data_clean, aes(x = total_malaria_episodes, fill = study_arm)) +
+  geom_histogram(binwidth = 1, alpha = 0.6, position = "dodge") +
+  labs(title = "",
+       x = "Total Malaria Episodes",
+       y = "Frequency",
+       fill = "Treatment Arm") +
+  theme_minimal()
+```
 
 
 &nbsp;
 &nbsp;
 
 
+**Table 2: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen**
 
+```{r,  echo=FALSE, message=FALSE, warning=FALSE}
+# Load necessary libraries
+library(dplyr)
+library(gtsummary)
+library(here)
 
+# Read in the cleaned data (if not already read)
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
 
-
-
-
-**Figure 1: Distribution of Total Malaria Episodes**
-```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-# Create a histogram of total malaria episodes
-ggplot(data = promo_data_clean, aes(x = total_malaria_episodes)) +
-  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
-  labs(
-    title =,
-    x = "Total Malaria Episodes",
-    y = "Count"
+# Recode variables as needed for outcomes analysis:
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    # Create a composite adverse outcome variable: 1 if any of preterm birth, stillbirth, or low birth weight (<2.5 kg) occurs
+    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
+    adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0),
+    
+    # Recode Preterm Births Count: combine 0 and 1 as "1", and 2 as "2"
+    PretermBirths_cat = case_when(
+      preterm_births_count %in% c(0, 1) ~ "1",
+      preterm_births_count == 2 ~ "2"
+    ),
+    PretermBirths_cat = factor(PretermBirths_cat, levels = c("1", "2"))
   )
+
+# Create Table Z: Outcome Variables by IPTp Treatment Arm with p-values
+table_outcomes <- promo_data_clean %>%
+  dplyr::select(
+    study_arm,
+    `Malaria Infection Rate During Pregnancy` = malaria_infection_rate_during_pregnancy,
+    `Placental Malaria (Rogerson Criteria)` = placental_malaria_by_rogerson_criteria,
+    `Preterm Births Count` = PretermBirths_cat,
+    `Stillbirth bin` = stillbirth_bin,
+    `Birthweight` = birth_weight,
+    `Composite Adverse Outcome` = adverse_birth_outcome
+  ) %>%
+  tbl_summary(
+    by = study_arm,
+    missing = "no",
+    statistic = list(
+      all_continuous() ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    )
+  ) %>%
+  add_p() %>%
+  modify_header(label = "") %>%
+  modify_caption("")
+
+# Print Table Z
+table_outcomes
 ```
+
+
+
+&nbsp;
+&nbsp;
+
+
+
+**Figure 2: Differential Impact of IPTp Treatment on the Relationship Between Malaria Episodes and Adverse Birth Outcomes**
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Create the composite adverse outcome variable
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
+    adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0)
+  )
+
+# Fit the interaction model (ensuring that adverse_birth_outcome now exists)
+model_interaction <- glm(adverse_birth_outcome ~ total_malaria_episodes * study_arm + 
+                           age_at_enrollment_years + gravidity + education_level,
+                         family = binomial(link = "logit"),
+                         data = promo_data_clean)
+
+# Generate predicted probabilities over the range of total malaria episodes by study arm
+pred <- ggeffect(model_interaction, terms = c("total_malaria_episodes [all]", "study_arm"))
+
+# Plot the predicted probabilities
+interaction_plot <- ggplot(pred, aes(x = x, y = predicted, color = group)) +
+  geom_line(size = 1.2) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
+  labs(title = "",
+       x = "Total Malaria Episodes",
+       y = "Predicted Probability of Adverse Outcome",
+       color = "Treatment Arm",
+       fill = "Treatment Arm") +
+  theme_minimal()
+
+interaction_plot
+```
+
 
 {{< pagebreak >}}
 
@@ -179,147 +289,179 @@ ggplot(data = promo_data_clean, aes(x = total_malaria_episodes)) +
 # Results
 
 ## Basic statistical analysis
-**Table 2: Association Between Malaria Episodes and Risk of Preterm Birth**
+
+Baseline characteristics were similar between IPTp treatment arms, with comparable age, gestational age at enrollment, education, gravidity, and parity distributions (Table 1). Although overall malaria exposure measures were similar, the stillbirth rate was significantly higher in the SP arm compared to DP (14% vs. 9%; p = 0.044) (Table 2). 
+
+In our multivariable logistic regression analysis—adjusting for maternal age, gravidity, and education—the main effects of total malaria episodes (OR = 0.88, 95% CI: 0.75–1.03, p = 0.121) and treatment arm (OR = 0.69, 95% CI: 0.44–1.08, p = 0.102) were not significant. However, adding an interaction term between total malaria episodes and treatment arm significantly improved model fit (ΔDeviance = 10.11, p = 0.00148), with the interaction itself reaching significance (OR = 1.47, 95% CI: 1.16–1.88, p = 0.002). Notably, higher gravidity was protective (OR = 0.89, 95% CI: 0.80–0.98, p = 0.023), underscoring the potential benefit of prior pregnancy experience. Sensitivity analyses confirmed that these findings were robust, and model diagnostics (VIFs < 2) indicated no concerning multicollinearity. Collectively, these results suggest that the impact of malaria exposure on adverse birth outcomes is modified by the IPTp regimen, highlighting the importance of tailoring preventive strategies based on maternal risk profiles.
+
+&nbsp;
+&nbsp;
+
+
+**Table 3: Interaction Between Malaria Exposure and IPTp Treatment Arm in Predicting Adverse Birth Outcomes**
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#library(broom)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(here)
+
+# Tidy the model output with exponentiated coefficients (odds ratios)
+tidy_model <- tidy(model_interaction, exponentiate = TRUE, conf.int = TRUE)
+
+# Remove the intercept row and recode variable names using case_when()
+tidy_model_filtered <- tidy_model %>%
+  filter(term != "(Intercept)") %>%
+  mutate(
+    term = case_when(
+      term == "total_malaria_episodes" ~ "Total Malaria Episodes",
+      term == "study_armSP" ~ "Treatment Arm (SP)",
+      term == "age_at_enrollment_years" ~ "Age at Enrollment (years)",
+      term == "gravidity" ~ "Gravidity",
+      term == "education_levelSecondary" ~ "Secondary Education",
+      term == "education_levelTertiary" ~ "Tertiary Education",
+      term == "education_levelUniversity" ~ "University Education",
+      term == "total_malaria_episodes:study_armSP" ~ "Interaction: Malaria Episodes × SP",
+      TRUE ~ term
+    )
+  )
+
+# Round key values for clarity
+tidy_model_filtered <- tidy_model_filtered %>%
+  mutate(
+    estimate = round(estimate, 2),
+    std.error = round(std.error, 2),
+    statistic = round(statistic, 2),
+    p.value = round(p.value, 3),
+    conf.low = round(conf.low, 2),
+    conf.high = round(conf.high, 2)
+  )
+
+# Render the table with a blank header for the first column
+kable(
+  tidy_model_filtered,
+  format = "pandoc",
+  caption = "",
+  col.names = c("", "Odds Ratio", "Std. Error", "z value", "p-value", "95% CI Lower", "95% CI Upper")
+) %>% 
+  kable_styling(full_width = FALSE, position = "center")
+
+```
+
+
+
+&nbsp;
+&nbsp;
+
+
+
+
+**Table 4:  Regression Diagnostics for IPTp Treatment Effect**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
-table_preterm_pars_clean <- tribble(
-  ~Variable, ~`Adjusted Odds Ratio (aOR)`, ~`95% CI Lower`, ~`95% CI Upper`, ~`p-value`,
-  "Total malaria episodes during pregnancy", 1.04, 0.95, 1.14, 0.401,
-  "Age at enrollment (years)", 0.99, 0.96, 1.03, 0.697,
-  "Gravidity", 0.91, 0.82, 1.02, 0.106,
-  "Parity", 1.17, 1.05, 1.30, 0.005,
-  "Hypertension", 0.89, 0.65, 1.22, 0.463,
-  "Diabetes mellitus", 1.22, 0.88, 1.69, 0.237
-)
 
-# Display table with consistent styling
+# Read in the cleaned data (ensure adverse_birth_outcome is defined as needed)
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+
+# Create composite adverse outcome if not already defined
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
+    adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0)
+  )
+
+# Fit Model 1 (without interaction)
+model1 <- glm(adverse_birth_outcome ~ total_malaria_episodes + study_arm +
+                age_at_enrollment_years + gravidity + education_level,
+              family = binomial(link = "logit"), data = promo_data_clean)
+
+# Fit Model 2 (with interaction)
+model2 <- glm(adverse_birth_outcome ~ total_malaria_episodes * study_arm +
+                age_at_enrollment_years + gravidity + education_level,
+              family = binomial(link = "logit"), data = promo_data_clean)
+
+# Generate Analysis of Deviance Table (Likelihood Ratio Test)
+lrt <- anova(model1, model2, test = "LRT")
+lrt_df <- as.data.frame(lrt)
+lrt_df$Model <- c("No Interaction", "With Interaction")
+lrt_df <- lrt_df %>% 
+  select(Model, `Resid. Df`, `Resid. Dev`, Df, Deviance, `Pr(>Chi)`)
+colnames(lrt_df) <- c("Model", "Residual Df", "Residual Dev", "Df", "Deviance", "p-value")
+
+# Render Table X: Likelihood Ratio Test
 kable(
-  table_preterm_pars_clean,
+  lrt_df,
   format = "pandoc",
-  caption = "",
-  col.names = c("", "Adjusted Odds Ratio (aOR)", "95% CI Lower", "95% CI Upper", "p-value")
-) %>%
+  caption = ""
+) %>% 
+  kable_styling(full_width = FALSE, position = "center")
+
+# Compute Variance Inflation Factors (VIF) for Model 2 (with interaction)
+vif_vals <- vif(model2)
+vif_df <- as.data.frame(vif_vals)
+vif_df$Variable <- rownames(vif_vals)
+vif_df <- vif_df %>% rename(`Df (VIF)` = Df)
+vif_df <- vif_df %>% 
+  select(Variable, GVIF, `Df (VIF)`, `GVIF^(1/(2*Df))`) %>%
+  mutate(
+    Variable = case_when(
+      Variable == "total_malaria_episodes" ~ "Total Malaria Episodes",
+      Variable == "study_arm" ~ "Treatment Arm",
+      Variable == "age_at_enrollment_years" ~ "Age at Enrollment",
+      Variable == "gravidity" ~ "Gravidity",
+      Variable == "education_level" ~ "Education Level",
+      Variable == "total_malaria_episodes:study_arm" ~ "Interaction: Malaria Episodes × SP",
+      TRUE ~ Variable
+    )
+  )
+
+# Render Table Y: VIF Diagnostics
+kable(
+  vif_df,
+  format = "pandoc",
+  caption = ""
+) %>% 
   kable_styling(full_width = FALSE, position = "center")
 
 ```
 
 
 
+
+
 &nbsp;
 &nbsp;
 
 
 
-**Table 3: Association Between Malaria Episodes and Risk of Stillbirth**
-```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-# Ensure the logistf package is loaded
-library(logistf)
-
-# Optional: Check that required variables exist in the dataset
-required_vars <- c("stillbirth_bin", "total_malaria_episodes_during_pregnancy", 
-                   "age_at_enrollment_years", "gravidity", "parity", 
-                   "hypertension", "diabetes_mellitus")
-if(!all(required_vars %in% names(promo_data_clean))) {
-  missing_vars <- required_vars[!required_vars %in% names(promo_data_clean)]
-  stop("The following required variables are missing in promo_data_clean: ", paste(missing_vars, collapse=", "))
-}
-
-# Run parsimonious stillbirth model
-model_stillbirth_pars <- logistf::logistf(
-  stillbirth_bin ~ total_malaria_episodes_during_pregnancy +
-    age_at_enrollment_years + gravidity + parity +
-    hypertension + diabetes_mellitus,
-  data = promo_data_clean
-)
 
 
-# Extract and format results
-table_stillbirth_pars <- data.frame(
-  Variable = names(model_stillbirth_pars$coefficients),
-  `Adjusted Odds Ratio (aOR)` = round(exp(model_stillbirth_pars$coefficients), 2),
-  `95% CI Lower` = round(exp(model_stillbirth_pars$ci.lower), 2),
-  `95% CI Upper` = round(exp(model_stillbirth_pars$ci.upper), 2),
-  `p-value` = signif(model_stillbirth_pars$prob, 3)
-)
 
-# Remove the intercept row
-table_stillbirth_pars <- table_stillbirth_pars[table_stillbirth_pars$Variable != "(Intercept)", ]
 
-# Map raw variable names to clean, reader-friendly labels
-variable_labels <- c(
-  "total_malaria_episodes_during_pregnancy" = "Total malaria episodes during pregnancy",
-  "age_at_enrollment_years" = "Age at enrollment (years)",
-  "gravidity" = "Gravidity",
-  "parity" = "Parity",
-  "hypertensionYes" = "Hypertension",
-  "diabetes_mellitusYes" = "Diabetes mellitus"
-)
 
-# Replace raw names with neat labels; replace any NA (i.e., unmapped) with blank
-table_stillbirth_pars$Variable <- variable_labels[table_stillbirth_pars$Variable]
-table_stillbirth_pars$Variable[is.na(table_stillbirth_pars$Variable)] <- ""
-rownames(table_stillbirth_pars) <- NULL
 
-# Display table using kable with pandoc format
-kable(
-  table_stillbirth_pars,
-  format = "pandoc",
-  caption = "",
-  col.names = c("", "Adjusted Odds Ratio (aOR)", "95% CI Lower", "95% CI Upper", "p-value")
-) %>%
-  kable_styling(full_width = FALSE, position = "center")
+
+
+
+**Table 5: Evaluating Effect Modification by IPTp Treatment on Malaria-Related Adverse Birth Outcomes Through Model Comparison**
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-project/Images/Table- Comparing Models .png")
 
 ```
 
 
-&nbsp;
-&nbsp;
-
-
-
-**Association between Malaria Episodes and Adverse Birth Outcomes**
-A total of 782 pregnant women were followed in our study, and we began with the hypothesis that a higher frequency of malaria episodes during pregnancy might lead to poorer birth outcomes. To explore this, we first employed logistic regression to assess the relationship with preterm birth. Contrary to our initial expectations, the analysis revealed that an increase in malaria episodes was not associated with a higher risk of preterm delivery (adjusted odds ratio [aOR]: 1.04; 95% CI: 0.95–1.14; p = 0.401; Table 4a). We then refined our approach by using a penalized Firth logistic regression model, which is particularly useful when dealing with rare events or small subgroups. This model too showed no significant link between the number of malaria episodes and stillbirth (aOR: 0.96; 95% CI: 0.83–1.10; p = 0.559; Table 4b). These findings suggest that the story is more complex than a simple linear relationship—factors such as maternal age, gravidity, or hypertension did not appear to drive these outcomes either, prompting us to consider that other biological or environmental influences might be at play.
-
-**Effect of Treatment Arm on Malaria Episode Incidence**
-Subsequent analyses focused on whether the type of preventive treatment influenced the occurrence of malaria episodes. Two treatment arms—dihydroartemisinin-piperaquine (DP) and sulfadoxine-pyrimethamine (SP)—were compared using a Poisson regression model, with adjustments for age, gravidity, and education level. The analysis indicated that the incidence of malaria episodes did not differ significantly between the groups (incidence rate ratio [IRR]: 1.02; 95% CI: 0.92–1.12; p = 0.756; Table 4c). These findings suggest that, despite differences in treatment regimens, the overall frequency of malaria episodes remains similar, implying that variations in treatment strategy may have a limited effect on malaria episode incidence in this study population.
-
-
 
 
 &nbsp;
 &nbsp;
 
-**Table 4:Incidence Rate Ratios for Malaria Episode Occurrence among Pregnant Women**
-```{r}
-# Create a data frame with refined variable names
-table_model_refined <- data.frame(
-  Variable = c("Intercept", 
-               "Treatment Arm (SP vs. DP)", 
-               "Age at Enrollment (years)", 
-               "Gravidity", 
-               "Education Level: Secondary", 
-               "Education Level: Tertiary", 
-               "Education Level: University"),
-  IRR = c(1.6081682, 1.0552044, 0.9942737, 1.0095680, 0.9884423, 0.8900707, 1.0363703),
-  `95% CI Lower` = c(1.1297705, 0.9382987, 0.9825662, 0.9675647, 0.8348897, 0.7505115, 0.8805393),
-  `95% CI Upper` = c(2.280714, 1.186523, 1.006133, 1.053391, 1.170522, 1.055600, 1.220799),
-  `p-value` = c(0.008021017, 0.369364418, 0.342231948, 0.660449862, 0.892661838, 0.180547176, 0.668035030)
-)
 
-# Remove the intercept row if not required for presentation
-table_model_refined <- table_model_refined[table_model_refined$Variable != "Intercept", ]
 
-# Render the table using knitr::kable without row numbers
-library(knitr)
-kable(
-  table_model_refined,
-  format = "pandoc",
-  caption = "",
-  col.names = c("", "IRR", "95% CI Lower", "95% CI Upper", "p-value"),
-  row.names = FALSE
-)
 
-```
+
+
 
 
 
