@@ -7,9 +7,11 @@ format:
     number-sections: true
     prefer-html: true
     highlight-style: github
+    output-dir: "products/manuscript"
 bibliography: ../../assets/dataanalysis-references.bib
 csl: ../../assets/american-journal-of-epidemiology.csl
 ---
+
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # Load Required Libraries
@@ -122,72 +124,45 @@ This section will assess whether placental malaria is associated with preterm bi
 
 Table 1. Baseline Characteristics of IPTp Trial Participants
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
+```{r, echo=FALSE, eval=knitr::is_html_output(), message=FALSE, warning=FALSE}
 
-# Create table data using tribble.
-# Each row must have exactly 4 cells.
+library(knitr)
+library(tibble)
+
+# Create table_data as before:
 table_data <- tribble(
-  ~Characteristic,                         ~Subcategory,                                         ~`Monthly SP (n=391)`,                                         ~`Monthly DP (n=391)`,
-  # Age at Enrollment
-  "Age, years",                            "",                                                   "23 (19–27)",                                                  "23 (19–27)",
-  # Gestational Age at Enrollment overall and subcategories
-  "Gestational Age at Enrollment (weeks)", "",                                                   "15.4 (13.3–17.6)",                                              "15.0 (13.4–17.1)",
-  "",                                      "12–16",                                              "66 (17%)",                                                    "62 (15.8%)",
-  "",                                      "17–20",                                              "164 (42.2%)",                                                 "197 (50.1%)",
-  "",                                      "21–24",                                              "133 (34.2%)",                                                 "118 (30%)",
-  # Gravidity overall and subcategories
-  "Gravidity",                             "",                                                   "1.2 (0.9–1.7)",                                                 "1.1 (0.8–1.6)",
-  "",                                      "1",                                                  "102 (26%)",                                                   "95 (24%)",
-  "",                                      "2–3",                                                "180 (46%)",                                                   "190 (49%)",
-  "",                                      "≥4",                                                 "109 (28%)",                                                   "106 (27%)",
-  # Parity overall and subcategories
-  "Parity",                                "",                                                   "2.43 (1.67)",                                                   "2.43 (1.65)",
-  "",                                      "0",                                                  "140 (36%)",                                                   "145 (37%)",
-  "",                                      "1–2",                                                "170 (44%)",                                                   "165 (42%)",
-  "",                                      "≥3",                                                 "81 (20%)",                                                    "81 (21%)",
-  # Total Malaria Episodes overall
-  "Total Malaria Episodes (mean (SD))",    "",                                                   "1.06 (1.03)",                                                 "0.98 (0.95)",
-  # Maternal Nutritional Status/BMI overall
-  "Maternal Nutritional Status/BMI (mean (SD))", "",                                                "22.5 (3.2)",                                                  "22.8 (3.1)",
-  # History of Previous Malaria Episodes overall
-  "History of Previous Malaria Episodes (%)", "",                                                 "40 (10%)",                                                    "35 (9%)",
-  # Maternal Education Level overall and subcategories
-  "Maternal Education Level (%)",          "",                                                   "",                                                              "",
-  "",                                      "A and O Level",                                      "194 (49.4%)",                                                 "187 (48.1%)",
-  "",                                      "Primary",                                            "68 (17.3%)",                                                  "71 (18.3%)",
-  "",                                      "Tertiary",                                           "65 (16.5%)",                                                  "61 (15.7%)",
-  "",                                      "University",                                         "66 (16.8%)",                                                  "70 (18.0%)"
+  ~Characteristic, ~Subcategory, ~`Monthly SP (n=391)`, ~`Monthly DP (n=391)`,
+  "Age, years", "", "23 (19–27)", "23 (19–27)",
+  "Gestational Age at Enrollment (weeks)", "", "15.4 (13.3–17.6)", "15.0 (13.4–17.1)",
+  "", "12–16", "66 (17%)", "62 (15.8%)",
+  "", "17–20", "164 (42.2%)", "197 (50.1%)",
+  "", "21–24", "133 (34.2%)", "118 (30%)",
+  "Gravidity", "", "1.2 (0.9–1.7)", "1.1 (0.8–1.6)",
+  "", "1", "102 (26%)", "95 (24%)",
+  "", "2–3", "180 (46%)", "190 (49%)",
+  "", "≥4", "109 (28%)", "106 (27%)",
+  "Parity", "", "2.43 (1.67)", "2.43 (1.65)",
+  "", "0", "140 (36%)", "145 (37%)",
+  "", "1–2", "170 (44%)", "165 (42%)",
+  "", "≥3", "81 (20%)", "81 (21%)",
+  "Total Malaria Episodes (mean (SD))", "", "1.06 (1.03)", "0.98 (0.95)",
+  "Maternal Nutritional Status/BMI (mean (SD))", "", "22.5 (3.2)", "22.8 (3.1)",
+  "History of Previous Malaria Episodes (%)", "", "40 (10%)", "35 (9%)",
+  "Maternal Education Level (%)", "", "", "",
+  "", "A and O Level", "194 (49.4%)", "187 (48.1%)",
+  "", "Primary", "68 (17.3%)", "71 (18.3%)",
+  "", "Tertiary", "65 (16.5%)", "61 (15.7%)",
+  "", "University", "66 (16.8%)", "70 (18.0%)"
 )
 
-# Render the table using kableExtra
-kbl(
-  table_data,
-  col.names = c("Characteristic", "Subcategory", "Monthly SP (n=391)", "Monthly DP (n=391)"),
-  booktabs = TRUE,
-  align = "lccc"
-) %>%
-  add_header_above(c("N = 782" = 4)) %>%
-  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover")) %>%
-  # Merge sub-rows for Gestational Age at Enrollment:
-  # Overall row is row 2; subcategory rows are rows 3-5
-  pack_rows("Gestational Age at Enrollment (weeks)", start_row = 2, end_row = 5, indent = TRUE) %>%
-  # Merge sub-rows for Gravidity:
-  # Overall row is row 6; subcategory rows are rows 7-9
-  pack_rows("Gravidity", start_row = 6, end_row = 9, indent = TRUE) %>%
-  # Merge sub-rows for Parity:
-  # Overall row is row 10; subcategory rows are rows 11-13
-  pack_rows("Parity", start_row = 10, end_row = 13, indent = TRUE) %>%
-  # Merge sub-rows for Maternal Education Level:
-  # Overall row is row 17; subcategory rows are rows 18-21
-  pack_rows("Maternal Education Level (%)", start_row = 17, end_row = 21, indent = TRUE)
+# Render the table with pandoc format:
+kable(table_data, format = "pandoc", caption = "Table 1. Baseline Characteristics")
 
 ```
 
 Figure 1: Distribution of Total Malaria Episodes
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-# Code that generates HTML widget or output
-
 # Load required packages
 library(ggplot2)
 
@@ -243,4 +218,4 @@ Note that this cited reference will show up at the end of the document, the refe
 
 {{< pagebreak >}}
 
-# References                        
+# References
