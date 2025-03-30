@@ -120,8 +120,11 @@ Logistic Regression and Chi-Square Tests (Malaria and Pregnancy Outcomes)
 
 This section will assess whether placental malaria is associated with preterm birth and low birth weight. Logistic regression models will evaluate these associations while adjusting for relevant confounders, such as the number of malaria episodes during pregnancy and maternal health variables. Additionally, the difference in placental malaria prevalence between SP and DP treatment groups will be examined using chi-square tests for initial comparisons and logistic regression for adjustments, controlling for factors like the number of malaria episodes and regional differences.
 
-Table 1. Baseline Characteristics of IPTp Trial Participants
 
+
+
+
+Table 1. Baseline Characteristics of IPTp Trial Participants
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # Code that generates HTML widget or output
 
@@ -186,11 +189,14 @@ kbl(
   # Merge sub-rows for Maternal Education Level:
   # Overall row is row 17; subcategory rows are rows 18-21
   pack_rows("Maternal Education Level (%)", start_row = 17, end_row = 21, indent = TRUE)
-
 ```
 
-Figure 1: Distribution of Total Malaria Episodes
 
+
+
+
+
+Figure 1: Distribution of Total Malaria Episodes
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # Code that generates HTML widget or output
 
