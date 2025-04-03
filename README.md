@@ -49,8 +49,19 @@ Other hidden files (e.g., .gitignore, .Rprofile) are used to manage R and GitHub
 
 
 
+# Reproducibility Instructions
+All required data files and scripts are included in this GitHub repository. To fully reproduce this project and its results, follow the steps below in the order listed:
 
+1. processing_code.Rmd – Processes and cleans the raw data.
+2. exploration.Rmd – Conducts exploratory data analysis.
+3. analysis.Rmd – Performs statistical analysis on the processed data.
+4. modeling.Rmd – Builds and evaluates statistical or machine learning models.
+5. land_model.Rmd – Applies land model analysis (if applicable).
+6. map_images.Rmd – Generates geographic visualizations and maps.
+7. Manuscript.Rmd – Compiles the final manuscript report.
+8. Supplement.Rmd – Compiles any supplementary materials.
 
+Running these scripts in order will allow you to reproduce the full analysis workflow and outputs.
 
 
 
