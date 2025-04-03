@@ -1,12 +1,12 @@
-#Joseph-MADA Project – Spring 2025
+# Joseph-MADA Project – Spring 2025
  
-#Overview
+# Overview
 This repository contains the materials and analysis workflow for my primary data analysis project, completed as part of the Spring 2025 MADA course. The project is developed using R, Quarto, and GitHub, with an emphasis on clear organization, reproducibility, and transparency in data processing, analysis, and reporting.
 
-#Introduction
+# Introduction
 This study investigates the relationship between malaria episode frequency and adverse birth outcomes among pregnant women in Uganda. Specifically, it assesses whether the type of Intermittent Preventive Treatment in pregnancy (IPTp) regimen—either sulfadoxine-pyrimethamine (SP) or dihydroartemisinin-piperaquine (DP)—modifies this association. Additionally, the study examines whether higher gravidity reduces the risk of adverse birth outcomes among women under the age of 25.
 
-#Pre-requisites
+# Pre-requisites
 To run the analysis and reproduce the results in this repository, you will need the following tools and software:
 
 R and RStudio
