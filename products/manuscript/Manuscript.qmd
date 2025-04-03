@@ -42,12 +42,8 @@ library(flextable)        # Create tables for Word output
 library(webshot2)         # Capture screenshots for HTML widgets in non-HTML outputs
 library(logistf)          # Penalized logistic regression (Firth’s method)
 library(ggeffects)
-<<<<<<< HEAD
 library(car)
 library(broom)
-=======
->>>>>>> origin/main
-
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
@@ -131,8 +127,6 @@ For the second research question, we conducted a subgroup analysis among pregnan
 
 **Table 1: Baseline Characteristics of Study Participants by IPTp Treatment Arm**
 
-<<<<<<< HEAD
-=======
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Create table data
 table_data <- tribble(
@@ -315,7 +309,6 @@ interaction_plot
 
 
 **Table 1. Baseline Characteristics of IPTp Trial Participants**
->>>>>>> origin/main
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Create table data
 table_data <- tribble(
@@ -386,7 +379,6 @@ ggplot(promo_data_clean, aes(x = total_malaria_episodes, fill = study_arm)) +
 
 
 **Table 2: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen**
-
 ```{r,  echo=FALSE, message=FALSE, warning=FALSE}
 # Load necessary libraries
 library(dplyr)
@@ -446,7 +438,6 @@ table_outcomes
 
 
 **Figure 2: Differential Impact of IPTp Treatment on the Relationship Between Malaria Episodes and Adverse Birth Outcomes**
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Create the composite adverse outcome variable
 promo_data_clean <- promo_data_clean %>%
@@ -498,7 +489,6 @@ In our multivariable logistic regression analysis—adjusting for maternal age, 
 
 
 **Table 3: Interaction Between Malaria Exposure and IPTp Treatment Arm in Predicting Adverse Birth Outcomes**
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #library(broom)
 library(dplyr)
@@ -644,7 +634,6 @@ kable(
 
 
 **Table 5: Evaluating Effect Modification by IPTp Treatment on Malaria-Related Adverse Birth Outcomes Through Model Comparison**
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-project/Images/Table- Comparing Models .png")
 
@@ -656,11 +645,13 @@ knitr::include_graphics("C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-projec
 &nbsp;
 &nbsp;
 
-<<<<<<< HEAD
-=======
+
+
+
 **Table 4: "Incidence Rate Ratios for Malaria Episode Occurrence among Pregnant Women**
+
 ```{r}
-# Create a data frame with refined variable names
+# Table 4: Incidence Rate Ratios for Malaria Episode Occurrence among Pregnant Women
 table_model_refined <- data.frame(
   Variable = c("Intercept", 
                "Treatment Arm (SP vs. DP)", 
@@ -674,11 +665,11 @@ table_model_refined <- data.frame(
   `95% CI Upper` = c(2.280714, 1.186523, 1.006133, 1.053391, 1.170522, 1.055600, 1.220799),
   `p-value` = c(0.008021017, 0.369364418, 0.342231948, 0.660449862, 0.892661838, 0.180547176, 0.668035030)
 )
->>>>>>> origin/main
 
+# Optionally, display the table using knitr::kable for a nicer format
+knitr::kable(table_model_refined, caption = "")
 
-
-
+```
 
 
 

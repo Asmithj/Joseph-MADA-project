@@ -1,11 +1,25 @@
-# Overview
+#Joseph-MADA Project – Spring 2025
+ 
+#Overview
+This repository contains the materials and analysis workflow for my primary data analysis project, completed as part of the Spring 2025 MADA course. The project is developed using R, Quarto, and GitHub, with an emphasis on clear organization, reproducibility, and transparency in data processing, analysis, and reporting.
 
-A template file and folder structure for a data analysis project/paper done with R/Quarto/Github. Other components (e.g., other programming languages) can be added as needed. 
+#Introduction
+This study investigates the relationship between malaria episode frequency and adverse birth outcomes among pregnant women in Uganda. Specifically, it assesses whether the type of Intermittent Preventive Treatment in pregnancy (IPTp) regimen—either sulfadoxine-pyrimethamine (SP) or dihydroartemisinin-piperaquine (DP)—modifies this association. Additionally, the study examines whether higher gravidity reduces the risk of adverse birth outcomes among women under the age of 25.
+
+#Pre-requisites
+To run the analysis and reproduce the results in this repository, you will need the following tools and software:
+
+R and RStudio
+Quarto for dynamic reporting
+Git and GitHub for version control
+A reference manager that supports BibTeX (e.g., Zotero with Better BibTeX extension)
+A word processor (e.g., MS Word or LibreOffice)
+Optional: A TeX distribution (e.g., TinyTeX) if you wish to render PDF outputs.
 
 
-# Pre-requisites
 
-This is a template for a data analysis project using R, Quarto, Github and a reference manager that can handle bibtex. Our recommendation for the reference manager is Zotero, with the Better BibTex plugin/extension. It is also assumed that you have a word processor installed (e.g. MS Word or [LibreOffice](https://www.libreoffice.org/)). You need that software stack to make use of this template. To produce pdf output, you need a TeX distribution installed. You can use tinytex, following [these instructions.](https://quarto.org/docs/output-formats/pdf-basics.html)
+
+
 
 
 # Template structure and content
