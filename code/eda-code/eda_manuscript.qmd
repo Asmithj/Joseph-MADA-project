@@ -1,0 +1,176 @@
+---
+title: " EDA_ Manuscript"
+date: "2025-02-23"
+output: html_document
+---
+
+  
+  
+
+
+
+```{r}
+# Load Required Libraries
+# Essential libraries for data handling, visualization, and analysis
+
+library(here)             # Manage file paths
+library(dplyr)            # Data manipulation
+library(tidyverse)        # Data wrangling and visualization
+library(janitor)          # Clean column names
+library(skimr)            # Quick data summary
+library(lubridate)        # Working with dates
+library(readr)            # Reading CSV files
+library(ggplot2)          # Visualization
+library(ggpubr)           # Publication-ready plots
+library(forcats)          # Categorical variables handling
+
+# Table and reporting packages
+library(gtsummary)        # Summary tables
+library(gt)               # Table formatting
+library(knitr)            # Table rendering
+library(kableExtra)       # Table customization
+
+# Analysis-specific packages
+library(Amelia)           # Missing data visualization
+library(pwr)              # Power analysis
+library(DiagrammeR)       # Diagrams and flowcharts
+library(survival)         # Survival analysis
+library(survminer)        # Survival plots
+library(ggeffects)        # Marginal effects for regression models
+library(broom)            # Tidy model outputs
+library(rsample)          # Resampling and splitting datasets
+
+```
+
+
+
+
+*Data Import*
+```{r}
+# Data Import & Initial Inspection 
+# load the Dataset
+PROMO_Data <- read_csv(here("data", "raw-data", "PROMO_Data.csv"))
+
+
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+```
+
+
+
+*Initial Inspection*
+
+```{r}
+# Check column names
+colnames(promo_data_clean)
+
+# Basic structure
+str(promo_data_clean)
+
+# Quick look at first few rows
+head(promo_data_clean)
+
+# Overview of missing data
+skimr::skim(promo_data_clean)
+
+# Count total missing values per column
+promo_data_clean %>% 
+  summarise(across(everything(), ~sum(is.na(.))))
+
+```
+
+
+
+```{r}
+colnames(promo_data_clean)
+```
+
+```{r}
+names(promo_data_clean)
+```
+
+
+
+
+*Summary Statistics*
+Numeric Variables
+```{r}
+# Summary of numeric variables
+promo_data_clean %>% 
+  select(where(is.numeric)) %>% 
+  summary()
+
+```
+
+
+*Categorical Variables*
+```{r}
+# Frequency tables for categorical variables
+promo_data_clean %>% 
+  select(where(is.character)) %>% 
+  map(~table(.))
+
+```
+
+
+
+*Missing Data Visualization*
+```{r}
+# Visualizing missing data pattern
+naniar::vis_miss(promo_data_clean)
+
+```
+
+
+*Univariate Plots*
+Numeric Variables
+```{r}
+# Histograms of numeric variables
+promo_data_clean %>% 
+  select(where(is.numeric)) %>% 
+  gather() %>% 
+  ggplot(aes(x = value)) +
+  geom_histogram(bins = 30, fill = "steelblue", color = "black") +
+  facet_wrap(~key, scales = "free") +
+  theme_minimal()
+
+```
+
+
+*Categorical Variables*
+```{r}
+# Bar plots of categorical variables
+promo_data_clean %>% 
+  select(where(is.character)) %>% 
+  gather() %>% 
+  ggplot(aes(x = value)) +
+  geom_bar(fill = "lightblue", color = "black") +
+  facet_wrap(~key, scales = "free") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+
+
+*Correlation Matrix (Numeric Variables)*
+```{r}
+# Correlation plot
+numeric_vars <- promo_data_clean %>% 
+  select(where(is.numeric))
+
+cor_matrix <- cor(numeric_vars, use = "pairwise.complete.obs")
+
+corrplot::corrplot(cor_matrix, method = "circle", type = "lower")
+
+```
+
+
+*Group-wise Summary*
+```{r}
+# Grouped summary by treatment group (replace 'treatment_group' with actual variable)
+promo_data_clean %>% 
+  group_by(treatment_group) %>% 
+  summarise(across(where(is.numeric), list(mean = mean, sd = sd), na.rm = TRUE))
+
+```
+
