@@ -24,27 +24,27 @@ Optional: A TeX distribution (e.g., TinyTeX) if you wish to render PDF outputs.
 
 # Template structure and content
 
-This project follows a clear and organized folder structure:
+This repository follows a clear and organized folder structure to support a fully reproducible workflow:
 
-assets/: Contains static files such as images, schematics, .bib reference files, CSL citation styles, or any non-code-based content.
+assets/: Contains static assets such as images, schematics, .bib reference files, CSL citation styles, and other non-code files.
 
-code/: Contains all code for data processing, cleaning, analysis, and visualization. Subfolders may be added for different stages of the analysis.
+code/: Contains all scripts for data processing, cleaning, analysis, and visualization. Subfolders may be added for different stages of the analysis. You can access the full set of analysis scripts here.
 
-data/: Stores the raw and processed datasets used in the analysis. Subfolders organize the data at different stages (e.g., raw, processed).
+data/: Contains raw and processed datasets used in the analysis. Subfolders are organized to separate raw data from cleaned/processed data.
 
-products/: Contains deliverables such as reports, manuscripts, slides, or supplementary files. These are mostly generated using Quarto.
+products/: Contains project deliverables such as reports, manuscripts, slides, or supplementary materials. These are primarily created using Quarto.
 
-manuscript/: Contains the project report template written in Quarto.
+products/manuscript/: Contains the project manuscript/report written in Quarto.
 
-slides/: Contains any presentation materials related to the project.
+products/slides/: Contains slide decks or presentations related to the project.
 
-results/: Includes all code-generated outputs such as tables, figures, .rds data files, and processed data outputs. Results here should be generated programmatically and not manually edited.
+results/: Contains all code-generated outputs such as tables, figures, .rds files, and processed result files. These are generated programmatically and should not be manually edited.
 
-README.md: Provides an overview and instructions for the project structure (this file).
+README.md: Provides an overview of the project structure, instructions, and reproducibility details (this file).
 
-.Rproj: Project file to work within RStudio.
+.Rproj file: Defines the RStudio project workspace.
 
-Other hidden files (e.g., .gitignore, .Rprofile) are used to manage R and GitHub settings.
+Hidden files (e.g., .gitignore, .Rprofile): Used for R and GitHub configuration and can be ignored.
 
 
 
