@@ -688,20 +688,29 @@ To investigate whether increased gravidity is associated with a reduced risk of 
 &nbsp;
 &nbsp;
 
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Fit the logistic regression model for women under 25
+promo_data_young <- promo_data_clean %>%
+  filter(age_at_enrollment_years < 25) %>%
+  mutate(
+    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
+    adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0)
+  )
+
+model_gravidity <- glm(adverse_birth_outcome ~ gravidity + total_malaria_episodes + 
+                         study_arm + education_level,
+                       family = binomial(link = "logit"),
+                       data = promo_data_young)
+
+```
+
+
+
+
 *Table 6: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)*
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Load required libraries
-library(broom)
-library(dplyr)
-library(knitr)
-library(kableExtra)
-
-# Assume model_gravidity is your fitted logistic regression model for women < 25
-# For example:
-# model_gravidity <- glm(adverse_birth_outcome ~ gravidity + total_malaria_episodes + 
-#                          study_arm + education_level,
-#                        family = binomial(link = "logit"),
-#                        data = promo_data_young)
 
 # Tidy the model output, exponentiating coefficients to get odds ratios
 tidy_model_gravidity <- tidy(model_gravidity, exponentiate = TRUE, conf.int = TRUE)
