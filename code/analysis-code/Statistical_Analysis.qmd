@@ -248,18 +248,10 @@ ggplot(promo_data_clean, aes(x = MalariaEpisodesPreg_cat, fill = study_arm)) +
 
 ```
 
-*Boxplot of Birthweight by IPTp Treatment Arm*
 
-```{r}
-ggplot(promo_data_clean, aes(x = study_arm, y = birth_weight, fill = study_arm)) +
-  geom_boxplot(alpha = 0.7) +
-  labs(title = "Birthweight by IPTp Treatment Arm",
-       x = "Treatment Arm",
-       y = "Birthweight (kg)") +
-  theme_minimal() +
-  theme(legend.position = "none")
 
-```
+
+
 
 *Bar Graphs for Gravidity and Parity*
 
@@ -413,79 +405,18 @@ promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
 
 ```
 
-```{r}
-# Save the cleaned data (if not already saved)
-write.csv(promo_data_clean, here::here("data", "clean", "PROMO_Data_clean.csv"), row.names = FALSE)
 
-# Read in the cleaned data
-promo_data_clean <- read.csv(here::here("data", "clean", "PROMO_Data_clean.csv"))
 
-# Load necessary libraries
-library(dplyr)
-library(ggplot2)
-library(broom)
 
-### Data Preparation
 
-# 1. Create a composite adverse birth outcome variable
-#    Adverse outcome is defined as: 
-#    - Preterm birth: preterm_births_count > 0 
-#    OR stillbirth: stillbirth_bin == 1 
-#    OR low birth weight: birth_weight < 2.5 kg
-promo_data_clean <- promo_data_clean %>%
-  mutate(low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
-         adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0))
 
-# 2. Create a subgroup variable for maternal age (<25 years vs. >=25 years)
-promo_data_clean <- promo_data_clean %>%
-  mutate(age_group = ifelse(age_at_enrollment_years < 25, "Young", "Older"))
 
-### Research Question 1: 
-### "Does the type of IPTp regimen modify the association between malaria episode frequency and adverse birth outcomes in Ugandan pregnant women?"
 
-# Fit a logistic regression model with an interaction between total malaria episodes and study_arm
-model_interaction <- glm(adverse_birth_outcome ~ total_malaria_episodes * study_arm + 
-                           age_at_enrollment_years + gravidity + education_level,
-                         family = binomial(link = "logit"),
-                         data = promo_data_clean)
 
-# Summarize and tidy the model output (exponentiating coefficients to yield odds ratios)
-summary(model_interaction)
-tidy_model_interaction <- tidy(model_interaction, exponentiate = TRUE, conf.int = TRUE)
-print(tidy_model_interaction)
 
-### Research Question 2: 
-### "Among younger Ugandan pregnant women, is increased gravidity associated with a reduced risk of adverse birth outcomes?"
 
-# Subset the data for young mothers (age < 25)
-young_mothers <- promo_data_clean %>% filter(age_group == "Young")
 
-# Fit a logistic regression model within the young mothers subgroup 
-# to examine the association between gravidity and adverse birth outcomes
-model_gravidity_young <- glm(adverse_birth_outcome ~ gravidity + total_malaria_episodes + education_level,
-                             family = binomial(link = "logit"),
-                             data = young_mothers)
 
-# Summarize and tidy the subgroup model output
-summary(model_gravidity_young)
-tidy_model_gravidity_young <- tidy(model_gravidity_young, exponentiate = TRUE, conf.int = TRUE)
-print(tidy_model_gravidity_young)
-
-### Additional Exploratory Plots (Optional)
-
-# Plot the distribution of total malaria episodes by study arm
-ggplot(promo_data_clean, aes(x = study_arm, y = total_malaria_episodes)) +
-  geom_boxplot(fill = "lightblue") +
-  labs(title = "Malaria Episode Frequency by Treatment Arm", 
-       x = "Treatment Arm", y = "Total Malaria Episodes")
-
-# Plot the proportion of adverse outcomes by gravidity among young mothers
-ggplot(young_mothers, aes(x = gravidity, fill = factor(adverse_birth_outcome))) +
-  geom_bar(position = "fill") +
-  labs(title = "Proportion of Adverse Outcomes by Gravidity (Young Mothers)",
-       x = "Gravidity", y = "Proportion", fill = "Adverse Outcome")
-
-```
 
 ################################################################################################################################################################## 
 
@@ -660,6 +591,19 @@ kable(
 
 ################################################################################################################################################################## 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Research Question 2:
 
 *"Among younger (women under 25 years old) Ugandan pregnant women, is increased gravidity associated with a reduced risk of adverse birth outcomes?"*
@@ -701,6 +645,72 @@ ggplot(predicted_probs, aes(x = x, y = predicted)) +
 
 ```
 
+
+
+*Table 6: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)*
+
+```{r}
+# Load required libraries
+library(broom)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+# Assume model_gravidity is your fitted logistic regression model for women < 25
+# For example:
+# model_gravidity <- glm(adverse_birth_outcome ~ gravidity + total_malaria_episodes + 
+#                          study_arm + education_level,
+#                        family = binomial(link = "logit"),
+#                        data = promo_data_young)
+
+# Tidy the model output, exponentiating coefficients to get odds ratios
+tidy_model_gravidity <- tidy(model_gravidity, exponentiate = TRUE, conf.int = TRUE)
+
+# Create a summary table without the intercept and with neat variable names
+result_table <- tidy_model_gravidity %>%
+  filter(term != "(Intercept)") %>%
+  mutate(
+    term = case_when(
+      term == "gravidity" ~ "Gravidity",
+      term == "total_malaria_episodes" ~ "Total Malaria Episodes",
+      term == "study_armSP" ~ "Treatment Arm (SP)",
+      term == "education_levelSecondary" ~ "Secondary Education",
+      term == "education_levelTertiary" ~ "Tertiary Education",
+      term == "education_levelUniversity" ~ "University Education",
+      TRUE ~ term
+    ),
+    `Odds Ratio (95% CI)` = paste0(round(estimate, 2),
+                                   " (", round(conf.low, 2), ", ", round(conf.high, 2), ")")
+  ) %>%
+  select(term, `Odds Ratio (95% CI)`, p.value) %>%
+  rename(Variable = term, `p-value` = p.value)
+
+# Print the table using kable
+result_table %>%
+  kable(format = "markdown", caption = "")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 *Logistic Regression Model Fitting and Summary*
 
 ```{r}
@@ -728,7 +738,56 @@ print(tidy_model_gravidity)
 
 ```
 
-*Predicted Probability of Adverse Outcome by Gravidity (Age \< 25)*
+
+
+
+
+```{r}
+# Tidy the model output and exponentiate coefficients to get odds ratios
+tidy_model_gravidity <- tidy(model_gravidity, exponentiate = TRUE, conf.int = TRUE)
+
+# Create a summary table, remove the intercept, and recode variable names
+result_table <- tidy_model_gravidity %>%
+  filter(term != "(Intercept)") %>%
+  mutate(
+    term = dplyr::recode(term,
+                         "gravidity" = "Gravidity",
+                         "total_malaria_episodes" = "Total Malaria Episodes",
+                         "study_armSP" = "Treatment Arm (SP)",
+                         "education_levelSecondary" = "Secondary Education",
+                         "education_levelTertiary" = "Tertiary Education",
+                         "education_levelUniversity" = "University Education"),
+    `Odds Ratio (95% CI)` = paste0(round(estimate, 2),
+                                   " (", round(conf.low, 2), ", ", round(conf.high, 2), ")")
+  ) %>%
+  select(term, `Odds Ratio (95% CI)`, p.value) %>%
+  rename(Variable = term, `p-value` = p.value)
+
+# Print the table using kable with a descriptive caption
+result_table %>%
+  kable(format = "markdown", 
+        caption = "Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*Predicted Probability of Adverse Outcome by Gravidity (Age < 25)*
 
 ```{r}
 # Load necessary package for generating predicted effects
@@ -741,7 +800,7 @@ predicted_probs <- ggeffect(model_gravidity, terms = "gravidity")
 ggplot(predicted_probs, aes(x = x, y = predicted)) +
   geom_line(size = 1.2) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2, fill = "blue") +
-  labs(title = "Predicted Probability of Adverse Outcome by Gravidity (Age < 25)",
+  labs(title = "",
        x = "Gravidity",
        y = "Predicted Probability") +
   theme_minimal()
@@ -751,6 +810,26 @@ ggplot(predicted_probs, aes(x = x, y = predicted)) +
 In my logistic regression model, I found that gravidity has a statistically significant protective effect (OR = 0.857, 95% CI: 0.737–0.995, p = 0.044), suggesting that each additional pregnancy among young women under 25 reduces the odds of adverse birth outcomes. In contrast, total malaria episodes, treatment arm, and education level were not statistically significant predictors. This indicates that, within this subgroup, prior pregnancy experience is the key factor influencing birth outcomes, while other factors seem to have little effect.
 
 In my model, gravidity has an odds ratio of 0.857 (95% CI: 0.737–0.995, p = 0.044), indicating that each additional pregnancy among women under 25 reduces the odds of adverse birth outcomes by roughly 14%. Other predictors (total malaria episodes, treatment arm, and education level) were not statistically significant, suggesting that gravidity is the key protective factor in this subgroup.
+
+
+
+
+
+
+
+
+
+
+################################################################################################################################################################## 
+
+
+
+
+
+
+
+
+
 
 ```{r}
 # Load necessary package for ROC analysis

@@ -121,6 +121,20 @@ naniar::vis_miss(promo_data_clean)
 ```
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 *Univariate Plots*
 Numeric Variables
 ```{r}
@@ -134,6 +148,121 @@ promo_data_clean %>%
   theme_minimal()
 
 ```
+
+
+
+
+
+
+
+
+*Boxplot of Birthweight by IPTp Treatment Arm*
+
+```{r}
+ggplot(promo_data_clean, aes(x = study_arm, y = birth_weight, fill = study_arm)) +
+  geom_boxplot(alpha = 0.7) +
+  labs(title = "Birthweight by IPTp Treatment Arm",
+       x = "Treatment Arm",
+       y = "Birthweight (kg)") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+```
+
+
+
+
+
+
+
+```{r}
+# Save the cleaned data (if not already saved)
+write.csv(promo_data_clean, here::here("data", "clean", "PROMO_Data_clean.csv"), row.names = FALSE)
+
+# Read in the cleaned data
+promo_data_clean <- read.csv(here::here("data", "clean", "PROMO_Data_clean.csv"))
+
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(broom)
+
+### Data Preparation
+
+# 1. Create a composite adverse birth outcome variable
+#    Adverse outcome is defined as: 
+#    - Preterm birth: preterm_births_count > 0 
+#    OR stillbirth: stillbirth_bin == 1 
+#    OR low birth weight: birth_weight < 2.5 kg
+promo_data_clean <- promo_data_clean %>%
+  mutate(low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
+         adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0))
+
+# 2. Create a subgroup variable for maternal age (<25 years vs. >=25 years)
+promo_data_clean <- promo_data_clean %>%
+  mutate(age_group = ifelse(age_at_enrollment_years < 25, "Young", "Older"))
+
+### Research Question 1: 
+### "Does the type of IPTp regimen modify the association between malaria episode frequency and adverse birth outcomes in Ugandan pregnant women?"
+
+# Fit a logistic regression model with an interaction between total malaria episodes and study_arm
+model_interaction <- glm(adverse_birth_outcome ~ total_malaria_episodes * study_arm + 
+                           age_at_enrollment_years + gravidity + education_level,
+                         family = binomial(link = "logit"),
+                         data = promo_data_clean)
+
+# Summarize and tidy the model output (exponentiating coefficients to yield odds ratios)
+summary(model_interaction)
+tidy_model_interaction <- tidy(model_interaction, exponentiate = TRUE, conf.int = TRUE)
+print(tidy_model_interaction)
+
+### Research Question 2: 
+### "Among younger Ugandan pregnant women, is increased gravidity associated with a reduced risk of adverse birth outcomes?"
+
+# Subset the data for young mothers (age < 25)
+young_mothers <- promo_data_clean %>% filter(age_group == "Young")
+
+# Fit a logistic regression model within the young mothers subgroup 
+# to examine the association between gravidity and adverse birth outcomes
+model_gravidity_young <- glm(adverse_birth_outcome ~ gravidity + total_malaria_episodes + education_level,
+                             family = binomial(link = "logit"),
+                             data = young_mothers)
+
+# Summarize and tidy the subgroup model output
+summary(model_gravidity_young)
+tidy_model_gravidity_young <- tidy(model_gravidity_young, exponentiate = TRUE, conf.int = TRUE)
+print(tidy_model_gravidity_young)
+
+### Additional Exploratory Plots (Optional)
+
+# Plot the distribution of total malaria episodes by study arm
+ggplot(promo_data_clean, aes(x = study_arm, y = total_malaria_episodes)) +
+  geom_boxplot(fill = "lightblue") +
+  labs(title = "Malaria Episode Frequency by Treatment Arm", 
+       x = "Treatment Arm", y = "Total Malaria Episodes")
+
+# Plot the proportion of adverse outcomes by gravidity among young mothers
+ggplot(young_mothers, aes(x = gravidity, fill = factor(adverse_birth_outcome))) +
+  geom_bar(position = "fill") +
+  labs(title = "Proportion of Adverse Outcomes by Gravidity (Young Mothers)",
+       x = "Gravidity", y = "Proportion", fill = "Adverse Outcome")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 *Categorical Variables*
@@ -152,25 +281,4 @@ promo_data_clean %>%
 
 
 
-*Correlation Matrix (Numeric Variables)*
-```{r}
-# Correlation plot
-numeric_vars <- promo_data_clean %>% 
-  select(where(is.numeric))
-
-cor_matrix <- cor(numeric_vars, use = "pairwise.complete.obs")
-
-corrplot::corrplot(cor_matrix, method = "circle", type = "lower")
-
-```
-
-
-*Group-wise Summary*
-```{r}
-# Grouped summary by treatment group (replace 'treatment_group' with actual variable)
-promo_data_clean %>% 
-  group_by(treatment_group) %>% 
-  summarise(across(where(is.numeric), list(mean = mean, sd = sd), na.rm = TRUE))
-
-```
 

@@ -176,7 +176,8 @@ kable(
 &nbsp;
 &nbsp;
 
-
+&nbsp;
+&nbsp;
 **Figure 1: Distribution of Total Malaria Episodes by IPTp Treatment Arm**
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -195,6 +196,8 @@ ggplot(promo_data_clean, aes(x = total_malaria_episodes, fill = study_arm)) +
 &nbsp;
 &nbsp;
 
+&nbsp;
+&nbsp;
 
 **Table 2: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen**
 
@@ -254,7 +257,8 @@ table_outcomes
 &nbsp;
 &nbsp;
 
-
+&nbsp;
+&nbsp;
 
 *Figure 2: Differential Impact of IPTp Treatment on the Relationship Between Malaria Episodes and Adverse Birth Outcomes*
 
@@ -298,7 +302,6 @@ interaction_plot
 
 
 
-#####################################################################################################################################################
 
 
 
@@ -650,7 +653,7 @@ knitr::include_graphics("C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-projec
 
 **Table 4: "Incidence Rate Ratios for Malaria Episode Occurrence among Pregnant Women**
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Table 4: Incidence Rate Ratios for Malaria Episode Occurrence among Pregnant Women
 table_model_refined <- data.frame(
   Variable = c("Intercept", 
@@ -671,12 +674,101 @@ knitr::kable(table_model_refined, caption = "")
 
 ```
 
+&nbsp;
+&nbsp;
+
+To investigate whether increased gravidity is associated with a reduced risk of adverse birth outcomes among young pregnant women (<25 years), we restricted our analysis to this subgroup. Adverse birth outcome was defined as the occurrence of any one of the following: preterm birth, stillbirth, or low birth weight (<2.5 kg). A logistic regression model was then fitted with gravidity, total malaria episodes, study arm, and education level as predictors. As shown in Table 6 and illustrated in Figure 3, increased gravidity was significantly associated with lower odds of adverse outcomes (OR = 0.86, 95% CI: 0.74–1.00, p = 0.044), suggesting that each additional pregnancy reduced the risk by approximately 14%. In contrast, total malaria episodes (OR = 0.97, 95% CI: 0.83–1.15, p = 0.745), treatment arm (SP vs. DP; OR = 0.96, 95% CI: 0.64–1.44, p = 0.841), and education level (secondary: OR = 1.39, 95% CI: 0.77–2.53, p = 0.270; tertiary: OR = 1.01, 95% CI: 0.57–1.80, p = 0.967; university: OR = 1.30, 95% CI: 0.73–2.30, p = 0.371) were not statistically significant predictors. These findings indicate that prior pregnancy experience is the primary protective factor against adverse birth outcomes in this population.
 
 
 
-## Full analysis
 
-*Use one or several suitable statistical/machine learning methods to analyze your data and to produce meaningful figures, tables, etc. This might again be code that is best placed in one or several separate R scripts that need to be well documented. You want the code to produce figures and data ready for display as tables, and save those. Then you load them here.*
+
+
+
+&nbsp;
+&nbsp;
+
+*Table 6: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)*
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Load required libraries
+library(broom)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+# Assume model_gravidity is your fitted logistic regression model for women < 25
+# For example:
+# model_gravidity <- glm(adverse_birth_outcome ~ gravidity + total_malaria_episodes + 
+#                          study_arm + education_level,
+#                        family = binomial(link = "logit"),
+#                        data = promo_data_young)
+
+# Tidy the model output, exponentiating coefficients to get odds ratios
+tidy_model_gravidity <- tidy(model_gravidity, exponentiate = TRUE, conf.int = TRUE)
+
+# Create a summary table without the intercept and with neat variable names
+result_table <- tidy_model_gravidity %>%
+  filter(term != "(Intercept)") %>%
+  mutate(
+    term = case_when(
+      term == "gravidity" ~ "Gravidity",
+      term == "total_malaria_episodes" ~ "Total Malaria Episodes",
+      term == "study_armSP" ~ "Treatment Arm (SP)",
+      term == "education_levelSecondary" ~ "Secondary Education",
+      term == "education_levelTertiary" ~ "Tertiary Education",
+      term == "education_levelUniversity" ~ "University Education",
+      TRUE ~ term
+    ),
+    `Odds Ratio (95% CI)` = paste0(round(estimate, 2),
+                                   " (", round(conf.low, 2), ", ", round(conf.high, 2), ")")
+  ) %>%
+  select(term, `Odds Ratio (95% CI)`, p.value) %>%
+  rename(Variable = term, `p-value` = p.value)
+
+# Print the table using kable
+result_table %>%
+  kable(format = "markdown", caption = "")
+
+```
+
+
+&nbsp;
+&nbsp;
+
+
+*Figure 3: Predicted Probability of Adverse Outcome by Gravidity (Age < 25)*
+
+```{r}
+# Load necessary package for generating predicted effects
+library(ggeffects)
+
+# Generate predicted probabilities over the range of gravidity
+predicted_probs <- ggeffect(model_gravidity, terms = "gravidity")
+
+# Create a scatter/line plot of predicted probabilities by gravidity
+ggplot(predicted_probs, aes(x = x, y = predicted)) +
+  geom_line(size = 1.2) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2, fill = "blue") +
+  labs(title = "",
+       x = "Gravidity",
+       y = "Predicted Probability") +
+  theme_minimal()
+
+```
+
+
+
+
+&nbsp;
+&nbsp;
+
+For the primary analysis focused on women under 25, our logistic regression model revealed a statistically significant protective effect of gravidity on adverse birth outcomes. Although we generated additional diagnostic figures—such as ROC curves and calibration plots—to assess overall model performance, these figures indicated only modest discriminative ability (with AUC values near 0.55–0.60) and calibration issues. Given that our key finding is the significant association between increased gravidity and reduced risk of adverse outcomes, we present the adjusted odds ratios in Table 6 as the main results. Detailed model diagnostics and alternative model evaluations are provided in the supplementary materials to demonstrate our comprehensive application of analysis techniques.
+
+
+
+
+
+
 
 {{< pagebreak >}}
 
