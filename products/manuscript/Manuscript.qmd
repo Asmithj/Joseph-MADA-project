@@ -1,23 +1,20 @@
 ---
 title: "Impact of IPTp Regimen on Pregnancy Outcomes in a Malaria-Endemic Setting"
-bibliography: "../../assets/dataanalysis-references.bib"
-csl: "../../assets/american-journal-of-epidemiology.csl"
-
+author: "Asmith Joseph"
 format:
   docx:
     toc: false
     number-sections: true
     output-file: "Manuscript.docx"  
-
 project:
   output-dir: "C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-project/products/manuscript"
-
 execute:
   echo: false
   warning: false
   message: false
+bibliography: "../../assets/dataanalysis-references.bib"
+csl: "../../assets/american-journal-of-epidemiology.csl"
 ---
-
 
 
 
