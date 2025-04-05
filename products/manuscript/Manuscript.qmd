@@ -69,7 +69,7 @@ Malaria remains a critical public health challenge in Sub-Saharan Africa, with p
 ## General Background Information
 Malaria remains a major public health challenge worldwide, particularly in Sub-Saharan Africa, where the disease disproportionately affects vulnerable populations. Caused by Plasmodium parasites transmitted through the bite of infected Anopheles mosquitoes, malaria accounted for an estimated 249 million cases globally in 2022, marking an increase of five million cases compared to the previous year. Uganda alone reported over 597,000 malaria cases during this period, reflecting the country’s substantial malaria burden (World Health Organization, 2023; Talapko et al., 2019). Pregnant women represent one of the most vulnerable groups to malaria infection, facing an increased risk of severe clinical symptoms and poor pregnancy outcomes. Malaria during pregnancy has been associated with a range of adverse outcomes, including miscarriage, fetal loss, preterm birth, low birth weight, and neonatal mortality (Chua et al., 2021).
 
-Efforts to mitigate the impact of malaria in pregnancy have centered on preventive strategies such as the use of insecticide-treated bed nets (ITNs) and chemoprophylaxis through intermittent preventive treatment during pregnancy (IPTp). Two widely used IPTp regimens are sulfadoxine-pyrimethamine (SP) and dihydroartemisinin-piperaquine (DP). While these preventive measures have shown significant benefits in reducing the risk of malaria-related complications, the effectiveness of these regimens may not be uniform across all contexts. In particular, emerging evidence suggests that the choice of IPTp regimen may influence how malaria episodes affect pregnancy outcomes. However, this potential effect modification remains underexplored in current literature. Additionally, maternal characteristics such as gravidity—the number of times a woman has been pregnant—may also play a role in shaping birth outcomes. Prior research has suggested that previous pregnancy experience may offer protective benefits against adverse outcomes, possibly due to improved physiological adaptation or better health-seeking behavior.
+Efforts to mitigate the impact of malaria in pregnancy have centered on preventive strategies such as the use of insecticide-treated bed nets (ITNs) and chemoprophylaxis through intermittent preventive treatment during pregnancy (IPTp). Two widely used IPTp regimens are sulfadoxine-pyrimethamine (SP) and dihydroartemisinin-piperaquine (DP). While these preventive measures have shown significant benefits in reducing the risk of malaria-related complications, the effectiveness of these regimens may not be uniform across all contexts. In particular, emerging evidence suggests that the choice of IPTp regimen may influence how malaria episodes affect pregnancy outcomes. However, this potential effect modification remains underexplored in current literature. Additionally, maternal characteristics such as gravidity, the number of times a woman has been pregnant may also play a role in shaping birth outcomes. Prior research has suggested that previous pregnancy experience may offer protective benefits against adverse outcomes, possibly due to improved physiological adaptation or better health-seeking behavior.
 
 This study addresses two research questions. First, it examines whether the type of IPTp regimen modifies the association between malaria episode frequency and adverse birth outcomes in Ugandan pregnant women. Preliminary analyses suggest a potential interaction between malaria episodes and the SP regimen, indicating that the impact of malaria may differ by treatment. Second, the study investigates whether increased gravidity reduces the risk of adverse birth outcomes among younger pregnant women under 25 years. Early findings point to a protective effect of prior pregnancies in this subgroup. In addressing these questions, the study seeks to clarify how preventive treatment strategies and maternal reproductive history shape birth outcomes in malaria-endemic settings. Ultimately, the insights gained could inform the development of targeted, effective, and equitable interventions to enhance pregnant women's and infants' health in Uganda and similar regions.
 
@@ -230,7 +230,7 @@ table_outcomes
 &nbsp;
 &nbsp;
 
-*Figure 2: Differential Impact of IPTp Treatment on the Relationship Between Malaria Episodes and Adverse Birth Outcomes*
+**Figure 2: Differential Impact of IPTp Treatment on the Relationship Between Malaria Episodes and Adverse Birth Outcomes**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Create the composite adverse outcome variable
 promo_data_clean <- promo_data_clean %>%
@@ -271,7 +271,7 @@ interaction_plot
 &nbsp;
 &nbsp;
 
-**Table 2: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen**
+**Table 3: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen**
 ```{r,  echo=FALSE, message=FALSE, warning=FALSE}
 # Load necessary libraries
 library(dplyr)
@@ -355,7 +355,7 @@ Multivariable logistic regression analyses, adjusted for maternal age, gravidity
 &nbsp;
 
 
-**Table 3: Interaction Between Malaria Exposure and IPTp Treatment Arm in Predicting Adverse Birth Outcomes**
+**Table 4: Interaction Between Malaria Exposure and IPTp Treatment Arm in Predicting Adverse Birth Outcomes**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #library(broom)
 library(dplyr)
@@ -413,7 +413,7 @@ kable(
 
 
 
-**Table 4:  Regression Diagnostics for IPTp Treatment Effect**
+**Table 5:  Regression Diagnostics for IPTp Treatment Effect**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 
@@ -500,7 +500,7 @@ kable(
 
 
 
-**Table 5: Evaluating Effect Modification by IPTp Treatment on Malaria-Related Adverse Birth Outcomes Through Model Comparison**
+**Table 6: Evaluating Effect Modification by IPTp Treatment on Malaria-Related Adverse Birth Outcomes Through Model Comparison**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-project/Images/Table- Comparing Models .png")
 
@@ -515,7 +515,7 @@ knitr::include_graphics("C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-projec
 
 
 
-**Table 4: "Incidence Rate Ratios for Malaria Episode Occurrence among Pregnant Women**
+**Table 7: "Incidence Rate Ratios for Malaria Episode Occurrence among Pregnant Women**
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Table 4: Incidence Rate Ratios for Malaria Episode Occurrence among Pregnant Women
@@ -575,7 +575,7 @@ model_gravidity <- glm(adverse_birth_outcome ~ gravidity + total_malaria_episode
 
 
 
-*Table 6: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)*
+**Table 8: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 # Tidy the model output, exponentiating coefficients to get odds ratios
@@ -611,7 +611,7 @@ result_table %>%
 &nbsp;
 
 
-*Figure 3: Predicted Probability of Adverse Outcome by Gravidity (Age < 25)*
+**Figure 3: Predicted Probability of Adverse Outcome by Gravidity (Age < 25)**
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
