@@ -5,16 +5,11 @@ format:
   docx:
     toc: false
     number-sections: true
-    output-file: "Manuscript.docx"  
-project:
-  output-dir: "C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-project/products/manuscript"
-execute:
-  echo: false
-  warning: false
-  message: false
+    output-file: "C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-project/products/manuscript/Manuscript.docx"
 bibliography: "../../assets/dataanalysis-references.bib"
 csl: "../../assets/american-journal-of-epidemiology.csl"
 ---
+
 
 
 
