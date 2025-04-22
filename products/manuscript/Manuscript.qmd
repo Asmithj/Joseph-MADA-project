@@ -11,29 +11,75 @@ csl: ../../assets/american-journal-of-epidemiology.csl
 ---
 
 
+
+
+
+
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
+
+# 1)  working directory to the project root
+setwd("C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-project")
+
+
+# 2) Chunk defaults
+knitr::opts_chunk$set(
+  echo    = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # Load Required Libraries for Data Handling, Visualization, and Analysis
 
-library(here)             # Manage file paths
-library(tidyverse)        # Core data wrangling and visualization (dplyr, ggplot2, readr, etc.)
-library(janitor)          # Clean and format column names
-library(skimr)            # Quick data summaries
-library(gtsummary)        # Create summary tables
-library(gt)               # Format tables
-library(knitr)            # R Markdown table formatting
-library(kableExtra)       # Enhanced table customization for kable output
-library(ggpubr)           # Publication-ready plots
-library(Amelia)           # Visualize missing data
-library(pwr)              # Perform power analyses
-library(DiagrammeR)       # Create flowcharts and diagrams
-library(survival)         # Survival analysis functions
-library(survminer)        # Visualize survival analysis results
-library(flextable)        # Create tables for Word output
-library(webshot2)         # Capture screenshots for HTML widgets in non-HTML outputs
-library(logistf)          # Penalized logistic regression (Firth’s method)
-library(ggeffects)
-library(car)
-library(broom)
+# Path management
+library(here)              # For file path handling
+
+# Data manipulation and wrangling
+library(dplyr)             # Data manipulation
+library(tidyverse)         # Core data science packages (includes ggplot2, dplyr, readr, etc.)
+library(janitor)           # Clean column names
+library(skimr)             # Data summary
+library(lubridate)         # Date and time handling
+library(forcats)           # Handling categorical variables
+
+# Visualization
+library(ggplot2)           # Data visualization (also part of tidyverse)
+library(ggpubr)            # Publication-ready plots
+
+# Tables and reporting
+library(gtsummary)         # Summary statistics tables
+library(gt)                # Table formatting
+library(knitr)             # Report generation
+library(kableExtra)        # Enhanced table output in markdown
+
+# Analysis-specific packages
+library(Amelia)            # Visualizing missing data
+library(pwr)               # Power analysis
+library(DiagrammeR)        # Diagrams and flowcharts
+library(survival)          # Survival analysis
+library(survminer)         # Survival plots
+library(ggeffects)         # Marginal effects for regression models
+library(broom)             # Tidy model outputs
+
+# Machine learning and modeling
+library(tidymodels)        # Unified modeling framework (includes recipes, parsnip, workflows, tune, etc.)
+library(rsample)           # Resampling and data splitting
+library(recipes)           # Preprocessing
+library(parsnip)           # Model specification
+library(workflows)         # Combine models and preprocessing
+library(tune)              # Hyperparameter tuning
+library(yardstick)         # Model performance metrics
+library(dials)             # Parameter tuning grids
+library(ranger)            # Random forest engine
+library(xgboost)           # Boosting engine
+library(themis)            # Handling class imbalance (e.g., SMOTE)
+
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
@@ -60,12 +106,25 @@ $\dagger$ Disclaimer: The opinions expressed in this article are the author's ow
 {{< pagebreak >}}
 
 # Abstract
-Malaria remains a critical public health challenge in Sub-Saharan Africa, with pregnant women at heightened risk of adverse outcomes. This study analyzed data from a double-blind randomized controlled trial in Uganda (ClinEpiDB Release #24, August 30, 2022) to evaluate the impact of intermittent preventive treatment during pregnancy (IPTp) on adverse birth outcomes. A total of 782 HIV-uninfected pregnant women received either sulfadoxine-pyrimethamine (SP) or dihydroartemisinin-piperaquine (DP). Multivariable logistic regression models were used to assess whether the IPTp regimen modifies the association between malaria episode frequency and outcomes such as preterm birth, low birth weight, and stillbirth, while adjusting for confounders including maternal age, gravidity, and socioeconomic status. Although the main effects of malaria episodes and treatment arm were not statistically significant, the interaction between malaria episodes and the SP regimen was significant (OR = 1.47, 95% CI: 1.16–1.88, p = 0.002), suggesting that the impact of malaria differs by treatment. Additionally, a subgroup analysis of women under 25 years revealed that increased gravidity was significantly protective (OR = 0.86, 95% CI: 0.74–1.00, p = 0.044). These findings underscore the importance of tailoring malaria prevention strategies based on individual maternal profiles to improve maternal and neonatal health outcomes in malaria-endemic settings.
 
+# Background
+Malaria in pregnancy contributes substantially to maternal and neonatal morbidity and mortality across Sub‑Saharan Africa. Intermittent preventive treatment during pregnancy (IPTp) is recommended to reduce adverse birth outcomes, yet the comparative effectiveness of different regimens and how their impact varies with malaria burden remains unclear.
+
+## Methods
+We conducted a secondary analysis of data from a double‑blind randomized controlled trial in Uganda (ClinEpiDB Release #24, August 30, 2022) involving 782 HIV‑uninfected pregnant women. Participants were randomized to receive either sulfadoxine‑pyrimethamine (SP) or dihydroartemisinin‑piperaquine (DP) as IPTp. Multivariable logistic regression was employed to evaluate (1) the main effects of cumulative malaria episodes and treatment arm on preterm birth, low birth weight, and stillbirth, and (2) the interaction between malaria frequency and IPTp regimen. Models adjusted for maternal age, gravidity, and socioeconomic status. A prespecified subgroup analysis in women < 25 years assessed the effect of gravidity on outcomes.
+
+## Results
+In multivariable models adjusted for maternal age, gravidity, and socioeconomic status, we identified a statistically significant interaction between malaria episode frequency and the SP regimen (OR 1.47 per additional episode, 95% CI 1.16–1.88; p = 0.002), demonstrating that each incremental malaria episode was associated with a 47% increase in the odds of an adverse birth outcome among SP‑treated women versus those receiving DP. Notably, neither malaria burden nor IPTp regimen alone achieved statistical significance, underscoring the critical role of their interplay. Moreover, in the subgroup of women under 25 years, gravidity conferred significant protection: each additional pregnancy reduced the likelihood of an adverse outcome by 14% (OR 0.86 per gravidity, 95% CI 0.74–1.00; p = 0.044). These findings suggest that SP’s preventive efficacy diminishes with repeated malaria exposure and that higher parity provides resilience against adverse perinatal outcomes in younger mothers.
+
+## Conclusions:
+These results demonstrate that IPTp regimen selection fundamentally alters how cumulative malaria exposure impacts perinatal outcomes: sulfadoxine–pyrimethamine exhibits progressively reduced protective efficacy with each successive malaria episode, whereas dihydroartemisinin–piperaquine maintains greater resilience. Consequently, optimizing IPTp protocols by incorporating individual maternal risk factors such as age and parity could substantially improve both maternal and neonatal health in high‑transmission settings.
+
+## Keywords:
+**Malaria, adverse birth outcomes, intermittent preventive treatment in pregnancy (IPTp), sulfadoxine‑pyrimethamine, dihydroartemisinin‑piperaqui**
 
 {{< pagebreak >}}
 
-# Introduction
+# Introductio
 ## General Background Information
 Malaria remains a major public health challenge worldwide, particularly in Sub-Saharan Africa, where the disease disproportionately affects vulnerable populations. Caused by Plasmodium parasites transmitted through the bite of infected Anopheles mosquitoes, malaria accounted for an estimated 249 million cases globally in 2022, marking an increase of five million cases compared to the previous year. Uganda alone reported over 597,000 malaria cases during this period, reflecting the country’s substantial malaria burden (World Health Organization, 2023; Talapko et al., 2019). Pregnant women represent one of the most vulnerable groups to malaria infection, facing an increased risk of severe clinical symptoms and poor pregnancy outcomes. Malaria during pregnancy has been associated with a range of adverse outcomes, including miscarriage, fetal loss, preterm birth, low birth weight, and neonatal mortality (Chua et al., 2021).
 
