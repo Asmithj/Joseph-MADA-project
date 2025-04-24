@@ -18,20 +18,6 @@ csl: ../../assets/american-journal-of-epidemiology.csl
 
 
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-
-# 1)  working directory to the project root
-setwd("C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-project")
-
-
-# 2) Chunk defaults
-knitr::opts_chunk$set(
-  echo    = FALSE,
-  message = FALSE,
-  warning = FALSE
-)
-```
-
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
@@ -248,8 +234,7 @@ table_outcomes
 &nbsp;
 &nbsp;
 
-&nbsp;
-&nbsp;
+
 
 **Figure 2: Differential Impact of IPTp Treatment on the Relationship Between Malaria Episodes and Adverse Birth Outcomes**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -411,25 +396,15 @@ knitr::include_graphics(here::here("Images", "Adjusted OR for Adverse Birth Outc
 &nbsp;
 
 
+
+
 **Figure 3: Predicted Probability of Adverse Outcome by Gravidity (Age < 25)**
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-
-# Generate predicted probabilities over the range of gravidity
-predicted_probs <- ggeffect(model_gravidity, terms = "gravidity")
-
-# Create a scatter/line plot of predicted probabilities by gravidity
-ggplot(predicted_probs, aes(x = x, y = predicted)) +
-  geom_line(size = 1.2) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2, fill = "blue") +
-  labs(title = "",
-       x = "Gravidity",
-       y = "Predicted Probability") +
-  theme_minimal()
+knitr::include_graphics( here::here( "Images", "Figure 3. Predicted Probability of Adverse Outcome by Gravidity Age  25.png"
+  )
+)
 
 ```
-
-
 
 
 &nbsp;
