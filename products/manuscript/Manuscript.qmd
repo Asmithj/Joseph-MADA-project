@@ -417,12 +417,20 @@ Based on our findings, the impact of malaria on adverse birth outcomes is signif
 &nbsp;
 
 
+
+
+
+
+
+
+
+
+
+
 **Figure 4 : Comparative Discriminative Performance of ML Models for Predicting Adverse Birth Outcomes**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics(
-  here::here(
-    "Images",
-    "Figure 4.Comparative Discriminative Performance of ML .png"
+  here::here( "Images", "Figure 4.Comparative Discriminative Performance of ML .png"
   )
 )
 
