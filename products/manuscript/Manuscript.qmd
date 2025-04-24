@@ -387,15 +387,9 @@ Multivariable logistic regression analyses, adjusted for maternal age, gravidity
 
 **Table 5: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Build a normalized, forward‐slash path and include the image
-or_u25_path <- normalizePath(
-  here::here(
-    "Images",
-    "Adjusted OR for Adverse Birth Outcomes Women  less 25 Years.png"
-  ),
-  winslash = "/"
+knitr::include_graphics(
+  here::here("Images", "Adjusted ratio   less 25 Years.png")
 )
-knitr::include_graphics(or_u25_path)
 
 ```
 
@@ -408,15 +402,9 @@ knitr::include_graphics(or_u25_path)
 
 **Figure 3: Predicted Probability of Adverse Outcome by Gravidity (Age < 25)**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Construct an absolute, forward‐slash path and include the image
-fig3_path <- normalizePath(
-  here::here(
-    "Images",
-    "Figure 3. Predicted Probability of Adverse Outcome by Gravidity Age  25.png"
-  ),
-  winslash = "/"
+knitr::include_graphics(
+  here::here("Images", "Figure 3. Predicted Probability.png")
 )
-knitr::include_graphics(fig3_path)
 
 ```
 
