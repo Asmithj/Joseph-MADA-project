@@ -158,7 +158,12 @@ Multivariable logistic regression models were employed to evaluate whether the I
 **Table 1: Baseline Characteristics of Study Participants by IPTp Treatment Arm**
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-knitr::include_graphics(here::here("Images", "Table 1. Baseline Characteristics .png"))
+knitr::include_graphics(
+  normalizePath(
+    here::here("Images", "Table1Baseline.png"),
+    winslash = "/"
+  )
+)
 
 ```
 
