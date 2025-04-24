@@ -418,23 +418,24 @@ Based on our findings, the impact of malaria on adverse birth outcomes is signif
 
 
 **Figure 4 : Comparative Discriminative Performance of ML Models for Predicting Adverse Birth Outcomes**
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-roc_lr  <- roc_curve(logistic_preds, truth = adverse_birth_outcome, .pred_1) %>% mutate(model = "Logistic")
-roc_rf  <- roc_curve(rf_preds,       truth = adverse_birth_outcome, .pred_1) %>% mutate(model = "RF")
-roc_xgb <- roc_curve(xgb_preds,     truth = adverse_birth_outcome, .pred_1) %>% mutate(model = "XGBoost")
+knitr::include_graphics(
+  here::here(
+    "Images",
+    "Figure 4.Comparative Discriminative Performance of ML .png"
+  )
+)
 
-roc_all <- bind_rows(roc_lr, roc_rf, roc_xgb)
-
-ggplot(roc_all, aes(x = 1 - specificity, y = sensitivity, color = model)) +
-  geom_path(size = 1) +
-  labs(title = "",
-       x = "False Positive Rate", y = "True Positive Rate") +
-  theme_minimal()
 ```
 
+
+
+
 &nbsp;
 &nbsp;
+
+
+
 
 **Table 6:  Discriminative Performance (AUC) of Machine Learning Models Predicting Adverse Birth Outcomes Under Different IPTp Regimens**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
