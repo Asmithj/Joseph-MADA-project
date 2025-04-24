@@ -157,50 +157,12 @@ Multivariable logistic regression models were employed to evaluate whether the I
 
 
 **Table 1: Baseline Characteristics of Study Participants by IPTp Treatment Arm**
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Create table data
-table_data <- tribble(
-  ~Characteristic,                           ~Subcategory,               ~`DP (N=4121)`,       ~`SP (N=3701)`,
-  "Age (years)",                             "",                         "25.0 (5.0)",         "25.0 (4.9)",
-  "Gestational Age (weeks)",                 "",                         "15.24 (1.97)",       "14.97 (1.94)",
-  "Maternal Education Level (%)",            "",                         "",                   "",
-  "",                                        "Primary",                  "262 (66.7%)",        "258 (66.4%)",
-  "",                                        "Tertiary",                 "65 (16.5%)",         "61 (15.7%)",
-  "",                                        "University",               "66 (16.8%)",         "70 (18.0%)",
-  "Gravidity",                               "",                         "",                   "",
-  "",                                        "1",                        "91 (22%)",           "56 (15%)",
-  "",                                        "2–3",                      "167 (41%)",          "166 (45%)",
-  "",                                        "≥4",                       "154 (37%)",          "148 (40%)",
-  "Parity",                                  "",                         "",                   "",
-  "",                                        "0",                        "79 (19%)",           "77 (21%)",
-  "",                                        "1–2",                      "175 (42%)",          "158 (43%)",
-  "",                                        "≥3",                       "158 (38%)",          "135 (36%)",
-  "Total Malaria Episodes",                  "",                         "",                   "",
-  "",                                        "1",                        "245 (59%)",          "216 (58%)",
-  "",                                        "2–3",                      "146 (35%)",          "127 (34%)",
-  "",                                        "≥4",                       "21 (5.1%)",          "27 (7.3%)",
-  "Total Malaria Episodes During Pregnancy", "",                         "",                   "",
-  "",                                        "1",                        "179 (43%)",          "165 (45%)",
-  "",                                        "2–3",                      "138 (33%)",          "120 (32%)",
-  "",                                        "≥4",                       "95 (23%)",           "85 (23%)",
-  "Malaria Infection Rate During Pregnancy", "",                         "1.01 (0.58)",        "1.05 (0.58)",
-  "Placental Malaria (Rogerson Criteria)",   "",                         "75 (18%)",           "72 (19%)",
-  "Preterm Births Count",                    "",                         "",                   "",
-  "",                                        "1",                        "391 (95%)",          "348 (94%)",
-  "",                                        "2",                        "21 (5.1%)",          "22 (5.9%)",
-  "Stillbirth bin",                          "",                         "37 (9.0%)",          "50 (14%)",
-  "Birthweight",                             "",                         "2.79 (0.64)",        "2.81 (0.62)",
-  "History of Previous Malaria Episodes (%)", "",                        "40 (10%)",           "35 (9%)"
-)
 
-kable(
-  table_data,
-  format = "pandoc",
-  caption = ""
-) %>% 
-  kable_styling(full_width = FALSE, position = "center")
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics(here::here("Images", "Table 1. Baseline Characteristics .png"))
 
 ```
+
 
 
 &nbsp;
@@ -389,11 +351,6 @@ table_outcomes
 
 
 
-&nbsp;
-&nbsp;
-
-
-
 
 
 {{< pagebreak >}}
@@ -415,52 +372,9 @@ Multivariable logistic regression analyses, adjusted for maternal age, gravidity
 
 
 **Table 4: Interaction Between Malaria Exposure and IPTp Treatment Arm in Predicting Adverse Birth Outcomes**
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-#library(broom)
-library(dplyr)
-library(knitr)
-library(kableExtra)
-library(here)
 
-# Tidy the model output with exponentiated coefficients (odds ratios)
-tidy_model <- tidy(model_interaction, exponentiate = TRUE, conf.int = TRUE)
-
-# Remove the intercept row and recode variable names using case_when()
-tidy_model_filtered <- tidy_model %>%
-  filter(term != "(Intercept)") %>%
-  mutate(
-    term = case_when(
-      term == "total_malaria_episodes" ~ "Total Malaria Episodes",
-      term == "study_armSP" ~ "Treatment Arm (SP)",
-      term == "age_at_enrollment_years" ~ "Age at Enrollment (years)",
-      term == "gravidity" ~ "Gravidity",
-      term == "education_levelSecondary" ~ "Secondary Education",
-      term == "education_levelTertiary" ~ "Tertiary Education",
-      term == "education_levelUniversity" ~ "University Education",
-      term == "total_malaria_episodes:study_armSP" ~ "Interaction: Malaria Episodes × SP",
-      TRUE ~ term
-    )
-  )
-
-# Round key values for clarity
-tidy_model_filtered <- tidy_model_filtered %>%
-  mutate(
-    estimate = round(estimate, 2),
-    std.error = round(std.error, 2),
-    statistic = round(statistic, 2),
-    p.value = round(p.value, 3),
-    conf.low = round(conf.low, 2),
-    conf.high = round(conf.high, 2)
-  )
-
-# Render the table with a blank header for the first column
-kable(
-  tidy_model_filtered,
-  format = "pandoc",
-  caption = "",
-  col.names = c("", "Odds Ratio", "Std. Error", "z value", "p-value", "95% CI Lower", "95% CI Upper")
-) %>% 
-  kable_styling(full_width = FALSE, position = "center")
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics(here::here("Images", "Table4.Interaction Malaria vsIPTP.png"))
 
 ```
 
@@ -471,134 +385,6 @@ kable(
 
 
 
-
-**Table 5:  Regression Diagnostics for IPTp Treatment Effect**
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-
-
-# Read in the cleaned data (ensure adverse_birth_outcome is defined as needed)
-promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
-
-# Create composite adverse outcome if not already defined
-promo_data_clean <- promo_data_clean %>%
-  mutate(
-    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
-    adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0)
-  )
-
-# Fit Model 1 (without interaction)
-model1 <- glm(adverse_birth_outcome ~ total_malaria_episodes + study_arm +
-                age_at_enrollment_years + gravidity + education_level,
-              family = binomial(link = "logit"), data = promo_data_clean)
-
-# Fit Model 2 (with interaction)
-model2 <- glm(adverse_birth_outcome ~ total_malaria_episodes * study_arm +
-                age_at_enrollment_years + gravidity + education_level,
-              family = binomial(link = "logit"), data = promo_data_clean)
-
-# Generate Analysis of Deviance Table (Likelihood Ratio Test)
-lrt <- anova(model1, model2, test = "LRT")
-lrt_df <- as.data.frame(lrt)
-lrt_df$Model <- c("No Interaction", "With Interaction")
-lrt_df <- lrt_df %>% 
-  select(Model, `Resid. Df`, `Resid. Dev`, Df, Deviance, `Pr(>Chi)`)
-colnames(lrt_df) <- c("Model", "Residual Df", "Residual Dev", "Df", "Deviance", "p-value")
-
-# Render Table X: Likelihood Ratio Test
-kable(
-  lrt_df,
-  format = "pandoc",
-  caption = ""
-) %>% 
-  kable_styling(full_width = FALSE, position = "center")
-
-# Compute Variance Inflation Factors (VIF) for Model 2 (with interaction)
-vif_vals <- vif(model2)
-vif_df <- as.data.frame(vif_vals)
-vif_df$Variable <- rownames(vif_vals)
-vif_df <- vif_df %>% rename(`Df (VIF)` = Df)
-vif_df <- vif_df %>% 
-  select(Variable, GVIF, `Df (VIF)`, `GVIF^(1/(2*Df))`) %>%
-  mutate(
-    Variable = case_when(
-      Variable == "total_malaria_episodes" ~ "Total Malaria Episodes",
-      Variable == "study_arm" ~ "Treatment Arm",
-      Variable == "age_at_enrollment_years" ~ "Age at Enrollment",
-      Variable == "gravidity" ~ "Gravidity",
-      Variable == "education_level" ~ "Education Level",
-      Variable == "total_malaria_episodes:study_arm" ~ "Interaction: Malaria Episodes × SP",
-      TRUE ~ Variable
-    )
-  )
-
-# Render Table Y: VIF Diagnostics
-kable(
-  vif_df,
-  format = "pandoc",
-  caption = ""
-) %>% 
-  kable_styling(full_width = FALSE, position = "center")
-
-```
-
-
-
-
-
-&nbsp;
-&nbsp;
-
-
-
-
-
-
-
-
-
-
-
-
-**Table 6: Evaluating Effect Modification by IPTp Treatment on Malaria-Related Adverse Birth Outcomes Through Model Comparison**
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-knitr::include_graphics("C:/Users/ajose35/Desktop/MADA-course/Joseph-MADA-project/Images/Table- Comparing Models .png")
-
-```
-
-
-
-
-&nbsp;
-&nbsp;
-
-
-
-
-**Table 7: "Incidence Rate Ratios for Malaria Episode Occurrence among Pregnant Women**
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Table 4: Incidence Rate Ratios for Malaria Episode Occurrence among Pregnant Women
-table_model_refined <- data.frame(
-  Variable = c("Intercept", 
-               "Treatment Arm (SP vs. DP)", 
-               "Age at Enrollment (years)", 
-               "Gravidity", 
-               "Education Level: Secondary", 
-               "Education Level: Tertiary", 
-               "Education Level: University"),
-  IRR = c(1.6081682, 1.0552044, 0.9942737, 1.0095680, 0.9884423, 0.8900707, 1.0363703),
-  `95% CI Lower` = c(1.1297705, 0.9382987, 0.9825662, 0.9675647, 0.8348897, 0.7505115, 0.8805393),
-  `95% CI Upper` = c(2.280714, 1.186523, 1.006133, 1.053391, 1.170522, 1.055600, 1.220799),
-  `p-value` = c(0.008021017, 0.369364418, 0.342231948, 0.660449862, 0.892661838, 0.180547176, 0.668035030)
-)
-
-# Optionally, display the table using knitr::kable for a nicer format
-knitr::kable(table_model_refined, caption = "")
-
-```
-
-&nbsp;
-&nbsp;
 
 Baseline characteristics were similar across IPTp treatment arms, with comparable maternal age, gestational age, education, gravidity, and parity (Table 1). Although overall malaria exposure was similar between groups, the SP arm exhibited a significantly higher stillbirth rate (14% vs. 9%; p = 0.044) (Table 2).
 
@@ -607,61 +393,16 @@ Multivariable logistic regression analyses, adjusted for maternal age, gravidity
 
 
 
-
-
-
 &nbsp;
 &nbsp;
 
 
 
+
+
+**Table 5: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Fit the logistic regression model for women under 25
-promo_data_young <- promo_data_clean %>%
-  filter(age_at_enrollment_years < 25) %>%
-  mutate(
-    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
-    adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0)
-  )
-
-model_gravidity <- glm(adverse_birth_outcome ~ gravidity + total_malaria_episodes + 
-                         study_arm + education_level,
-                       family = binomial(link = "logit"),
-                       data = promo_data_young)
-
-```
-
-
-
-
-**Table 8: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)**
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-
-# Tidy the model output, exponentiating coefficients to get odds ratios
-tidy_model_gravidity <- tidy(model_gravidity, exponentiate = TRUE, conf.int = TRUE)
-
-# Create a summary table without the intercept and with neat variable names
-result_table <- tidy_model_gravidity %>%
-  filter(term != "(Intercept)") %>%
-  mutate(
-    term = case_when(
-      term == "gravidity" ~ "Gravidity",
-      term == "total_malaria_episodes" ~ "Total Malaria Episodes",
-      term == "study_armSP" ~ "Treatment Arm (SP)",
-      term == "education_levelSecondary" ~ "Secondary Education",
-      term == "education_levelTertiary" ~ "Tertiary Education",
-      term == "education_levelUniversity" ~ "University Education",
-      TRUE ~ term
-    ),
-    `Odds Ratio (95% CI)` = paste0(round(estimate, 2),
-                                   " (", round(conf.low, 2), ", ", round(conf.high, 2), ")")
-  ) %>%
-  select(term, `Odds Ratio (95% CI)`, p.value) %>%
-  rename(Variable = term, `p-value` = p.value)
-
-# Print the table using kable
-result_table %>%
-  kable(format = "markdown", caption = "")
+knitr::include_graphics(here::here("Images", "Adjusted OR for Adverse Birth Outcomes Women  less 25 Years.png"))
 
 ```
 
@@ -695,6 +436,37 @@ ggplot(predicted_probs, aes(x = x, y = predicted)) +
 &nbsp;
 
 Based on our findings, the impact of malaria on adverse birth outcomes is significantly modified by the IPTp regimen, with a distinct interaction effect observed for the SP regimen. Additionally, increased gravidity appears to offer a protective benefit, particularly among women under 25 years. Detailed results supporting these observations are presented in Tables 3–6 and Figures 1–3.
+
+
+&nbsp;
+&nbsp;
+
+
+**Figure 4 : Comparative Discriminative Performance of ML Models for Predicting Adverse Birth Outcomes**
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+roc_lr  <- roc_curve(logistic_preds, truth = adverse_birth_outcome, .pred_1) %>% mutate(model = "Logistic")
+roc_rf  <- roc_curve(rf_preds,       truth = adverse_birth_outcome, .pred_1) %>% mutate(model = "RF")
+roc_xgb <- roc_curve(xgb_preds,     truth = adverse_birth_outcome, .pred_1) %>% mutate(model = "XGBoost")
+
+roc_all <- bind_rows(roc_lr, roc_rf, roc_xgb)
+
+ggplot(roc_all, aes(x = 1 - specificity, y = sensitivity, color = model)) +
+  geom_path(size = 1) +
+  labs(title = "",
+       x = "False Positive Rate", y = "True Positive Rate") +
+  theme_minimal()
+```
+
+&nbsp;
+&nbsp;
+
+**Table 6:  Discriminative Performance (AUC) of Machine Learning Models Predicting Adverse Birth Outcomes Under Different IPTp Regimens**
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics(here::here("Images", "Table6.Discriminative Performance (AUC) of ML Models.png"))
+
+```
+
 
 
 

@@ -217,8 +217,6 @@ table_outcomes
 *Figure 1: Histogram of Total Malaria Episodes by IPTp Treatment Arm*
 
 ```{r}
-library(ggplot2)
-
 ggplot(promo_data_clean, aes(x = total_malaria_episodes, fill = study_arm)) +
   geom_histogram(binwidth = 1, alpha = 0.6, position = "dodge") +
   labs(title = "Distribution of Total Malaria Episodes by IPTp Treatment Arm",
@@ -790,6 +788,35 @@ result_table %>%
 
 
 
+*Predicted Probability of Adverse Outcome by Gravidity (Age < 25)*
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Subset to women under 25 and define outcome. Logistic Regression
+promo_data_young <- promo_data_clean %>%
+  filter(age_at_enrollment_years < 25) %>%
+  mutate(
+    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
+    adverse_birth_outcome = ifelse(
+      preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0
+    )
+  )
+
+# Fit logistic regression model
+model_gravidity <- glm(
+  adverse_birth_outcome ~ gravidity + total_malaria_episodes + 
+    study_arm + education_level,
+  family = binomial(link = "logit"),
+  data = promo_data_young
+)
+
+# Load broom for tidy output
+library(broom)
+
+# Display model summary as odds ratios with 95% CI
+tidy(model_gravidity, exponentiate = TRUE, conf.int = TRUE)
+
+```
 
 
 
@@ -1095,7 +1122,7 @@ In this subgroup of women under 25, gravidity is the only statistically signific
 
 ## Machine Learning approaches
 
-To complement regression analysis, we implemented machine learning workflows for Research Question 1. All models were trained on 70% of the data and evaluated on a held-out 30% test set. Ten-fold cross-validation on the training set was used for hyperparameter tuning where applicable.
+To complement regression analysis, we implemented machine learning workflows for Research Question 1. All models were trained on 70% of the data and evaluated on a held-out 30% test set. Ten-fold cross-validation on the training set was used for hyperparameter tuning where applicable.
 
 
 # Prepare outcome as factor and split data
@@ -1270,7 +1297,7 @@ ggplot(roc_all, aes(x = 1 - specificity, y = sensitivity, color = model)) +
        x = "False Positive Rate", y = "True Positive Rate") +
   theme_minimal()
 ```
-Figure X displays the ROC curves for logistic regression (red), random forest (green), and gradient boosting (blue) on the held‑out test set. All three curves lie close to the diagonal, reflecting poor discrimination: none of the models reliably separates pregnancies with versus without adverse outcomes. Of the three, logistic regression achieved the highest AUC (0.48), followed by XGBoost (0.44) and random forest (0.42), but these differences are marginal and all fall below the 0.50 threshold for random performance. Collectively, these results underscore that, with the current predictor set, more informative features or alternative modeling strategies will be necessary to improve predictive accuracy.
+Figure displays the ROC curves for logistic regression (red), random forest (green), and gradient boosting (blue) on the held‑out test set. All three curves lie close to the diagonal, reflecting poor discrimination: none of the models reliably separates pregnancies with versus without adverse outcomes. Of the three, logistic regression achieved the highest AUC (0.48), followed by XGBoost (0.44) and random forest (0.42), but these differences are marginal and all fall below the 0.50 threshold for random performance. Collectively, these results underscore that, with the current predictor set, more informative features or alternative modeling strategies will be necessary to improve predictive accuracy.
 
 
 
@@ -1365,8 +1392,26 @@ This ML section demonstrates train/test splitting, cross-validation for tuning, 
 
 
 
+**Include**
+```{r}
+ggplot(roc_all, aes(x = 1 - specificity, y = sensitivity, color = model)) +
+  geom_path(size = 1) +
+  labs(title = "ROC Curves: ML Models for Adverse Outcome Prediction",
+       x = "False Positive Rate", y = "True Positive Rate") +
+  theme_minimal()
+
+```
 
 
+# Model Comparison Table (AUC values)
+
+```{r}
+tibble::tibble(
+  Model = c("Logistic Regression", "Random Forest", "XGBoost", "Elastic Net"),
+  AUC = c(0.48, 0.42, 0.44, 0.49)
+)
+
+```
 
 
 ################################################################################################################################################################## 
@@ -1376,12 +1421,6 @@ This ML section demonstrates train/test splitting, cross-validation for tuning, 
 
 
 ### Improved ML: Elastic Net with Feature Engineering
-
-```{r ml_improved_setup, message=FALSE, warning=FALSE}
-# 0) Load all needed packages
-library(tidymodels)  # recipes, parsnip, workflows, tune, yardstick, dials
-library(themis)      # for step_smote()
-```
 
 ```{r ml_improved_recipe, message=FALSE}
 # 1) Encode factors, engineer features, balance classes, normalize
@@ -1491,8 +1530,6 @@ test_data <- test_data %>%
 
 
 ```{r}
-library(themis)
-
 imbalanced_recipe <- recipe(adverse_birth_outcome ~ ., data = train_data) %>%
   # standard preprocessing
   step_dummy(all_nominal_predictors(), one_hot = TRUE) %>%
