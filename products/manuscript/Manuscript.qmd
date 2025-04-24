@@ -14,6 +14,19 @@ csl: ../../assets/american-journal-of-epidemiology.csl
 
 
 
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
+# 1) Load here() before you call i_am()
+library(here)
+
+# 2) Tell here() where this document lives, relative to the project root.
+#    (Your project root is "Joseph-MADA-project", so we point to "products/manuscript/Manuscript.qmd")
+here::i_am("products/manuscript/Manuscript.qmd")
+
+# 3) (Optional) now load knitr and set the knit root to the project root
+library(knitr)
+opts_knit$set(root.dir = here::here())
+
+```
 
 
 
@@ -386,9 +399,14 @@ Multivariable logistic regression analyses, adjusted for maternal age, gravidity
 
 
 **Table 5: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)**
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+```{r fig-adjusted-u25, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics(
-  here::here("Images", "Adjusted ratio   less 25 Years.png")
+  normalizePath(
+    here::here("Images", "AdjustedRatio.png"),
+    winslash = "/"
+  )
 )
 
 ```
@@ -403,7 +421,10 @@ knitr::include_graphics(
 **Figure 3: Predicted Probability of Adverse Outcome by Gravidity (Age < 25)**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics(
-  here::here("Images", "Figure 3. Predicted Probability.png")
+  normalizePath(
+    here::here("Images", "Figure 3. Predicted Probability.png"),
+    winslash = "/"
+  )
 )
 
 ```
