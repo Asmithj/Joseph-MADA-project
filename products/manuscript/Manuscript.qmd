@@ -160,7 +160,8 @@ knitr::include_graphics("Images/Table1Baseline.png")
 &nbsp;
 &nbsp;
 
-
+&nbsp;
+&nbsp;
 
 **Figure 1: Distribution of Total Malaria Episodes by IPTp Treatment Arm**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -235,6 +236,8 @@ table_outcomes
 &nbsp;
 &nbsp;
 
+&nbsp;
+&nbsp;
 
 
 **Figure 2: Differential Impact of IPTp Treatment on the Relationship Between Malaria Episodes and Adverse Birth Outcomes**
@@ -372,7 +375,8 @@ knitr::include_graphics("Images/Table4Interaction.png")
 &nbsp;
 &nbsp;
 
-
+&nbsp;
+&nbsp;
 
 
 **Interaction between malaria episodes and IPTp regimen**
@@ -391,8 +395,10 @@ dding an interaction term between total malaria episodes and SP (reference = DP)
 
 Among the 284 women under 25 years old (150 DP, 134 SP), 61.3% (174/284) experienced a composite adverse outcome. In a multivariable logistic regression, including gravidity, total malaria episodes, treatment arm, and maternal age, only gravidity remained significant: each additional pregnancy reduced the odds of an adverse outcome by 14% (OR 0.86, 95% CI 0.74–1.00; p = 0.044), while malaria episodes (p = 0.15) and treatment arm (p = 0.21) were not. Predicted probabilities from this model (Figure 3; Table 5) show that a first‐pregnancy woman under 25 has a 72% risk of an adverse outcome, declining to 55% by her third pregnancy and below 40% by her fourth, underscoring parity’s protective effect in younger mothers.
 
+
 &nbsp;
 &nbsp;
+
 
 
 **Table 5: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)**
@@ -425,9 +431,13 @@ knitr::include_graphics("Images/Figure 3. Predicted Probability.png")
 ```
 
 
+
+
 &nbsp;
 &nbsp;
 
+&nbsp;
+&nbsp;
 
 
 **Figure 4 : Comparative Discriminative Performance of ML Models for Predicting Adverse Birth Outcomes**
@@ -439,11 +449,14 @@ knitr::include_graphics("Images/Figure 4.Comparative Discriminative Performance 
 
 
 
+
 &nbsp;
 &nbsp;
 
 &nbsp;
 &nbsp;
+
+
 
 
 
