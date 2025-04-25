@@ -13,20 +13,16 @@ csl: ../../assets/american-journal-of-epidemiology.csl
 
 
 
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-# 1) Load here() before you call i_am()
+```{r setup, include=FALSE}
+# 1) identify project root for here()
 library(here)
-
-# 2) Tell here() where this document lives, relative to the project root.
-#    (Your project root is "Joseph-MADA-project", so we point to "products/manuscript/Manuscript.qmd")
 here::i_am("products/manuscript/Manuscript.qmd")
 
-# 3) (Optional) now load knitr and set the knit root to the project root
+# 2) tell knitr to use that root (so all relative paths start there)
 library(knitr)
-opts_knit$set(root.dir = here::here())
-
+knitr::opts_knit$set(root.dir = here::here())
 ```
+
 
 
 
@@ -157,13 +153,9 @@ Multivariable logistic regression models were employed to evaluate whether the I
 
 **Table 1: Baseline Characteristics of Study Participants by IPTp Treatment Arm**
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-knitr::include_graphics(
-  normalizePath(
-    here::here("Images", "Table1Baseline.png"),
-    winslash = "/"
-  )
-)
+
+```{r fig-table1, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("Images/Table1Baseline.png")
 
 ```
 
@@ -377,8 +369,7 @@ Multivariable logistic regression analyses, adjusted for maternal age, gravidity
 **Table 4: Interaction Between Malaria Exposure and IPTp Treatment Arm in Predicting Adverse Birth Outcomes**
 
 ```{r,echo=FALSE, message=FALSE, warning=FALSE}
-knitr::include_graphics(here::here("Images", "Table4.Interaction Malaria vsIPTP.png"))
-
+knitr::include_graphics("Images/Table4Interaction.png")
 ```
 
 
