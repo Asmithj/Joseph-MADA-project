@@ -6,10 +6,13 @@ format:
     toc: false
     number-sections: true
     highlight-style: github
+resources:
+  - Images/**
+execute:
+  root: .
 bibliography: ../../assets/dataanalysis-references.bib
 csl: ../../assets/american-journal-of-epidemiology.csl
 ---
-
 
 
 
@@ -22,9 +25,6 @@ here::i_am("products/manuscript/Manuscript.qmd")
 library(knitr)
 knitr::opts_knit$set(root.dir = here::here())
 ```
-
-
-
 
 
 
@@ -151,12 +151,23 @@ Multivariable logistic regression models were employed to evaluate whether the I
 
 
 
+
+
+
+
+
+
 **Table 1: Baseline Characteristics of Study Participants by IPTp Treatment Arm**
 
-
 ```{r fig-table1, echo=FALSE, message=FALSE, warning=FALSE}
-knitr::include_graphics("Images/Table1Baseline.png")
+# 2) Build the absolute, Pandoc-friendly path
+table1_path <- normalizePath(
+  here::here("products", "manuscript", "Images", "Table1Baseline.png"),
+  winslash = "/"
+)
 
+# 3) Embed the image
+knitr::include_graphics(table1_path)
 ```
 
 
@@ -369,7 +380,14 @@ Multivariable logistic regression analyses, adjusted for maternal age, gravidity
 **Table 4: Interaction Between Malaria Exposure and IPTp Treatment Arm in Predicting Adverse Birth Outcomes**
 
 ```{r,echo=FALSE, message=FALSE, warning=FALSE}
-knitr::include_graphics("Images/Table4Interaction.png")
+# 2) Build the absolute, Pandoc-friendly path to Table4Interaction.png
+table4_path <- normalizePath(
+  here::here("products", "manuscript", "Images", "Table4Interaction.png"),
+  winslash = "/"
+)
+
+# 3) Embed the image
+knitr::include_graphics(table4_path)
 ```
 
 
@@ -398,13 +416,14 @@ Multivariable logistic regression analyses, adjusted for maternal age, gravidity
 
 
 ```{r fig-adjusted-u25, echo=FALSE, message=FALSE, warning=FALSE}
-knitr::include_graphics(
-  normalizePath(
-    here::here("Images", "AdjustedRatio.png"),
-    winslash = "/"
-  )
+# 2) Build a forward-slash absolute path to the image
+adjusted_path <- normalizePath(
+  here::here("products", "manuscript", "Images", "AdjustedRatio.png"),
+  winslash = "/"
 )
 
+# 3) Embed the image
+knitr::include_graphics(adjusted_path)
 ```
 
 
@@ -416,13 +435,17 @@ knitr::include_graphics(
 
 **Figure 3: Predicted Probability of Adverse Outcome by Gravidity (Age < 25)**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-knitr::include_graphics(
-  normalizePath(
-    here::here("Images", "Figure 3. Predicted Probability.png"),
-    winslash = "/"
-  )
+# 2) Build the absolute, Pandoc-friendly path to Figure 3
+fig3_path <- normalizePath(
+  here::here(
+    "products", "manuscript", "Images",
+    "Figure 3. Predicted Probability.png"
+  ),
+  winslash = "/"
 )
 
+# 3) Embed the image
+knitr::include_graphics(fig3_path)
 ```
 
 
@@ -447,18 +470,17 @@ Based on our findings, the impact of malaria on adverse birth outcomes is signif
 
 **Figure 4 : Comparative Discriminative Performance of ML Models for Predicting Adverse Birth Outcomes**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Build an absolute, forward‐slash path and then include the graphic
+# 2) Build the absolute, Pandoc-friendly path to Figure 4
 fig4_path <- normalizePath(
   here::here(
-    "Images",
+    "products", "manuscript", "Images",
     "Figure 4.Comparative Discriminative Performance of ML .png"
   ),
   winslash = "/"
 )
 
+# 3) Embed the image
 knitr::include_graphics(fig4_path)
-
-
 ```
 
 
@@ -472,8 +494,17 @@ knitr::include_graphics(fig4_path)
 
 **Table 6:  Discriminative Performance (AUC) of Machine Learning Models Predicting Adverse Birth Outcomes Under Different IPTp Regimens**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-knitr::include_graphics(here::here("Images", "Table6.Discriminative Performance (AUC) of ML Models.png"))
+# 2) Build the absolute, Pandoc‐friendly path to Table 6
+table6_path <- normalizePath(
+  here::here(
+    "products", "manuscript", "Images",
+    "Table6.Discriminative Performance (AUC) of ML Models.png"
+  ),
+  winslash = "/"
+)
 
+# 3) Embed the image
+knitr::include_graphics(table6_path)
 ```
 
 
