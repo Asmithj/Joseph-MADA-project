@@ -101,20 +101,20 @@ $\dagger$ Disclaimer: The opinions expressed in this article are the author's ow
 
 # Abstract
 
-# Background
+**Background:**
 Malaria in pregnancy contributes substantially to maternal and neonatal morbidity and mortality across Sub‑Saharan Africa. Intermittent preventive treatment during pregnancy (IPTp) with sulfadoxine–pyrimethamine (SP) or dihydroartemisinin–piperaquine (DP) is standard, but how regimen choice interacts with cumulative malaria episodes to shape birth outcomes is unclear.
 
-## Methods
+**Methods:**
 We analyzed data from a double-blind, randomized trial in Uganda (ClinEpiDB #24, n=782 HIV-uninfected pregnant women). Participants were randomized to receive either sulfadoxine‑pyrimethamine (SP) or dihydroartemisinin‑piperaquine (DP) as IPTp. Primary outcomes were preterm birth, low birth weight, and stillbirth, combined into a composite adverse outcome. We fit multivariable logistic models evaluating (1) main effects of total malaria episodes and treatment arm, (2) their interaction, adjusting for maternal age, gravidity, and education, and (3) a prespecified subgroup analysis in women < 25 years to assess gravidity’s protective effect. Predicted probabilities were derived via ggeffects, and discriminative performance of several ML models (random forest, XGBoost, logistic regression) was summarized by AUC.
 
-## Results
+**Results:**
 In multivariable models adjusted for maternal age, gravidity, and socioeconomic status, we identified a statistically significant interaction between malaria episode frequency and the SP regimen (OR 1.47 per additional episode, 95% CI 1.16–1.88; p = 0.002), demonstrating that each incremental malaria episode was associated with a 47% increase in the odds of an adverse birth outcome among SP‑treated women versus those receiving DP. Notably, neither malaria burden nor IPTp regimen alone achieved statistical significance, Total malaria episodes (OR=0.88 per episode, 95% CI 0.75–1.03; p=0.12) and treatment arm alone (OR=0.69 for DP vs SP, 95% CI 0.44–1.08; p=0.10), underscoring the critical role of their interplay. Moreover, in the subgroup of women under 25 years, gravidity conferred significant protection: each additional pregnancy reduced the likelihood of an adverse outcome by 14% (OR 0.86 per gravidity, 95% CI 0.74–1.00; p = 0.044). Finally, ML models showed modest discrimination (best AUC ≈ 0.60. 
 
-## Conclusions:
-These results demonstrate that IPTp regimen selection fundamentally alters how cumulative malaria exposure impacts perinatal outcomes: sulfadoxine–pyrimethamine exhibits progressively reduced protective efficacy with each successive malaria episode, whereas dihydroartemisinin–piperaquine maintains greater resilience. Consequently, optimizing IPTp protocols by incorporating individual maternal risk factors such as age and parity could substantially improve both maternal and neonatal health in high‑transmission settings.
+**Conclusions:**
+IPTp regimen selection fundamentally alters how cumulative malaria exposure impacts perinatal outcomes: sulfadoxine–pyrimethamine exhibits progressively reduced protective efficacy with each successive malaria episode, whereas dihydroartemisinin–piperaquine maintains greater resilience. Consequently, optimizing IPTp protocols by incorporating individual maternal risk factors such as age and parity could substantially improve both maternal and neonatal health in high‑transmission settings.
 
 ## Keywords:
-**Malaria, Adverse birth outcomes, Intermittent preventive treatment in pregnancy (IPTp), Sulfadoxine–pyrimethamine, Dihydroartemisinin–piperaquine, Gravidity/Parity**
+**Malaria, Adverse birth outcomes, Gravidity/Parity, Intermittent preventive treatment in pregnancy (IPTp), Sulfadoxine–pyrimethamine, Dihydroartemisinin–piperaquine**
 
 {{< pagebreak >}}
 
