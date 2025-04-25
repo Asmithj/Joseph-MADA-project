@@ -113,7 +113,8 @@ In multivariable models adjusted for maternal age, gravidity, and socioeconomic 
 **Conclusions:**
 IPTp regimen selection fundamentally alters how cumulative malaria exposure impacts perinatal outcomes: sulfadoxine–pyrimethamine exhibits progressively reduced protective efficacy with each successive malaria episode, whereas dihydroartemisinin–piperaquine maintains greater resilience. Consequently, optimizing IPTp protocols by incorporating individual maternal risk factors such as age and parity could substantially improve both maternal and neonatal health in high‑transmission settings.
 
-## Keywords:
+**Keywords:**
+
 **Malaria, Adverse birth outcomes, Gravidity/Parity, Intermittent preventive treatment in pregnancy (IPTp), Sulfadoxine–pyrimethamine, Dihydroartemisinin–piperaquine**
 
 {{< pagebreak >}}
@@ -390,6 +391,9 @@ dding an interaction term between total malaria episodes and SP (reference = DP)
 
 Among the 284 women under 25 years old (150 DP, 134 SP), 61.3% (174/284) experienced a composite adverse outcome. In a multivariable logistic regression, including gravidity, total malaria episodes, treatment arm, and maternal age, only gravidity remained significant: each additional pregnancy reduced the odds of an adverse outcome by 14% (OR 0.86, 95% CI 0.74–1.00; p = 0.044), while malaria episodes (p = 0.15) and treatment arm (p = 0.21) were not. Predicted probabilities from this model (Figure 3; Table 5) show that a first‐pregnancy woman under 25 has a 72% risk of an adverse outcome, declining to 55% by her third pregnancy and below 40% by her fourth, underscoring parity’s protective effect in younger mothers.
 
+&nbsp;
+&nbsp;
+
 
 **Table 5: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -409,6 +413,9 @@ Given the limited gains from our traditional regression models, we developed a c
 Within the training set, we used 5-fold cross-validation to tune hyperparameters for three tree-based methods (random forest, XGBoost) and a penalized regression (elastic net), optimizing ROC AUC in each case. Specifically, we tuned to try, and tree counts for the random forest, tree depth, learning rate, and number of trees for XGBoost, penalty strength, and ridge-versus-lasso mixing for the elastic net. A plain logistic regression (no penalty) served as our baseline. After identifying the best parameters, we refit each model on the full training data.
 
 When evaluated on the independent test set, all four approaches performed at or below chance: logistic regression AUC = 0.48, random forest = 0.42, XGBoost = 0.44, and elastic net = 0.49 (Table 6; Figure 4). Even the strongest elastic net model fell essentially to random levels, underscoring that these routinely collected demographic and clinical variables lack sufficient predictive signal for reliable individual risk classification. These results highlight the need to integrate richer clinical, laboratory, or biomarker data in future predictive efforts to achieve meaningful discrimination.
+
+&nbsp;
+&nbsp;
 
 
 **Figure 3: Predicted Probability of Adverse Outcome by Gravidity (Age < 25)**
@@ -435,6 +442,8 @@ knitr::include_graphics("Images/Figure 4.Comparative Discriminative Performance 
 &nbsp;
 &nbsp;
 
+&nbsp;
+&nbsp;
 
 
 
