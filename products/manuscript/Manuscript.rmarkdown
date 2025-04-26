@@ -14,8 +14,6 @@ bibliography: ../../assets/dataanalysis-references.bib
 csl: ../../assets/american-journal-of-epidemiology.csl
 ---
 
-
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 library(here)
 here::i_am("products/manuscript/Manuscript.qmd")
@@ -25,8 +23,6 @@ library(knitr)
 knitr::opts_chunk$set(root.dir = here::here("products/manuscript"))
 
 ```
-
-
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # Load Required Libraries for Data Handling, Visualization, and Analysis
@@ -85,6 +81,8 @@ PROMO_Data <- read_csv(here("data", "raw-data", "PROMO_Data.csv"))
 promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
 ```
 
+
+
 **Authors**
 
 -   Asmith Joseph$^{1*}$ (ORCID: 0009-0004-6875-0868)
@@ -97,7 +95,12 @@ $\land$ Corresponding author: asmith.joseph\@uga.edu
 
 $\dagger$ Disclaimer: The opinions expressed in this article are the author's own and don't reflect their employer.
 
+
+
 {{< pagebreak >}}
+
+
+
 
 # Abstract
 
@@ -117,7 +120,12 @@ IPTp regimen selection fundamentally alters how cumulative malaria exposure impa
 
 **Malaria, Adverse birth outcomes, Gravidity/Parity, Intermittent preventive treatment in pregnancy (IPTp), Sulfadoxine–pyrimethamine, Dihydroartemisinin–piperaquine**
 
+
+
 {{< pagebreak >}}
+
+
+
 
 # Introduction
 ## General Background Information
@@ -150,10 +158,14 @@ Multivariable logistic regression models were employed to evaluate whether the I
 
 **Table 1: Baseline Characteristics of Study Participants by IPTp Treatment Arm**
 
+
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Table1Baseline.png")
 
 ```
+
+
 
 
 
@@ -164,6 +176,8 @@ knitr::include_graphics("Images/Table1Baseline.png")
 &nbsp;
 
 **Figure 1: Distribution of Total Malaria Episodes by IPTp Treatment Arm**
+
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(promo_data_clean, aes(x = total_malaria_episodes, fill = study_arm)) +
@@ -176,10 +190,14 @@ ggplot(promo_data_clean, aes(x = total_malaria_episodes, fill = study_arm)) +
 ```
 
 
+
+
 &nbsp;
 &nbsp;
 
 **Table 2: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen**
+
+
 ```{r,  echo=FALSE, message=FALSE, warning=FALSE}
 # Load necessary libraries
 library(dplyr)
@@ -233,6 +251,8 @@ table_outcomes
 
 
 
+
+
 &nbsp;
 &nbsp;
 
@@ -241,6 +261,8 @@ table_outcomes
 
 
 **Figure 2: Differential Impact of IPTp Treatment on the Relationship Between Malaria Episodes and Adverse Birth Outcomes**
+
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Create the composite adverse outcome variable
 promo_data_clean <- promo_data_clean %>%
@@ -274,6 +296,8 @@ interaction_plot
 
 
 
+
+
 &nbsp;
 &nbsp;
 
@@ -282,6 +306,8 @@ interaction_plot
 &nbsp;
 
 **Table 3: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen**
+
+
 ```{r,  echo=FALSE, message=FALSE, warning=FALSE}
 # Load necessary libraries
 library(dplyr)
@@ -335,14 +361,21 @@ table_outcomes
 
 
 
+
+
 &nbsp;
 &nbsp;
+
+
 
 
 
 
 
 {{< pagebreak >}}
+
+
+
 
 
 
@@ -365,10 +398,14 @@ When stratifying individual adverse outcomes, rates of low birth weight (< 2.5 k
 
 **Table 4: Interaction Between Malaria Exposure and IPTp Treatment Arm in Predicting Adverse Birth Outcomes**
 
+
+
 ```{r,echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Table4Interaction.png")
 
 ```
+
+
 
 
 
@@ -402,10 +439,14 @@ Among the 284 women under 25 years old (150 DP, 134 SP), 61.3% (174/284) experie
 
 
 **Table 5: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)**
+
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/AdjustedRatio.png")
 
 ```
+
+
 
 
 &nbsp;
@@ -425,10 +466,14 @@ The best elastic-net configuration (penalty = 0.01, mixture = 0) achieved a cros
 
 
 **Figure 3: Predicted Probability of Adverse Outcome by Gravidity (Age < 25)**
+
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Figure 3. Predicted Probability.png")
 
 ```
+
+
 
 
 
@@ -441,10 +486,14 @@ knitr::include_graphics("Images/Figure 3. Predicted Probability.png")
 
 
 **Figure 4 : Comparative Discriminative Performance of ML Models for Predicting Adverse Birth Outcomes**
+
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Figure 4.Comparative Discriminative Performance of ML .png")
 
 ```
+
+
 
 
 
@@ -461,16 +510,17 @@ knitr::include_graphics("Images/Figure 4.Comparative Discriminative Performance 
 
 
 **Table 6:  Discriminative Performance (AUC) of Machine Learning Models Predicting Adverse Birth Outcomes Under Different IPTp Regimens**
+
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Table6.Discriminative Performance (AUC) of ML Models.png")
 
 ```
 
-
-
-
-
 {{< pagebreak >}}
+
+
+
 
 # Discussion
 Our analysis from a randomized controlled trial in Uganda illuminates three key findings. First, although total malaria episodes and IPTp regimen alone did not predict adverse birth outcomes, their interaction was highly significant. Each additional malaria episode under sulfadoxine-pyrimethamine (SP) conferred 47% higher odds of a composite adverse outcome than dihydroartemisinin-piperaquine (DP). Second, in women under 25 years, gravidity emerged as the sole significant predictor, with each additional pregnancy reducing the odds of an adverse outcome by 14%. Finally, our machine‐learning pipeline, comparing logistic regression, random forest, XGBoost, and elastic net, demonstrated uniformly poor discrimination (AUCs 0.42–0.49), underscoring that routinely collected demographic and clinical variables alone cannot predict individual risk.
@@ -512,6 +562,12 @@ These papers [@mckay2020; @mckay2020a] are good examples of papers published usi
 
 Note that this cited reference will show up at the end of the document, the reference formatting is determined by the CSL file specified in the YAML header. Many more style files for almost any journal [are available](https://www.zotero.org/styles). You also specify the location of your bibtex reference file in the YAML. You can call your reference file anything you like.
 
+
+
 {{< pagebreak >}}
 
+
+
+
 # References
+
