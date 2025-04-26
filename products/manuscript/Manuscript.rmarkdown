@@ -14,8 +14,6 @@ bibliography: ../../assets/dataanalysis-references.bib
 csl: ../../assets/american-journal-of-epidemiology.csl
 ---
 
-
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 library(here)
 here::i_am("products/manuscript/Manuscript.qmd")
@@ -26,56 +24,52 @@ knitr::opts_chunk$set(root.dir = here::here("products/manuscript"))
 
 ```
 
-
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # Load Required Libraries for Data Handling, Visualization, and Analysis
 
-# Load Required Libraries
-
 # Path management
-library(here)               # File path handling
+library(here)              # For file path handling
 
 # Data manipulation and wrangling
-library(dplyr)              # Data manipulation
-library(tidyverse)          # Core tidyverse packages (ggplot2, readr, etc.)
-library(janitor)            # Clean column names
-library(skimr)              # Quick data summaries
-library(lubridate)          # Date/time handling
-library(forcats)            # Categorical variable tools
+library(dplyr)             # Data manipulation
+library(tidyverse)         # Core data science packages (includes ggplot2, dplyr, readr, etc.)
+library(janitor)           # Clean column names
+library(skimr)             # Data summary
+library(lubridate)         # Date and time handling
+library(forcats)           # Handling categorical variables
 
 # Visualization
-library(ggplot2)            # Data visualization
-library(ggpubr)             # Publication-ready plots
+library(ggplot2)           # Data visualization (also part of tidyverse)
+library(ggpubr)            # Publication-ready plots
 
 # Tables and reporting
-library(gtsummary)          # Summary tables
-library(gt)                 # Advanced table formatting
-library(knitr)              # Report generation
-library(kableExtra)         # Enhanced markdown tables
+library(gtsummary)         # Summary statistics tables
+library(gt)                # Table formatting
+library(knitr)             # Report generation
+library(kableExtra)        # Enhanced table output in markdown
 
-# Data exploration & preparation
-library(Amelia)             # Missing-data visualization
-library(pwr)                # Power analysis
-library(DiagrammeR)         # Diagrams and flowcharts
+# Analysis-specific packages
+library(Amelia)            # Visualizing missing data
+library(pwr)               # Power analysis
+library(DiagrammeR)        # Diagrams and flowcharts
+library(survival)          # Survival analysis
+library(survminer)         # Survival plots
+library(ggeffects)         # Marginal effects for regression models
+library(broom)             # Tidy model outputs
 
-# Survival analysis
-library(survival)           # Survival models
-library(survminer)          # Survival plots
+# Machine learning and modeling
+library(tidymodels)        # Unified modeling framework (includes recipes, parsnip, workflows, tune, etc.)
+library(rsample)           # Resampling and data splitting
+library(recipes)           # Preprocessing
+library(parsnip)           # Model specification
+library(workflows)         # Combine models and preprocessing
+library(tune)              # Hyperparameter tuning
+library(yardstick)         # Model performance metrics
+library(dials)             # Parameter tuning grids
+library(ranger)            # Random forest engine
+library(xgboost)           # Boosting engine
+library(themis)            # Handling class imbalance (e.g., SMOTE)
 
-# Model effects & outputs
-library(ggeffects)          # Marginal effects extraction
-library(broom)              # Tidy model outputs
-
-# Machine learning & modeling
-library(tidymodels)         # Modeling framework (recipes, parsnip, workflows, tune, yardstick, rsample)
-library(themis)             # Class-imbalance sampling (e.g., SMOTE)
-library(dials)              # Parameter tuning grids
-library(ranger)             # Random forest engine
-library(xgboost)            # Gradient boosting engine
-library(generalhoslem)
-library(ResourceSelection)
-library(rms)
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
@@ -86,6 +80,8 @@ PROMO_Data <- read_csv(here("data", "raw-data", "PROMO_Data.csv"))
 
 promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
 ```
+
+
 
 **Authors**
 
@@ -99,7 +95,12 @@ $\land$ Corresponding author: asmith.joseph\@uga.edu
 
 $\dagger$ Disclaimer: The opinions expressed in this article are the author's own and don't reflect their employer.
 
+
+
 {{< pagebreak >}}
+
+
+
 
 # Abstract
 
@@ -110,29 +111,38 @@ Malaria in pregnancy contributes substantially to maternal and neonatal morbidit
 We analyzed data from a double-blind, randomized trial in Uganda (ClinEpiDB #24, n=782 HIV-uninfected pregnant women). Participants were randomized to receive either sulfadoxine‑pyrimethamine (SP) or dihydroartemisinin‑piperaquine (DP) as IPTp. Primary outcomes were preterm birth, low birth weight, and stillbirth, combined into a composite adverse outcome. We fit multivariable logistic models evaluating (1) main effects of total malaria episodes and treatment arm, (2) their interaction, adjusting for maternal age, gravidity, and education, and (3) a prespecified subgroup analysis in women < 25 years to assess gravidity’s protective effect. Predicted probabilities were derived via ggeffects, and discriminative performance of several ML models (random forest, XGBoost, logistic regression) was summarized by AUC.
 
 **Results:**
-Adjusting for maternal age, gravidity, and socioeconomic status, our multivariable models revealed a significant interaction between malaria episode frequency and the SP regimen (OR 1.47 per additional episode, 95% CI 1.16–1.88; p = 0.002), indicating that each extra malaria episode increased the odds of an adverse birth outcome by 47% in SP‐treated women compared to those on DP. In contrast, neither malaria burden alone (OR 0.88 per episode, 95% CI 0.75–1.03; p = 0.12) nor treatment arm alone (OR 0.69 for DP vs SP, 95% CI 0.44–1.08; p = 0.10) reached significance, underscoring the importance of their interplay. In women under 25, each additional pregnancy conferred a 14% reduction in adverse‐outcome risk (OR 0.86, 95% CI 0.74–1.00; p = 0.044). The interaction model calibrated well (Hosmer–Lemeshow p = 0.37; MAE = 0.03), and on the held-out test set, the AUCs were 0.48 for logistic regression, 0.42 for the random forest, 0.44 for XGBoost, and 0.49 for the elastic net.
+In multivariable models adjusted for maternal age, gravidity, and socioeconomic status, we identified a statistically significant interaction between malaria episode frequency and the SP regimen (OR 1.47 per additional episode, 95% CI 1.16–1.88; p = 0.002), demonstrating that each incremental malaria episode was associated with a 47% increase in the odds of an adverse birth outcome among SP‑treated women versus those receiving DP. Notably, neither malaria burden nor IPTp regimen alone achieved statistical significance, Total malaria episodes (OR=0.88 per episode, 95% CI 0.75–1.03; p=0.12) and treatment arm alone (OR=0.69 for DP vs SP, 95% CI 0.44–1.08; p=0.10), underscoring the critical role of their interplay. Moreover, in the subgroup of women under 25 years, gravidity conferred significant protection: each additional pregnancy reduced the likelihood of an adverse outcome by 14% (OR 0.86 per gravidity, 95% CI 0.74–1.00; p = 0.044). Finally, ML models showed modest discrimination (best AUC ≈ 0.60. 
 
 **Conclusions:**
 IPTp regimen selection fundamentally alters how cumulative malaria exposure impacts perinatal outcomes: sulfadoxine–pyrimethamine exhibits progressively reduced protective efficacy with each successive malaria episode, whereas dihydroartemisinin–piperaquine maintains greater resilience. Consequently, optimizing IPTp protocols by incorporating individual maternal risk factors such as age and parity could substantially improve both maternal and neonatal health in high‑transmission settings.
 
 **Keywords:**
-Malaria, Adverse birth outcomes, Gravidity, Intermittent preventive treatment in pregnancy, Sulfadoxine–pyrimethamine and Dihydroartemisinin–piperaquine
+
+**Malaria, Adverse birth outcomes, Gravidity/Parity, Intermittent preventive treatment in pregnancy (IPTp), Sulfadoxine–pyrimethamine, Dihydroartemisinin–piperaquine**
 
 
 
 {{< pagebreak >}}
 
+
+
+
 # Introduction
 ## General Background Information
-Malaria remains a significant public health challenge worldwide, particularly in Sub-Saharan Africa, where the disease disproportionately affects vulnerable populations. Caused by Plasmodium parasites transmitted through the bite of infected Anopheles mosquitoes, malaria accounted for an estimated 249 million cases globally in 2022 [@talapko2019], marking an increase of five million cases compared to the previous year. Uganda alone reported over 597,000 malaria cases during this period, reflecting the country’s substantial malaria burden [@WHO2023]. Pregnant women represent one of the most vulnerable groups to malaria infection, facing an increased risk of severe clinical symptoms and poor pregnancy outcomes. Malaria during pregnancy has been associated with a range of adverse outcomes, including miscarriage, fetal loss, preterm birth, low birth weight, and neonatal mortality [@chua2021].
+Malaria remains a significant public health challenge worldwide, particularly in Sub-Saharan Africa, where the disease disproportionately affects vulnerable populations. Caused by Plasmodium parasites transmitted through the bite of infected Anopheles mosquitoes, malaria accounted for an estimated 249 million cases globally in 2022, marking an increase of five million cases compared to the previous year. Uganda alone reported over 597,000 malaria cases during this period, reflecting the country’s substantial malaria burden (World Health Organization, 2023; Talapko et al., 2019). Pregnant women represent one of the most vulnerable groups to malaria infection, facing an increased risk of severe clinical symptoms and poor pregnancy outcomes. Malaria during pregnancy has been associated with a range of adverse outcomes, including miscarriage, fetal loss, preterm birth, low birth weight, and neonatal mortality (Chua et al., 2021).
 
-Efforts to mitigate the impact of malaria in pregnancy have centered on preventive strategies such as the use of insecticide-treated bed nets (ITNs) and chemoprophylaxis through intermittent preventive treatment during pregnancy (IPTp). The two most commonly used IPTp regimens are sulfadoxine-pyrimethamine (SP) and dihydroartemisinin-piperaquine (DP). Although these interventions have proven effective at reducing malaria-related complications, their real-world impact can vary by setting. Moreover, coverage remains unacceptably low: as of 2017, only 22% of pregnant women in sub-Saharan Africa received the full IPTp-SP course, highlighting persistent gaps in access and uptake [@bauserman2019]. Emerging evidence suggests that the choice of IPTp regimen may influence how malaria episodes affect pregnancy outcomes. However, this potential effect modification remains underexplored in current literature. Additionally, maternal characteristics such as gravidity and the number of times a woman has been pregnant may also play a role in shaping birth outcomes. Prior research has suggested that previous pregnancy experience may offer protective benefits against adverse outcomes, possibly due to improved physiological adaptation or better health-seeking behavior.
+Efforts to mitigate the impact of malaria in pregnancy have centered on preventive strategies such as the use of insecticide-treated bed nets (ITNs) and chemoprophylaxis through intermittent preventive treatment during pregnancy (IPTp). Two widely used IPTp regimens are sulfadoxine-pyrimethamine (SP) and dihydroartemisinin-piperaquine (DP). While these preventive measures have shown significant benefits in reducing the risk of malaria-related complications, the effectiveness of these regimens may not be uniform across all contexts. Emerging evidence suggests that the choice of IPTp regimen may influence how malaria episodes affect pregnancy outcomes. However, this potential effect modification remains underexplored in current literature. Additionally, maternal characteristics such as gravidity and the number of times a woman has been pregnant may also play a role in shaping birth outcomes. Prior research has suggested that previous pregnancy experience may offer protective benefits against adverse outcomes, possibly due to improved physiological adaptation or better health-seeking behavior.
 
 This study addresses two research questions. First, it examines whether the type of IPTp regimen modifies the association between malaria episode frequency and adverse birth outcomes in Ugandan pregnant women. Preliminary analyses suggest a potential interaction between malaria episodes and the SP regimen, indicating that the impact of malaria may differ by treatment. Second, the study investigates whether increased gravidity reduces the risk of adverse birth outcomes among younger pregnant women under 25 years. Early findings point to a protective effect of prior pregnancies in this subgroup. In addressing these questions, the study seeks to clarify how preventive treatment strategies and maternal reproductive history shape birth outcomes in malaria-endemic settings. Ultimately, the insights gained could inform the development of targeted, effective, and equitable interventions to enhance pregnant women’s and infants’ health in Uganda and similar regions.
 
 
+
 # Methods
-This study analyzed 782 maternal–infant records from a double-blind RCT in Uganda (ClinEpiDB Release #24, 30 Aug 2022) comparing IPTp-SP versus DP in HIV-negative pregnant women. We standardized dates, recoded categoricals, dropped variables with >20% missingness, and imputed the rest (<10%) via five-cycle MICE; a post-hoc power analysis (α = 0.05) showed 80% power to detect an interaction OR ≥ 1.45. Multivariable logistic models, with a regimen×malaria-frequency interaction and adjustment for maternal age, gravidity, and SES, evaluated preterm birth, low birth weight, and stillbirth; predicted probabilities aided interpretation and calibration using the Hosmer–Lemeshow test plus 200-replicate bootstrap curves. In women <25 years, gravidity was modeled continuously with sensitivity analyses. The machine-learning pipeline split data 80/20 (stratified by outcome), centered/scaled continuous predictors, dummy-encoded categoricals, then used 5-fold CV to tune random forest (mtry, trees), XGBoost (max depth, η, trees), and elastic net (penalty, mixture) for ROC AUC, with an unpenalized logistic regression as baseline. The final model performance was assessed on the test set. All analyses were conducted in R 4.3.2.
+This study analyzed data from a double-blind, randomized controlled trial conducted in Uganda, sourced from ClinEpiDB (Release #24, August 30, 2022). The trial evaluated intermittent preventive treatment during pregnancy (IPTp) using either sulfadoxine-pyrimethamine (SP) or dihydroartemisinin-piperaquine (DP) in HIV-uninfected pregnant women. The dataset comprised 782 observations detailing maternal, pregnancy, and infant health information, with multiple births recorded separately according to the original trial protocols.
+
+Data preparation involved standardizing date fields, converting categorical variables into factors, and addressing missing data by excluding variables with over 20% missingness and imputing those with lower levels. Descriptive statistics and visual inspections ensured the integrity of the data.
+
+The analysis was designed to evaluate whether the IPTp regimen modifies the association between malaria episode frequency and adverse birth outcomes, specifically, preterm birth, low birth weight, and stillbirth, and to assess whether increased gravidity reduces the risk of these outcomes among women under 25 years. Multivariable logistic regression models were employed to examine the relationship between malaria episodes and adverse outcomes, incorporating an interaction term for the IPTp regimen and adjusting for confounders such as maternal age, gravidity, and socioeconomic status. Predicted probabilities were calculated to facilitate the interpretation of interaction effects. A subgroup analysis among women under 25 years used logistic regression models with gravidity treated as a continuous variable and adjustments for maternal age, malaria episode frequency, and treatment regimen, with sensitivity analyses performed to verify robustness. All statistical analyses were conducted using R (version 4.3.2).
 
 
 # Statistical analysis
@@ -141,17 +151,14 @@ Descriptive analyses summarized key maternal and clinical characteristics such a
 
 Multivariable logistic regression models were employed to evaluate whether the IPTp regimen modifies the association between malaria episodes and adverse birth outcomes, adjusting for maternal age, gravidity, and socioeconomic status and incorporating an interaction term between malaria episodes and treatment regimen. Predicted probabilities were calculated to elucidate these interaction effects. Additionally, a subgroup analysis among women under 25 years assessed the relationship between gravidity treated as a continuous variable and adverse birth outcomes, with adjustments made for maternal age, malaria episode frequency, and treatment regimen.   
 
-
-
-
 &nbsp;
 &nbsp;
-
-
 
 
 
 **Table 1: Baseline Characteristics of Study Participants by IPTp Treatment Arm**
+
+
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Table1Baseline.png")
@@ -161,13 +168,16 @@ knitr::include_graphics("Images/Table1Baseline.png")
 
 
 
+
 &nbsp;
 &nbsp;
 
-
-
+&nbsp;
+&nbsp;
 
 **Figure 1: Distribution of Total Malaria Episodes by IPTp Treatment Arm**
+
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(promo_data_clean, aes(x = total_malaria_episodes, fill = study_arm)) +
@@ -180,10 +190,14 @@ ggplot(promo_data_clean, aes(x = total_malaria_episodes, fill = study_arm)) +
 ```
 
 
+
+
 &nbsp;
 &nbsp;
 
 **Table 2: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen**
+
+
 ```{r,  echo=FALSE, message=FALSE, warning=FALSE}
 # Load necessary libraries
 library(dplyr)
@@ -242,8 +256,13 @@ table_outcomes
 &nbsp;
 &nbsp;
 
+&nbsp;
+&nbsp;
+
 
 **Figure 2: Differential Impact of IPTp Treatment on the Relationship Between Malaria Episodes and Adverse Birth Outcomes**
+
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Create the composite adverse outcome variable
 promo_data_clean <- promo_data_clean %>%
@@ -277,12 +296,18 @@ interaction_plot
 
 
 
+
+
 &nbsp;
 &nbsp;
 
 
+&nbsp;
+&nbsp;
 
 **Table 3: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen**
+
+
 ```{r,  echo=FALSE, message=FALSE, warning=FALSE}
 # Load necessary libraries
 library(dplyr)
@@ -335,13 +360,22 @@ table_outcomes
 ```
 
 
+
+
+
 &nbsp;
 &nbsp;
+
+
+
 
 
 
 
 {{< pagebreak >}}
+
+
+
 
 
 
@@ -364,6 +398,8 @@ When stratifying individual adverse outcomes, rates of low birth weight (< 2.5 k
 
 **Table 4: Interaction Between Malaria Exposure and IPTp Treatment Arm in Predicting Adverse Birth Outcomes**
 
+
+
 ```{r,echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Table4Interaction.png")
 
@@ -371,9 +407,13 @@ knitr::include_graphics("Images/Table4Interaction.png")
 
 
 
+
+
 &nbsp;
 &nbsp;
 
+&nbsp;
+&nbsp;
 
 
 **Interaction between malaria episodes and IPTp regimen**
@@ -399,31 +439,14 @@ Among the 284 women under 25 years old (150 DP, 134 SP), 61.3% (174/284) experie
 
 
 **Table 5: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)**
+
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/AdjustedRatio.png")
 
 ```
 
 
-&nbsp;
-&nbsp;
-
-
-
-**Model calibration and goodness‑of‑fit**
-
-Hosmer–Lemeshow χ²=8.73 (df=8; p=0.366), indicating adequate fit. Bootstrap calibration (Figure 5) showed MAE=0.03, MSE=0.0017, 0.9‑quantile AE=0.055, confirming good agreement between predicted and observed risks.
-
-
-&nbsp;
-&nbsp;
-
-
-
-**Figure 3. Calibration curve (bootstrap)**
-```{r calibration-plot, echo=FALSE, out.width='70%', fig.cap="Calibration plot for the logistic regression model in women < 25 years (Hosmer–Lemeshow deciles vs. observed)"}
-knitr::include_graphics("Images/Figure5Calibration.png")
-```
 
 
 &nbsp;
@@ -442,7 +465,9 @@ The best elastic-net configuration (penalty = 0.01, mixture = 0) achieved a cros
 &nbsp;
 
 
-**Figure 4: Predicted Probability of Adverse Outcome by Gravidity (Age < 25)**
+**Figure 3: Predicted Probability of Adverse Outcome by Gravidity (Age < 25)**
+
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Figure 3. Predicted Probability.png")
 
@@ -451,19 +476,6 @@ knitr::include_graphics("Images/Figure 3. Predicted Probability.png")
 
 
 
-&nbsp;
-&nbsp;
-
-&nbsp;
-&nbsp;
-
-
-
-**Table 6:  Discriminative Performance (AUC) of Machine Learning Models Predicting Adverse Birth Outcomes Under Different IPTp Regimens**
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-knitr::include_graphics("Images/Table6.Discriminative Performance (AUC) of ML Models.png")
-
-```
 
 
 &nbsp;
@@ -473,8 +485,9 @@ knitr::include_graphics("Images/Table6.Discriminative Performance (AUC) of ML Mo
 &nbsp;
 
 
+**Figure 4 : Comparative Discriminative Performance of ML Models for Predicting Adverse Birth Outcomes**
 
-**Figure 5 : Comparative Discriminative Performance of ML Models for Predicting Adverse Birth Outcomes**
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Figure 4.Comparative Discriminative Performance of ML .png")
 
@@ -483,37 +496,50 @@ knitr::include_graphics("Images/Figure 4.Comparative Discriminative Performance 
 
 
 
+
+
+
+&nbsp;
+&nbsp;
+
+&nbsp;
+&nbsp;
+
+
+
+
+
+**Table 6:  Discriminative Performance (AUC) of Machine Learning Models Predicting Adverse Birth Outcomes Under Different IPTp Regimens**
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("Images/Table6.Discriminative Performance (AUC) of ML Models.png")
+
+```
+
 {{< pagebreak >}}
 
+
+
+
 # Discussion
-Our analysis from a randomized controlled trial in Uganda demonstrates three principal findings. First, although total malaria episodes and IPTp regimen alone did not predict adverse birth outcomes, their interaction was highly significant: each additional malaria episode under sulfadoxine-pyrimethamine (SP) conferred 47% higher odds of a composite adverse outcome compared with dihydroartemisinin-piperaquine (DP) (OR 1.47 per episode, 95% CI 1.16–1.88; p = 0.002). This mirrors findings from a recent East African trial, in which monthly IPTp-DP significantly reduced placental malaria relative to IPTp-SP yet failed to translate into overall improvements in birth outcomes when studied in isolation, highlighting that breakthrough infections under SP carry an escalating risk not captured by main-effects analyses alone [@kakuru2020]. Moreover, the increasing prevalence of pfdhfr–pfdhps “quintuple” and emerging “sextuple” mutations have been linked to diminished SP efficacy, explaining why each successive SP failure amplifies adverse-risk (Desai et al., 2016).
+Our analysis from a randomized controlled trial in Uganda illuminates three key findings. First, although total malaria episodes and IPTp regimen alone did not predict adverse birth outcomes, their interaction was highly significant. Each additional malaria episode under sulfadoxine-pyrimethamine (SP) conferred 47% higher odds of a composite adverse outcome than dihydroartemisinin-piperaquine (DP). Second, in women under 25 years, gravidity emerged as the sole significant predictor, with each additional pregnancy reducing the odds of an adverse outcome by 14%. Finally, our machine‐learning pipeline, comparing logistic regression, random forest, XGBoost, and elastic net, demonstrated uniformly poor discrimination (AUCs 0.42–0.49), underscoring that routinely collected demographic and clinical variables alone cannot predict individual risk.
 
-Second, in women under 25 years, gravidity emerged as the sole significant predictor: each additional pregnancy reduced the odds of an adverse outcome by 14% (OR 0.86, 95% CI 0.76–0.98; p = 0.02). This protective effect aligns with systematic evidence that multiparous women acquire parity-dependent immunity, mediated by anti-VAR2CSA antibodies and robust Th1 responses [@cutts2020], which lowers placental parasite densities and improves birth outcomes compared with primigravidae[@kajubi2019]. Kirosingh and colleagues further elucidated the cellular basis for this phenomenon, showing that primigravidae harbor higher frequencies of malaria-specific IL-10⁺IFNγ⁺ Type 1 regulatory (Tr1) CD4⁺ T cells—cells whose abundance correlates with increased parasitemia and placental malaria [@kirosingh2023]. In contrast, multigravidae exhibit elevated TNFα⁺CD4⁺ T cell responses linked to protection [@doritchamou2022]. 
+These results extend prior work on malaria in pregnancy. The protective effect of higher gravidity aligns with studies suggesting that physiologic adaptations and improved immune tolerance in multiparous women reduce placental parasite sequestration and its sequelae (Chua et al., 2021). Likewise, emerging evidence indicates that SP’s efficacy may wane as malaria exposure increases, potentially due to rising parasite resistance or immune modulation (Talapko et al., 2019; World Health Organization, 2023). By explicitly modeling the interaction between episodes and regimen, we demonstrate that SP’s preventive benefit diminishes sharply with each successive infection, an effect not captured when examining the main effects alone.
 
-Finally, our machine-learning pipeline (logistic regression, random forest, XGBoost, elastic net) exhibited uniformly poor discrimination (AUC 0.42–0.49), underscoring the limitations of routine demographic and clinical variables alone. This finding is consistent with Kubahoniyesu and colleagues whose models using standard covariates plateaued at AUCs < 0.85 for adverse pregnancy outcome prediction in Rwanda [@kubahoniyesu2024]. By contrast, integrating metabolomic biomarkers into an SVM model achieved an AUC of 0.91, demonstrating that targeted “omics” data can dramatically enhance risk stratification over traditional approaches
+From a public health standpoint, these findings argue for tailoring IPTp strategies to individual risk profiles. In high‐transmission settings, women receiving SP who experience multiple breakthrough infections may benefit from switching to DP or augmenting chemoprevention with additional interventions (e.g., enhanced screening, bed‐net distribution). Moreover, gravidity should inform risk stratification: primigravidae and secundigravidae under 25 years represent a particularly vulnerable group that might warrant closer monitoring or more aggressive prevention.
 
+Our study has several limitations. As a secondary analysis of trial data, generalizability to real‐world antenatal populations may be constrained by trial eligibility criteria and adherence patterns. Variable exclusion or imputation to address missingness could have introduced bias, and unmeasured factors, such as HIV status, nutritional deficiencies, or placental pathology, likely contribute to adverse outcomes but were not available. Finally, the poor performance of our machine‐learning models highlights the need for richer predictor sets; demographic and simple clinical measures are insufficient to classify individual risk with confidence.
 
-## Implications for Policy and Practice
-Our results advocate a move beyond one-size-fits-all IPTp guidelines toward individualized strategies that account for infection history, drug resistance, and parity. In high-transmission, high-resistance settings, women who experience multiple breakthrough infections on SP should be offered IPTp-DP or layered prevention, such as intensified parasitological screening and strengthened insecticide-treated net distribution in line with [@who2022; @cutts2020]. Equally, primigravidae and secundigravidae under 25 years represent a particularly vulnerable subgroup requiring enhanced antenatal surveillance and targeted support services. Finally, translating these recommendations into clinically actionable risk-stratification tools will demand the integration of immunologic biomarkers and placental histopathology alongside routine demographic and clinical variables.
-
-
-## Strengths and Limitations
-
-**Strengths**
-
- This analysis leverages a double-blind, randomized controlled trial, which minimizes selection bias and ensures balanced baseline characteristics across SP and DP arms.  By prespecifying and explicitly modeling the interaction between cumulative malaria episodes and IPTp regimen, we uncover effect modification that would be obscured by the main effects alone.  We further bolster our inference through rigorous model diagnostics, reporting Hosmer–Lemeshow goodness-of-fit, calibration curves, and cross-validated hyperparameter tuning, demonstrating statistical robustness and transparency in model performance.  Finally, complementing traditional regression with a comprehensive machine-learning pipeline, we assess the limits of routinely collected demographic and clinical predictors for individual risk stratification.
-
-**Limitations**
-
- As a secondary analysis of trial data, external validity may be constrained by the original study’s eligibility criteria, adherence protocols, and controlled context.  Our composite adverse outcome, combining preterm birth, low birth weight, and stillbirth, may mask heterogeneity in drivers and could benefit from separate analyses of each component.  Missingness in key covariates required exclusion or imputation, introducing potential bias and untestable assumptions.  Crucially, we lacked data on important confounders such as HIV status, nutritional deficiencies, immunologic biomarkers, and placental histopathology, leaving open the possibility of residual confounding.  Lastly, the poor discrimination of our machine-learning models underscores that richer, more granular clinical or laboratory data are needed for meaningful individual‐level prediction.
 
 
 ## Conclusions
-Cumulative malaria exposure and the IPTp regimen interact to shape birth outcomes: SP’s protective efficacy wanes with each successive infection, while DP maintains resilience. Higher gravidity markedly reduces risk in younger mothers. Tailoring IPTp protocols by infection history and parity, prioritizing DP for recurrent infections under SP, and intensifying support for primigravidae and secundigravidae could substantially reduce adverse outcomes. Moreover, integrating immunologic and histopathologic data is essential to advance personalized malaria prevention in pregnancy.
+These findings demonstrate a critical need to move beyond one‐size‐fits‐all IPTp recommendations. Our analysis points toward stratified prevention strategies by revealing that sulfadoxine–pyrimethamine’s protective efficacy erodes with each additional malaria episode and that higher gravidity markedly shields younger mothers. Tailoring IPTp regimens based on individual exposure histories, prioritizing dihydroartemisinin-piperaquine for women facing recurrent infections under SP, and intensifying support for primigravidae and secundigravidae could substantially reduce adverse birth outcomes. 
+
+Moreover, the limited predictive power of standard clinical and demographic measures highlights the urgency of integrating richer data sources, such as immunologic biomarkers, placental histopathology, and parasite genotyping, to refine both risk stratification and mechanistic understanding. Adapting policy and research agendas to these insights offers a clear path toward more effective, personalized malaria prevention in pregnancy.
 
 
-&nbsp;
-&nbsp;
+
 
 
 
@@ -536,6 +562,12 @@ These papers [@mckay2020; @mckay2020a] are good examples of papers published usi
 
 Note that this cited reference will show up at the end of the document, the reference formatting is determined by the CSL file specified in the YAML header. Many more style files for almost any journal [are available](https://www.zotero.org/styles). You also specify the location of your bibtex reference file in the YAML. You can call your reference file anything you like.
 
+
+
 {{< pagebreak >}}
 
+
+
+
 # References
+
