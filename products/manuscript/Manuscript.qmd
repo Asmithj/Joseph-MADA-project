@@ -139,8 +139,14 @@ Descriptive analyses summarized key maternal and clinical characteristics such a
 
 Multivariable logistic regression models were employed to evaluate whether the IPTp regimen modifies the association between malaria episodes and adverse birth outcomes, adjusting for maternal age, gravidity, and socioeconomic status and incorporating an interaction term between malaria episodes and treatment regimen. Predicted probabilities were calculated to elucidate these interaction effects. Additionally, a subgroup analysis among women under 25 years assessed the relationship between gravidity treated as a continuous variable and adverse birth outcomes, with adjustments made for maternal age, malaria episode frequency, and treatment regimen.   
 
+
+
+
 &nbsp;
 &nbsp;
+
+
+
 
 
 **Table 1: Baseline Characteristics of Study Participants by IPTp Treatment Arm**
@@ -152,8 +158,12 @@ knitr::include_graphics("Images/Table1Baseline.png")
 
 
 
+
 &nbsp;
 &nbsp;
+
+
+
 
 **Figure 1: Distribution of Total Malaria Episodes by IPTp Treatment Arm**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -403,6 +413,9 @@ knitr::include_graphics("Images/AdjustedRatio.png")
 Hosmer–Lemeshow χ²=8.73 (df=8; p=0.366), indicating adequate fit. Bootstrap calibration (Figure 5) showed MAE=0.03, MSE=0.0017, 0.9‑quantile AE=0.055, confirming good agreement between predicted and observed risks.
 
 
+&nbsp;
+&nbsp;
+
 
 
 **Figure 3. Calibration curve (bootstrap)**
@@ -439,6 +452,9 @@ knitr::include_graphics("Images/Figure 3. Predicted Probability.png")
 &nbsp;
 &nbsp;
 
+&nbsp;
+&nbsp;
+
 
 
 **Table 6:  Discriminative Performance (AUC) of Machine Learning Models Predicting Adverse Birth Outcomes Under Different IPTp Regimens**
@@ -447,6 +463,9 @@ knitr::include_graphics("Images/Table6.Discriminative Performance (AUC) of ML Mo
 
 ```
 
+
+&nbsp;
+&nbsp;
 
 &nbsp;
 &nbsp;
