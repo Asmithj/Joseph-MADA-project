@@ -512,30 +512,6 @@ Our results advocate a move beyond one-size-fits-all IPTp guidelines toward indi
 Cumulative malaria exposure and the IPTp regimen interact to shape birth outcomes: SP’s protective efficacy wanes with each successive infection, while DP maintains resilience. Higher gravidity markedly reduces risk in younger mothers. Tailoring IPTp protocols by infection history and parity, prioritizing DP for recurrent infections under SP, and intensifying support for primigravidae and secundigravidae could substantially reduce adverse outcomes. Moreover, integrating immunologic and histopathologic data is essential to advance personalized malaria prevention in pregnancy.
 
 
-&nbsp;
-&nbsp;
-
-
-
-
-
-
-
-
-
-
-
-
-#  Remove Section 
-
-*Include citations in your Rmd file using bibtex, the list of references will automatically be placed at the end*
-
-This paper [@leek2015] discusses types of analyses.
-
-These papers [@mckay2020; @mckay2020a] are good examples of papers published using a fully reproducible setup similar to the one shown in this template.
-
-Note that this cited reference will show up at the end of the document, the reference formatting is determined by the CSL file specified in the YAML header. Many more style files for almost any journal [are available](https://www.zotero.org/styles). You also specify the location of your bibtex reference file in the YAML. You can call your reference file anything you like.
-
 {{< pagebreak >}}
 
 # References
