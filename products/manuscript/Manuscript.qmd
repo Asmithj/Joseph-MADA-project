@@ -129,7 +129,6 @@ Efforts to mitigate the impact of malaria in pregnancy have centered on preventi
 This study addresses two research questions. First, it examines whether the type of IPTp regimen modifies the association between malaria episode frequency and adverse birth outcomes in Ugandan pregnant women. Preliminary analyses suggest a potential interaction between malaria episodes and the SP regimen, indicating that the impact of malaria may differ by treatment. Second, the study investigates whether increased gravidity reduces the risk of adverse birth outcomes among younger pregnant women under 25 years. Early findings point to a protective effect of prior pregnancies in this subgroup. In addressing these questions, the study seeks to clarify how preventive treatment strategies and maternal reproductive history shape birth outcomes in malaria-endemic settings. Ultimately, the insights gained could inform the development of targeted, effective, and equitable interventions to enhance pregnant women’s and infants’ health in Uganda and similar regions.
 
 
-
 # Methods
 This study analyzed 782 maternal–infant records from a double-blind RCT in Uganda (ClinEpiDB Release #24, 30 Aug 2022) comparing IPTp-SP versus DP in HIV-negative pregnant women. We standardized dates, recoded categoricals, dropped variables with >20% missingness, and imputed the rest (<10%) via five-cycle MICE; a post-hoc power analysis (α = 0.05) showed 80% power to detect an interaction OR ≥ 1.45. Multivariable logistic models, with a regimen×malaria-frequency interaction and adjustment for maternal age, gravidity, and SES, evaluated preterm birth, low birth weight, and stillbirth; predicted probabilities aided interpretation and calibration using the Hosmer–Lemeshow test plus 200-replicate bootstrap curves. In women <25 years, gravidity was modeled continuously with sensitivity analyses. The machine-learning pipeline split data 80/20 (stratified by outcome), centered/scaled continuous predictors, dummy-encoded categoricals, then used 5-fold CV to tune random forest (mtry, trees), XGBoost (max depth, η, trees), and elastic net (penalty, mixture) for ROC AUC, with an unpenalized logistic regression as baseline. The final model performance was assessed on the test set. All analyses were conducted in R 4.3.2.
 
@@ -144,7 +143,6 @@ Multivariable logistic regression models were employed to evaluate whether the I
 &nbsp;
 
 
-
 **Table 1: Baseline Characteristics of Study Participants by IPTp Treatment Arm**
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -153,18 +151,6 @@ knitr::include_graphics("Images/Table1Baseline.png")
 ```
 
 
-
-
-
-
-
-
-
-
-
-
-&nbsp;
-&nbsp;
 
 &nbsp;
 &nbsp;
@@ -241,20 +227,6 @@ table_outcomes
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-&nbsp;
-&nbsp;
-
 &nbsp;
 &nbsp;
 
@@ -297,8 +269,6 @@ interaction_plot
 &nbsp;
 
 
-&nbsp;
-&nbsp;
 
 **Table 3: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen**
 ```{r,  echo=FALSE, message=FALSE, warning=FALSE}
@@ -353,10 +323,8 @@ table_outcomes
 ```
 
 
-
 &nbsp;
 &nbsp;
-
 
 
 
@@ -394,8 +362,6 @@ knitr::include_graphics("Images/Table4Interaction.png")
 &nbsp;
 &nbsp;
 
-&nbsp;
-&nbsp;
 
 
 **Interaction between malaria episodes and IPTp regimen**
@@ -445,6 +411,8 @@ knitr::include_graphics("Images/Figure5Calibration.png")
 ```
 
 
+&nbsp;
+&nbsp;
 
 
 **Machine‐learning model performance**
@@ -471,11 +439,6 @@ knitr::include_graphics("Images/Figure 3. Predicted Probability.png")
 &nbsp;
 &nbsp;
 
-&nbsp;
-&nbsp;
-
-
-
 
 
 **Table 6:  Discriminative Performance (AUC) of Machine Learning Models Predicting Adverse Birth Outcomes Under Different IPTp Regimens**
@@ -484,9 +447,6 @@ knitr::include_graphics("Images/Table6.Discriminative Performance (AUC) of ML Mo
 
 ```
 
-
-&nbsp;
-&nbsp;
 
 &nbsp;
 &nbsp;
@@ -531,6 +491,8 @@ Our findings suggest that IPTp guidelines should move beyond a one‐size‐fits
 Cumulative malaria exposure and the IPTp regimen interact to shape birth outcomes: SP’s protective efficacy wanes with each successive infection, while DP maintains resilience. Higher gravidity markedly reduces risk in younger mothers. Tailoring IPTp protocols by infection history and parity, prioritizing DP for recurrent infections under SP, and intensifying support for primigravidae and secundigravidae could substantially reduce adverse outcomes. Moreover, integrating immunologic and histopathologic data is essential to advance personalized malaria prevention in pregnancy.
 
 
+&nbsp;
+&nbsp;
 
 
 
