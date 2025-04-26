@@ -519,9 +519,11 @@ Our findings suggest that IPTp guidelines should move beyond a one‐size‐fits
 ## Strengths and Limitations
 
 **Strengths**
+
  This analysis leverages a double-blind, randomized controlled trial, which minimizes selection bias and ensures balanced baseline characteristics across SP and DP arms.  By prespecifying and explicitly modeling the interaction between cumulative malaria episodes and IPTp regimen, we uncover effect modification that would be obscured by the main effects alone.  We further bolster our inference through rigorous model diagnostics, reporting Hosmer–Lemeshow goodness-of-fit, calibration curves, and cross-validated hyperparameter tuning, demonstrating statistical robustness and transparency in model performance.  Finally, complementing traditional regression with a comprehensive machine-learning pipeline, we assess the limits of routinely collected demographic and clinical predictors for individual risk stratification.
 
 **Limitations**
+
  As a secondary analysis of trial data, external validity may be constrained by the original study’s eligibility criteria, adherence protocols, and controlled context.  Our composite adverse outcome, combining preterm birth, low birth weight, and stillbirth, may mask heterogeneity in drivers and could benefit from separate analyses of each component.  Missingness in key covariates required exclusion or imputation, introducing potential bias and untestable assumptions.  Crucially, we lacked data on important confounders such as HIV status, nutritional deficiencies, immunologic biomarkers, and placental histopathology, leaving open the possibility of residual confounding.  Lastly, the poor discrimination of our machine-learning models underscores that richer, more granular clinical or laboratory data are needed for meaningful individual‐level prediction.
 
 
