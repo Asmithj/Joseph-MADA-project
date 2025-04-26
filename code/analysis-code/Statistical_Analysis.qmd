@@ -50,6 +50,10 @@ library(themis)             # Class-imbalance sampling (e.g., SMOTE)
 library(dials)              # Parameter tuning grids
 library(ranger)             # Random forest engine
 library(xgboost)            # Gradient boosting engine
+library(generalhoslem)
+library(ResourceSelection)
+library(rms)
+
 
 ```
 
@@ -1449,6 +1453,120 @@ tibble::tibble(
 )
 
 ```
+
+
+
+
+
+
+# Hosmer–Lemeshow test
+```{r}
+library(ResourceSelection)
+
+# get predicted probabilities on the exact same rows as your observed outcome
+phat <- predict(
+  model_gravidity,
+  newdata = train_data,
+  type    = "response"
+)
+
+# convert the factor 0/1 outcome to numeric 0/1
+yobs <- as.numeric(train_data$adverse_birth_outcome) - 1
+
+# now run Hosmer–Lemeshow
+hl <- hoslem.test(
+  x = yobs,
+  y = phat,
+  g = 10
+)
+
+print(hl)
+
+
+```
+
+
+
+# Calibration curve
+
+```{r calibration-plot, fig.width=6, fig.height=6, warning=FALSE}
+# assume `cal` is your calibrate() object from rms::calibrate(lrm_fit, method="boot", B=200)
+
+# 1) Plot without default legend
+plot(cal,
+     lty    = c(3, 1, 2),                             # dashed, solid, dashed
+     col    = c("#1f78b4", "#33a02c", "#e31a1c"),     # blue, green, red
+     lwd    = 2,
+     xlab   = "Predicted Probability of Adverse Outcome",
+     ylab   = "Observed Proportion of Adverse Outcome",
+     main   = "Calibration of Gravidity Model\nin Women Aged < 25",
+     legend = FALSE,                                  # <-- turn off built‐in legend
+     xlim   = c(0.4, 0.8),
+     ylim   = c(0.4, 0.8)
+)
+
+# 2) Add a single, custom legend
+legend("bottomright",
+       legend = c("Apparent", "Bias–Corrected", "Ideal"),
+       col    = c("#1f78b4", "#33a02c", "#e31a1c"),
+       lty    = c(3, 1, 2),
+       lwd    = 2,
+       bty    = "n"
+)
+
+```
+
+
+
+
+```{r}
+# Fit logistic regression with rms
+dd <- datadist(train_data); options(datadist = "dd")
+rms_model <- lrm(adverse_birth_outcome ~ gravidity + total_malaria_episodes + study_arm + education_level,
+                 data = train_data, x = TRUE, y = TRUE)
+# Calibration plot
+cal <- calibrate(rms_model, method="boot", B = 200)
+plot(cal, xlab="Predicted probability", ylab="Observed proportion")
+
+```
+
+
+```{r}
+library(dplyr); library(ggplot2)
+
+# 1) Get predictions on the train set
+train_data <- train_data %>%
+  mutate(
+    pred = predict(model_gravidity, type = "response"),
+    decile = ntile(pred, 10)
+  )
+
+# 2) Summarize observed vs. predicted in each decile
+calib_df <- train_data %>%
+  group_by(decile) %>%
+  summarize(
+    mean_pred = mean(pred),
+    obs_rate  = mean(as.numeric(adverse_birth_outcome) - 1)
+  )
+
+# 3) Plot
+ggplot(calib_df, aes(x = mean_pred, y = obs_rate)) +
+  geom_point(size = 3) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
+  labs(
+    x = "Mean predicted probability",
+    y = "Observed event rate",
+    title = "Calibration plot (deciles)"
+  ) +
+  theme_minimal()
+
+```
+
+
+
+
+
+
 
 
 ################################################################################################################################################################## 
