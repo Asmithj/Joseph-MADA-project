@@ -11,47 +11,45 @@ output: html_document
 # Load Required Libraries
 
 # Path management
-library(here)              # For file path handling
+library(here)               # File path handling
 
 # Data manipulation and wrangling
-library(dplyr)             # Data manipulation
-library(tidyverse)         # Core data science packages (includes ggplot2, dplyr, readr, etc.)
-library(janitor)           # Clean column names
-library(skimr)             # Data summary
-library(lubridate)         # Date and time handling
-library(forcats)           # Handling categorical variables
+library(dplyr)              # Data manipulation
+library(tidyverse)          # Core tidyverse packages (ggplot2, readr, etc.)
+library(janitor)            # Clean column names
+library(skimr)              # Quick data summaries
+library(lubridate)          # Date/time handling
+library(forcats)            # Categorical variable tools
 
 # Visualization
-library(ggplot2)           # Data visualization (also part of tidyverse)
-library(ggpubr)            # Publication-ready plots
+library(ggplot2)            # Data visualization
+library(ggpubr)             # Publication-ready plots
 
 # Tables and reporting
-library(gtsummary)         # Summary statistics tables
-library(gt)                # Table formatting
-library(knitr)             # Report generation
-library(kableExtra)        # Enhanced table output in markdown
+library(gtsummary)          # Summary tables
+library(gt)                 # Advanced table formatting
+library(knitr)              # Report generation
+library(kableExtra)         # Enhanced markdown tables
 
-# Analysis-specific packages
-library(Amelia)            # Visualizing missing data
-library(pwr)               # Power analysis
-library(DiagrammeR)        # Diagrams and flowcharts
-library(survival)          # Survival analysis
-library(survminer)         # Survival plots
-library(ggeffects)         # Marginal effects for regression models
-library(broom)             # Tidy model outputs
+# Data exploration & preparation
+library(Amelia)             # Missing-data visualization
+library(pwr)                # Power analysis
+library(DiagrammeR)         # Diagrams and flowcharts
 
-# Machine learning and modeling
-library(tidymodels)        # Unified modeling framework (includes recipes, parsnip, workflows, tune, etc.)
-library(rsample)           # Resampling and data splitting
-library(recipes)           # Preprocessing
-library(parsnip)           # Model specification
-library(workflows)         # Combine models and preprocessing
-library(tune)              # Hyperparameter tuning
-library(yardstick)         # Model performance metrics
-library(dials)             # Parameter tuning grids
-library(ranger)            # Random forest engine
-library(xgboost)           # Boosting engine
-library(themis)            # Handling class imbalance (e.g., SMOTE)
+# Survival analysis
+library(survival)           # Survival models
+library(survminer)          # Survival plots
+
+# Model effects & outputs
+library(ggeffects)          # Marginal effects extraction
+library(broom)              # Tidy model outputs
+
+# Machine learning & modeling
+library(tidymodels)         # Modeling framework (recipes, parsnip, workflows, tune, yardstick, rsample)
+library(themis)             # Class-imbalance sampling (e.g., SMOTE)
+library(dials)              # Parameter tuning grids
+library(ranger)             # Random forest engine
+library(xgboost)            # Gradient boosting engine
 
 ```
 
@@ -541,39 +539,50 @@ print(lrt)
 library(car)
 vif_values <- vif(model_interaction)
 print(vif_values)
-
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-library(dplyr)
-library(knitr)
-library(kableExtra)
-library(here)
-
 # Generate Analysis of Deviance Table (Likelihood Ratio Test)
-anova(model_no_interaction, model_interaction, test = "LRT")
+anova_out <- anova(model_no_interaction, model_interaction, test = "LRT")
+
+# Convert to a clean data frame
 anova_df <- as.data.frame(anova_out)
 anova_df$Model <- c("Model 1 (No Interaction)", "Model 2 (With Interaction)")
-anova_df <- anova_df %>% 
+
+# Reorder and rename columns for readability
+anova_df <- anova_df %>%
   select(Model, `Resid. Df`, `Resid. Dev`, Df, Deviance, `Pr(>Chi)`)
+
 colnames(anova_df) <- c("Model", "Residual Df", "Residual Dev", "Df", "Deviance", "p-value")
 
+# Display table
 kable(
   anova_df,
   format = "pandoc",
   caption = "*Table X: Analysis of Deviance Comparing Models With and Without Interaction*"
-) %>% 
+) %>%
   kable_styling(full_width = FALSE, position = "center")
 
 ```
 
-```{r}
-library(dplyr)
-library(knitr)
-library(kableExtra)
-library(car)
-library(here)
 
+
+
+
+
+
+
+
+```{r}
+# Fit logistic regression model WITH interaction
+model2 <- glm(adverse_birth_outcome ~ total_malaria_episodes * study_arm +
+                age_at_enrollment_years + gravidity + education_level,
+              family = binomial(link = "logit"),
+              data = promo_data_clean)
+
+```
+
+```{r}
 # Compute Variance Inflation Factors (VIF) for Model 2 (with interaction)
 vif_vals <- vif(model2)
 vif_df <- as.data.frame(vif_vals)
@@ -865,13 +874,7 @@ In my model, gravidity has an odds ratio of 0.857 (95% CI: 0.737–0.995, p = 0.
 ################################################################################################################################################################## 
 
 
-
-
-
-
-
-
-
+#  Evaluating Discrimination (ROC Curve and AUC)
 
 ```{r}
 # Load necessary package for ROC analysis
@@ -945,7 +948,45 @@ print(paste("Logistic Regression AUC:", round(auc_logit, 2)))
 
 ```
 
+
+
+
+
 *Train/Test Split and Random Forest Model* which fits a random forest model and plots its ROC curve, is also used for Research Question 1 as an alternative ML approach
+```{r}
+# 1. Define Random Forest model
+rf_model <- rand_forest(
+  trees = 500,
+  mtry = tune(),
+  min_n = tune()
+) %>%
+  set_engine("ranger") %>%
+  set_mode("classification")
+
+# 2. Build the recipe (you already did this correctly)
+rf_recipe <- recipe(adverse_birth_outcome ~ total_malaria_episodes + study_arm +
+                      age_at_enrollment_years + gravidity + education_level,
+                    data = train_data) %>%
+  step_dummy(all_nominal_predictors())
+
+# 3. Combine into a workflow
+rf_workflow <- workflow() %>%
+  add_model(rf_model) %>%
+  add_recipe(rf_recipe)
+
+# 4. Tune hyperparameters (optional next step)
+set.seed(123)
+rf_tune <- tune_grid(
+  rf_workflow,
+  resamples = vfold_cv(train_data, v = 10, strata = adverse_birth_outcome),
+  grid = 20,  # number of hyperparameter combos
+  metrics = metric_set(roc_auc)
+)
+
+```
+
+
+
 
 ```{r}
 # Ensure the outcome is a factor in train_data
@@ -1216,10 +1257,6 @@ The random forest classifier achieved an AUC of 0.42 on the held‑out test set,
 
 
 
-
-
-
-
 ### Gradient boosting (XGBoost)
 
 ```{r}
@@ -1422,27 +1459,168 @@ tibble::tibble(
 
 ### Improved ML: Elastic Net with Feature Engineering
 
-```{r ml_improved_recipe, message=FALSE}
-# 1) Encode factors, engineer features, balance classes, normalize
+
+
+```{r ml_improved_recipe, message=FALSE, warning=FALSE}
+# 0) Cast to correct classes *before* creating cv_folds
+train_data <- train_data %>%
+  mutate(
+    total_malaria_episodes = as.numeric(total_malaria_episodes),
+    gravidity              = as.numeric(gravidity),
+    adverse_birth_outcome  = factor(adverse_birth_outcome, levels = c(0,1))
+  )
+
+test_data <- test_data %>%
+  mutate(
+    total_malaria_episodes = as.numeric(total_malaria_episodes),
+    gravidity              = as.numeric(gravidity),
+    adverse_birth_outcome  = factor(adverse_birth_outcome, levels = c(0,1))
+  )
+
+# 0b) Now create your 10-fold resamples on the cleaned train_data
+cv_folds <- vfold_cv(train_data, v = 10, strata = adverse_birth_outcome)
+
+# 1) Build the recipe: dummies, features, SMOTE, normalize
 improved_recipe <- recipe(adverse_birth_outcome ~ 
-                             total_malaria_episodes + study_arm +
-                             age_at_enrollment_years + gravidity + education_level,
+                             total_malaria_episodes +
+                             study_arm +
+                             age_at_enrollment_years +
+                             gravidity +
+                             education_level,
                            data = train_data) %>%
-  # a) one‑hot encode all factor predictors
   step_dummy(all_nominal_predictors(), one_hot = TRUE) %>%
-  # b) create polynomial & interaction features
   step_mutate(
     malaria_sq       = total_malaria_episodes^2,
     malaria_DP_inter = total_malaria_episodes * study_arm_DP
   ) %>%
-  # c) up‑sample minority class via SMOTE
   step_smote(adverse_birth_outcome) %>%
-  # d) center & scale all predictors
-  step_normalize(all_predictors())
-                          # (5)
+  step_normalize(all_numeric_predictors())
+
+# 2) Specify elastic-net logistic regression
+enet_spec <- logistic_reg(
+    penalty = tune(),
+    mixture = tune()
+  ) %>%
+  set_engine("glmnet")
+
+# 3) Assemble into a workflow
+enet_wf <- workflow() %>%
+  add_recipe(improved_recipe) %>%
+  add_model(enet_spec)
+
+# 4) Tuning grid & 10-fold CV
+enet_grid <- grid_regular(
+  penalty(range = c(-5, -1), trans = log10_trans()),  # from 1e-5 to 1e-1
+  mixture(range = c(0, 1)),
+  levels = 5
+)
+
+enet_tune <- tune_grid(
+  enet_wf,
+  resamples = cv_folds,
+  grid      = enet_grid,
+  metrics   = metric_set(roc_auc)
+)
+
+# 5) Show the top AUC
+enet_tune %>%
+  collect_metrics() %>%
+  filter(.metric == "roc_auc") %>%
+  arrange(desc(mean))
+```
+
+
+
+
+```{r}
+library(dplyr)
+library(knitr)
+
+enet_tune %>%
+  collect_metrics() %>%
+  filter(.metric == "roc_auc") %>%
+  arrange(desc(mean)) %>%
+  slice_head(n = 5) %>%                # ← pull the top 5 rows
+  mutate(`AUC (mean ± SE)` = sprintf("%.3f \u00B1 %.3f", mean, std_err)) %>%
+  select(penalty, mixture, `AUC (mean ± SE)`) %>%
+  kable(
+    caption = "Table X. Top 5 elastic‐net hyperparameter combinations, ranked by mean cross‐validated AUC"
+  )
 
 ```
 
+
+
+
+```{r}
+enet_tune %>%
+  collect_metrics() %>%
+  filter(.metric == "roc_auc") %>%
+  arrange(desc(mean)) %>%
+  head(5) %>%                          # ← base‐R head()
+  mutate(`AUC (mean ± SE)` = sprintf("%.3f \u00B1 %.3f", mean, std_err)) %>%
+  select(penalty, mixture, `AUC (mean ± SE)`) %>%
+  kable(
+    caption = "Table X. Top 5 elastic‐net hyperparameter combinations, ranked by mean cross‐validated AUC"
+  )
+
+```
+
+
+
+
+
+
+
+
+```{r}
+library(ggplot2)
+
+enet_tune %>% 
+  collect_metrics() %>% 
+  filter(.metric=="roc_auc") %>% 
+  ggplot(aes(x = log10(penalty), y = mixture, fill = mean)) +
+    geom_tile() +
+    scale_fill_viridis_c(name = "AUC") +
+    labs(
+      x = expression(log[10](lambda)),
+      y = expression(alpha),
+      title = "Heatmap of cross-validated AUC\nfor Elastic-net hyperparameter grid"
+    ) +
+    theme_minimal(base_size = 12)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+################################################################################################################################################################## 
 
 
 
@@ -1487,6 +1665,10 @@ enet_tune <- tune_grid(
 
 ```
 
+
+
+
+
 ```{r}
 # 6) Select best, finalize, fit on train, & evaluate on test
 best_enet  <- select_best(enet_tune, metric = "roc_auc")
@@ -1511,15 +1693,10 @@ The elastic‑net model achieved an AUC of 0.49 on the held‑out test set—bel
 # Create temporal & composite features in the training set
 train_data <- train_data %>%
   mutate(
-    # Month of enrollment (seasonality)
     enroll_month = lubridate::month(enrollment_date),
-    # Episodes per trimester (assuming 40‑week gestation)
-    episodes_per_trimester = total_malaria_episodes / (gestational_age_at_enrollment_weeks / (40/3)),
-    # Socioeconomic index (if available)
-    # wealth_index = as.numeric(education_level) * household_assets_score
+    episodes_per_trimester = total_malaria_episodes / (gestational_age_at_enrollment_weeks / (40/3))
   )
 
-# Apply same transformations to test_data
 test_data <- test_data %>%
   mutate(
     enroll_month = lubridate::month(enrollment_date),
@@ -1531,9 +1708,11 @@ test_data <- test_data %>%
 
 ```{r}
 imbalanced_recipe <- recipe(adverse_birth_outcome ~ ., data = train_data) %>%
-  # standard preprocessing
   step_dummy(all_nominal_predictors(), one_hot = TRUE) %>%
-  # adaptive synthetic sampling
+  step_mutate(
+    total_malaria_episodes = as.numeric(total_malaria_episodes),
+    gravidity = as.numeric(gravidity)
+  ) %>%
   step_adasyn(adverse_birth_outcome) %>%
   step_normalize(all_predictors())
 
@@ -1541,13 +1720,15 @@ imbalanced_recipe <- recipe(adverse_birth_outcome ~ ., data = train_data) %>%
 
 
 ```{r}
-# Continue using enet_wf from before
-set.seed(2025)
+enet_wf <- workflow() %>%
+  add_model(enet_spec) %>%
+  add_recipe(imbalanced_recipe)
+
 enet_bayes <- tune_bayes(
   enet_wf,
   resamples = cv_folds,
-  initial = enet_tune,       # seed the search from your grid results
-  iter    = 20,              # number of Bayesian iterations
+  initial = enet_tune,
+  iter = 20,
   metrics = metric_set(roc_auc)
 )
 
@@ -1628,6 +1809,113 @@ autoplot(pr) +
 ```
 
 
+################################################################################################################################################################## 
 
 
+
+# More Machine Learning Analysis
+To explore whether flexible, data‐driven classifiers could outperform our regression models in predicting the composite adverse birth outcome, we built a standardized ML pipeline using **tidymodels**. We compared three algorithms—LASSO‐penalized logistic regression, random forest, and XGBoost—each trained on the same predictors: maternal age, gravidity, education level, total malaria episodes, treatment arm, and socioeconomic status.
+
+
+```{r}
+# 2. Read & split data
+df <- read_csv(here("data","clean","PROMO_Data_clean.csv")) %>%
+  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1)))
+
+set.seed(2025)
+split    <- initial_split(df, prop = 0.7, strata = adverse_birth_outcome)
+train    <- training(split)
+test     <- testing(split)
+cv_folds <- vfold_cv(train, v = 5, strata = adverse_birth_outcome)
+
+```
+
+
+
+```{r}
+# 3. Preprocessing recipe
+ml_rec <- recipe(adverse_birth_outcome ~ age_at_enrollment_years
+                  + gravidity
+                  + total_malaria_episodes
+                  + education_level
+                  + study_arm
+                  + socioeconomic_status,
+                data = train) %>%
+  step_dummy(all_nominal_predictors()) %>%  # one‐hot encode
+  step_zv(all_predictors()) %>%             # remove zero‐variance
+  step_normalize(all_numeric_predictors())  # center & scale
+
+```
+
+
+
+
+```{r}
+# 4. Model specifications & workflows
+
+## (a) LASSO‐penalized logistic regression
+lasso_mod <- logistic_reg(penalty = tune(), mixture = 1) %>%
+  set_engine("glmnet") %>%
+  set_mode("classification")
+
+lasso_wf  <- workflow() %>% add_model(lasso_mod) %>% add_recipe(ml_rec)
+
+## (b) Random forest
+rf_mod <- rand_forest(mtry = tune(), trees = 1000, min_n = tune()) %>%
+  set_engine("ranger") %>%
+  set_mode("classification")
+
+rf_wf  <- workflow() %>% add_model(rf_mod) %>% add_recipe(ml_rec)
+
+## (c) XGBoost
+xgb_mod <- boost_tree(trees = tune(),
+                      tree_depth = tune(),
+                      learn_rate = tune()) %>%
+  set_engine("xgboost") %>%
+  set_mode("classification")
+
+xgb_wf <- workflow() %>% add_model(xgb_mod) %>% add_recipe(ml_rec)
+
+```
+
+
+
+
+```{r}
+# 5. Tuning grids & 5‐fold CV
+set.seed(2025)
+
+lasso_grid <- grid_regular(penalty(), levels = 20)
+
+rf_params <- parameters(rf_mod) %>%
+  update(mtry = mtry(c(1, 6)))
+rf_grid   <- grid_latin_hypercube(rf_params, size = 20)
+
+xgb_params <- parameters(xgb_mod)
+xgb_grid   <- grid_latin_hypercube(xgb_params, size = 30)
+
+ml_metrics <- metric_set(roc_auc)
+
+lasso_res <- tune_grid(lasso_wf, resamples = cv_folds,
+                       grid = lasso_grid, metrics = ml_metrics)
+
+rf_res    <- tune_grid(rf_wf,    resamples = cv_folds,
+                       grid = rf_grid,    metrics = ml_metrics)
+
+xgb_res   <- tune_grid(xgb_wf,   resamples = cv_folds,
+                       grid = xgb_grid,   metrics = ml_metrics)
+
+```
+
+```{r}
+# 6. Collect cross‐validated AUC results
+lasso_auc <- lasso_res %>% filter(.metric=="roc_auc") %>% summarize(mean = mean(mean), se = mean(std_err)) %>% mutate(model="LASSO")
+rf_auc    <- rf_res    %>% filter(.metric=="roc_auc") %>% summarize(mean = mean(mean), se = mean(std_err)) %>% mutate(model="RF")
+xgb_auc   <- xgb_res   %>% filter(.metric=="roc_auc") %>% summarize(mean = mean(mean), se = mean(std_err)) %>% mutate(model="XGB")
+
+bind_rows(lasso_auc, rf_auc, xgb_auc) %>%
+  rename(AUC = mean, SE = se) %>%
+  knitr::kable(digits=3, caption="Table 6: 5‐fold CV ROC AUC for Each Model")
+
+```
 
