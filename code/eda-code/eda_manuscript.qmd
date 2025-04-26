@@ -4,41 +4,55 @@ date: "2025-02-23"
 output: html_document
 ---
 
-  
-  
 
 
 
 ```{r}
 # Load Required Libraries
-# Essential libraries for data handling, visualization, and analysis
 
-library(here)             # Manage file paths
-library(dplyr)            # Data manipulation
-library(tidyverse)        # Data wrangling and visualization
-library(janitor)          # Clean column names
-library(skimr)            # Quick data summary
-library(lubridate)        # Working with dates
-library(readr)            # Reading CSV files
-library(ggplot2)          # Visualization
-library(ggpubr)           # Publication-ready plots
-library(forcats)          # Categorical variables handling
+# Path management
+library(here)               # File path handling
 
-# Table and reporting packages
-library(gtsummary)        # Summary tables
-library(gt)               # Table formatting
-library(knitr)            # Table rendering
-library(kableExtra)       # Table customization
+# Data manipulation and wrangling
+library(dplyr)              # Data manipulation
+library(tidyverse)          # Core tidyverse packages (ggplot2, readr, etc.)
+library(janitor)            # Clean column names
+library(skimr)              # Quick data summaries
+library(lubridate)          # Date/time handling
+library(forcats)            # Categorical variable tools
 
-# Analysis-specific packages
-library(Amelia)           # Missing data visualization
-library(pwr)              # Power analysis
-library(DiagrammeR)       # Diagrams and flowcharts
-library(survival)         # Survival analysis
-library(survminer)        # Survival plots
-library(ggeffects)        # Marginal effects for regression models
-library(broom)            # Tidy model outputs
-library(rsample)          # Resampling and splitting datasets
+# Visualization
+library(ggplot2)            # Data visualization
+library(ggpubr)             # Publication-ready plots
+
+# Tables and reporting
+library(gtsummary)          # Summary tables
+library(gt)                 # Advanced table formatting
+library(knitr)              # Report generation
+library(kableExtra)         # Enhanced markdown tables
+
+# Data exploration & preparation
+library(Amelia)             # Missing-data visualization
+library(pwr)                # Power analysis
+library(DiagrammeR)         # Diagrams and flowcharts
+
+# Survival analysis
+library(survival)           # Survival models
+library(survminer)          # Survival plots
+
+# Model effects & outputs
+library(ggeffects)          # Marginal effects extraction
+library(broom)              # Tidy model outputs
+
+# Machine learning & modeling
+library(tidymodels)         # Modeling framework (recipes, parsnip, workflows, tune, yardstick, rsample)
+library(themis)             # Class-imbalance sampling (e.g., SMOTE)
+library(dials)              # Parameter tuning grids
+library(ranger)             # Random forest engine
+library(xgboost)            # Gradient boosting engine
+library(generalhoslem)
+library(ResourceSelection)
+library(rms)
 
 ```
 

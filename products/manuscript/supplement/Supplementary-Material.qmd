@@ -1,5 +1,5 @@
 ---
-title: "Supplement to Example Manuscript Template for a Data Analysis Project"
+title: "Supplement Materials of Impact of IPTp Regimen on Pregnancy Outcomes in a Malaria-Endemic Setting"
 format:
   pdf:
     toc: false
@@ -8,14 +8,6 @@ format:
 bibliography: ../../assets/dataanalysis-references.bib
 csl: ../../assets/american-journal-of-epidemiology.csl
 ---
-
-
-```{r, echo=FALSE, message=FALSE}
-# load a few R packages
-library(here)
-library(knitr)
-```
-
 
 
 
@@ -34,14 +26,97 @@ I'm also using a different style for the references here. (vancouver vs apa in t
 
 
 # Overview
-
-A quick overview of what readers can find in the supplement.
+The Supplementary Appendix begins with comprehensive methodological details, including variable‐by‐variable missingness (Table S1), analysis of deviance comparing models with and without the malaria×SP interaction (Table S2), and variance inflation factors for the final interaction model (Table S3). It also presents machine‐learning tuning results with the top five elastic-net hyperparameter combinations ranked by mean cross-validated AUC (Table S4) alongside a heatmap illustrating AUC across the penalty–mixture grid (Figure S1). Full code excerpts document our data-cleaning steps, rsample splits, recipe definitions, and tune_grid workflows. The appendix then moves on to additional results: a detailed stratification of outcome measures and malaria-exposure variables by IPTp arm (Table S5), bar graphs of total malaria episodes during pregnancy (Figure S2), gravidity (Figure S3), and parity (Figure S4) distributions by treatment arm, and a bootstrap calibration curve for the interaction model (Figure S5). Finally, it compares model discrimination with overlaid ROC curves for logistic regression, random forest, and XGBoost (Figure S6), presents a precision-recall curve for the top‐performing machine-learning model (Figure S7), and reports the test-set AUC for the gravidity-only model in women under 25 years (Table S6).
 
 
 # Code and file information
 
 Explain here what each code/file is and does, and in which order (if any) users need to run thing to reproduce everything.
 Essentially, give a full set of instructions to re-generate everything.
+
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
+library(here)
+here::i_am("products/manuscript/Manuscript.qmd")
+
+# ← THIS is the one that actually sets the working dir for *all* chunks:
+library(knitr)
+knitr::opts_chunk$set(root.dir = here::here("products/manuscript"))
+
+```
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
+# Load Required Libraries for Data Handling, Visualization, and Analysis
+
+# Path management
+library(here)               # File path handling
+
+# Data manipulation and wrangling
+library(dplyr)              # Data manipulation
+library(tidyverse)          # Core tidyverse packages (ggplot2, readr, etc.)
+library(janitor)            # Clean column names
+library(skimr)              # Quick data summaries
+library(lubridate)          # Date/time handling
+library(forcats)            # Categorical variable tools
+
+# Visualization
+library(ggplot2)            # Data visualization
+library(ggpubr)             # Publication-ready plots
+
+# Tables and reporting
+library(gtsummary)          # Summary tables
+library(gt)                 # Advanced table formatting
+library(knitr)              # Report generation
+library(kableExtra)         # Enhanced markdown tables
+
+# Data exploration & preparation
+library(Amelia)             # Missing-data visualization
+library(pwr)                # Power analysis
+library(DiagrammeR)         # Diagrams and flowcharts
+
+# Survival analysis
+library(survival)           # Survival models
+library(survminer)          # Survival plots
+
+# Model effects & outputs
+library(ggeffects)          # Marginal effects extraction
+library(broom)              # Tidy model outputs
+
+# Machine learning & modeling
+library(tidymodels)         # Modeling framework (recipes, parsnip, workflows, tune, yardstick, rsample)
+library(themis)             # Class-imbalance sampling (e.g., SMOTE)
+library(dials)              # Parameter tuning grids
+library(ranger)             # Random forest engine
+library(xgboost)            # Gradient boosting engine
+library(generalhoslem)
+library(ResourceSelection)
+library(rms)
+```
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
+# Data Import & Initial Inspection 
+# load the Dataset
+PROMO_Data <- read_csv(here("data", "raw-data", "PROMO_Data.csv"))
+
+
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+```
+
+
+
+
+
+
+
+
+
+
 
 
 {{< pagebreak >}}
@@ -57,6 +132,119 @@ Often, the main manuscript only allows for an overview description of the method
 # Additional results
 
 Show additional results here. Those can be some useful exploratory/descriptive figures or tables, or results from additional analyses that didn't make it into the main text.
+
+
+*Bar Graph of Total Malaria Episodes During Pregnancy by Treatment Arm*
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(here)
+
+# Read in the cleaned data
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+
+# Recode 'total_malaria_episodes_during_pregnancy' into a categorical variable
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    MalariaEpisodesPreg_cat = case_when(
+      total_malaria_episodes_during_pregnancy %in% c(0, 1) ~ "1",
+      total_malaria_episodes_during_pregnancy %in% c(2, 3) ~ "2–3",
+      total_malaria_episodes_during_pregnancy >= 4 ~ "≥4"
+    ),
+    MalariaEpisodesPreg_cat = factor(MalariaEpisodesPreg_cat, levels = c("1", "2–3", "≥4"))
+  )
+
+# Create the bar graph
+ggplot(promo_data_clean, aes(x = MalariaEpisodesPreg_cat, fill = study_arm)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Total Malaria Episodes During Pregnancy by Treatment Arm",
+       x = "Total Malaria Episodes During Pregnancy (Categorical)",
+       y = "Count",
+       fill = "Treatment Arm") +
+  theme_minimal()
+
+
+```
+
+
+
+
+
+
+
+*Bar Graphs for Gravidity and Parity*
+
+```{r}
+# Load necessary libraries
+
+# Read in the cleaned data
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+
+# Recode Gravidity into categories: "1", "2–3", "≥4"
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    Gravidity_cat = case_when(
+      gravidity == 1 ~ "1",
+      gravidity %in% c(2, 3) ~ "2–3",
+      gravidity >= 4 ~ "≥4"
+    ),
+    Gravidity_cat = factor(Gravidity_cat, levels = c("1", "2–3", "≥4"))
+  )
+
+# Create the bar graph for Gravidity by Treatment Arm
+ggplot(promo_data_clean, aes(x = Gravidity_cat, fill = study_arm)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Gravidity Distribution by Treatment Arm",
+       x = "Gravidity Category (1, 2–3, ≥4)",
+       y = "Count",
+       fill = "Treatment Arm") +
+  theme_minimal()
+
+
+```
+
+
+
+
+*Parity Distribution by Treatment Arm*
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(here)
+
+# Read in the cleaned data
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+
+# Recode Parity into categories: "0", "1–2", "≥3"
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    Parity_cat = case_when(
+      parity == 0 ~ "0",
+      parity %in% c(1, 2) ~ "1–2",
+      parity >= 3 ~ "≥3"
+    ),
+    Parity_cat = factor(Parity_cat, levels = c("0", "1–2", "≥3"))
+  )
+
+# Create the bar graph for Parity by Treatment Arm
+ggplot(promo_data_clean, aes(x = Parity_cat, fill = study_arm)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Parity Distribution by Treatment Arm",
+       x = "Parity Category (0, 1–2, ≥3)",
+       y = "Count",
+       fill = "Treatment Arm") +
+  theme_minimal()
+
+
+```
+
+
+
+
 
 
 ## Example additional result
@@ -83,6 +271,75 @@ knitr::kable(resulttable1)
 #| echo: FALSE
 knitr::include_graphics(here("results","figures","height-weight.png"))
 ```
+
+#  Evaluating Discrimination (ROC Curve and AUC)
+
+```{r}
+# Load necessary package for ROC analysis
+library(pROC)
+
+# Generate predicted probabilities using the logistic regression model (model_gravidity)
+promo_data_young$predicted_prob <- predict(model_gravidity, type = "response")
+
+# Create the ROC curve
+roc_obj <- roc(promo_data_young$adverse_birth_outcome, promo_data_young$predicted_prob)
+plot(roc_obj, col = "blue", lwd = 2, main = "ROC Curve for Model: Gravidity in Women < 25")
+auc_value <- auc(roc_obj)
+print(paste("AUC:", round(auc_value, 2)))
+
+# Load necessary package for calibration plot
+library(caret)
+
+# Create a calibration plot
+calibration_data <- data.frame(
+  observed = factor(promo_data_young$adverse_birth_outcome, levels = c(0,1)),
+  predicted = promo_data_young$predicted_prob
+)
+
+# Use the calibration function from the caret package
+cal_plot <- calibration(observed ~ predicted, data = calibration_data, class = "1")
+plot(cal_plot, main = "Calibration Plot for Model: Gravidity in Women < 25")
+
+```
+
+I see that the ROC curve for my model is close to the diagonal, with an AUC only slightly above 0.5. This tells me that the model doesn't have strong discriminative ability for predicting adverse outcomes in women under 25. Additionally, the calibration plot shows that my predicted probabilities often stray from the ideal diagonal—especially in the mid-range—indicating that my model’s risk estimates don't consistently match the observed rates. Overall, while gravidity is statistically significant, my model as a whole isn't very effective at distinguishing between those who experience adverse outcomes and those who don't, and its probability estimates need improvement.
+
+
+
+
+# Heatmap of cross-validated AUC\nfor Elastic-net hyperparameter grid
+```{r}
+library(ggplot2)
+
+enet_tune %>% 
+  collect_metrics() %>% 
+  filter(.metric=="roc_auc") %>% 
+  ggplot(aes(x = log10(penalty), y = mixture, fill = mean)) +
+    geom_tile() +
+    scale_fill_viridis_c(name = "AUC") +
+    labs(
+      x = expression(log[10](lambda)),
+      y = expression(alpha),
+      title = "Heatmap of cross-validated AUC\nfor Elastic-net hyperparameter grid"
+    ) +
+    theme_minimal(base_size = 12)
+
+```
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 {{< pagebreak >}}
