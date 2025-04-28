@@ -54,8 +54,6 @@ library(generalhoslem)
 library(ResourceSelection)
 library(rms)
 library(car)
-
-
 ```
 
 
@@ -76,6 +74,41 @@ colnames(promo_data_clean)
 ```{r}
 names(promo_data_clean)
 ```
+
+
+
+
+```{r}
+# Load the cleaned data
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+
+# 1. Check the class of the variable
+class(promo_data_clean$preterm_births_count)
+
+# 2. View its internal structure
+str(promo_data_clean$preterm_births_count)
+
+# 3. Get basic summary statistics
+summary(promo_data_clean$preterm_births_count)
+
+# 4. Tabulate all observed values (including NAs)
+table(promo_data_clean$preterm_births_count, useNA = "always")
+
+# 5. Quick glimpse using dplyr (avoids calling select on a vector)
+glimpse(promo_data_clean %>% select(preterm_births_count))
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 *Table 1*
 
@@ -164,11 +197,6 @@ baseline_table_treatment
 *Table 2: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen*
 
 ```{r}
-# Load necessary libraries
-library(dplyr)
-library(gtsummary)
-library(here)
-
 # Read in the cleaned data (if not already read)
 promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
 
