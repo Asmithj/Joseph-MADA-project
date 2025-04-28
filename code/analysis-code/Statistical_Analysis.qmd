@@ -13,23 +13,25 @@ output: html_document
 # Path management
 library(here)               # File path handling
 
-# Data manipulation and wrangling
-library(dplyr)              # Data manipulation
-library(tidyverse)          # Core tidyverse packages (ggplot2, readr, etc.)
+# Tidyverse core for data import, manipulation & visualization
+library(tidyverse)          # includes ggplot2, dplyr, tidyr, readr, purrr, etc.
+
+# Data cleaning & summaries
 library(janitor)            # Clean column names
 library(skimr)              # Quick data summaries
+
+# Date/time and categorical helpers
 library(lubridate)          # Date/time handling
 library(forcats)            # Categorical variable tools
-
-# Visualization
-library(ggplot2)            # Data visualization
-library(ggpubr)             # Publication-ready plots
 
 # Tables and reporting
 library(gtsummary)          # Summary tables
 library(gt)                 # Advanced table formatting
 library(knitr)              # Report generation
 library(kableExtra)         # Enhanced markdown tables
+
+# Visualization enhancements
+library(ggpubr)             # Publication-ready plots
 
 # Data exploration & preparation
 library(Amelia)             # Missing-data visualization
@@ -45,15 +47,18 @@ library(ggeffects)          # Marginal effects extraction
 library(broom)              # Tidy model outputs
 
 # Machine learning & modeling
-library(tidymodels)         # Modeling framework (recipes, parsnip, workflows, tune, yardstick, rsample)
+library(tidymodels)         # Modeling framework (recipes, workflows, tune, yardstick, rsample)
 library(themis)             # Class-imbalance sampling (e.g., SMOTE)
 library(dials)              # Parameter tuning grids
 library(ranger)             # Random forest engine
 library(xgboost)            # Gradient boosting engine
-library(generalhoslem)
-library(ResourceSelection)
-library(rms)
-library(car)
+
+# Goodness-of-fit & diagnostics
+library(generalhoslem)      # Hosmer–Lemeshow tests
+library(ResourceSelection)  # Additional GOF tests
+library(rms)                # Regression modeling strategies
+library(car)                # Companion to applied regression
+
 ```
 
 
@@ -61,45 +66,29 @@ library(car)
 ```{r}
 # Data Import & Initial Inspection 
 # load the Dataset
-PROMO_Data <- read_csv(here("data", "raw-data", "PROMO_Data.csv"))
+# ────────────────────────────────────────────────────────────────────────────────
+# Project setup: anchor here() at the project root
+# ────────────────────────────────────────────────────────────────────────────────
+library(here)
+here::i_am("data/raw-data/PROMO_Data.csv")
 
+# ────────────────────────────────────────────────────────────────────────────────
+# Load data using project‐relative paths
+# ────────────────────────────────────────────────────────────────────────────────
+library(readr)
 
-promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+PROMO_Data <- read_csv(
+  here("data", "raw-data", "PROMO_Data.csv")
+)
+
+promo_data_clean <- read_csv(
+  here("data", "clean", "PROMO_Data_clean.csv")
+)
 ```
 
 ```{r}
 colnames(promo_data_clean)
 ```
-
-```{r}
-names(promo_data_clean)
-```
-
-
-
-
-```{r}
-# Load the cleaned data
-promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
-
-# 1. Check the class of the variable
-class(promo_data_clean$preterm_births_count)
-
-# 2. View its internal structure
-str(promo_data_clean$preterm_births_count)
-
-# 3. Get basic summary statistics
-summary(promo_data_clean$preterm_births_count)
-
-# 4. Tabulate all observed values (including NAs)
-table(promo_data_clean$preterm_births_count, useNA = "always")
-
-# 5. Quick glimpse using dplyr (avoids calling select on a vector)
-glimpse(promo_data_clean %>% select(preterm_births_count))
-```
-
-
-
 
 
 
@@ -111,7 +100,6 @@ glimpse(promo_data_clean %>% select(preterm_births_count))
 
 
 *Table 1*
-
 ```{r}
 # Recode variables for baseline table presentation:
 promo_data_clean <- promo_data_clean %>%
@@ -457,7 +445,7 @@ kable(
 ```{r compare-models-lrt-vif, message=FALSE, warning=FALSE}
 # 1) Subset to the exact variables and drop any rows with missingness
 analysis_data <- promo_data_clean %>%
-  select(
+  dplyr::select(
     adverse_birth_outcome,
     total_malaria_episodes,
     study_arm,
@@ -465,7 +453,7 @@ analysis_data <- promo_data_clean %>%
     gravidity,
     education_level
   ) %>%
-  drop_na()
+  tidyr::drop_na()
 
 # 2) Fit the model WITHOUT the interaction
 model_no_interaction <- glm(
@@ -499,11 +487,10 @@ anova_out <- anova(
 
 # 5) Tidy LRT into a data frame
 anova_df <- as.data.frame(anova_out) %>%
-  mutate(
-    Model = c("Model 1 (No Interaction)", 
-              "Model 2 (With Interaction)")
+  dplyr::mutate(
+    Model = c("Model 1 (No Interaction)", "Model 2 (With Interaction)")
   ) %>%
-  select(
+  dplyr::select(
     Model,
     `Resid. Df`,
     `Resid. Dev`,
@@ -511,6 +498,7 @@ anova_df <- as.data.frame(anova_out) %>%
     Deviance,
     `Pr(>Chi)`
   )
+
 
 # 6) Print the LRT results
 print("Analysis of Deviance (LRT) Comparing Models With and Without Interaction:")
@@ -562,31 +550,30 @@ model2 <- glm(
 )
 
 # 2) Compute VIFs treating interaction terms as separate predictors
-vif_mat <- vif(model2, type = "predictor")
+vif_mat <- car::vif(model2, type = "predictor")
 
-# 3) Tidy into a data frame
+# 3) Tidy into a data frame, explicitly using tibble::rownames_to_column() and dplyr:: verbs
 vif_df <- as.data.frame(vif_mat) %>%
-  rownames_to_column("Variable") %>%
-  rename(
-    GVIF           = GVIF,
-    `Df (VIF)`     = Df,
-    `GVIF^(1/(2*Df))` = `GVIF^(1/(2*Df))`
+  tibble::rownames_to_column("Variable") %>%
+  dplyr::rename(
+    GVIF               = GVIF,
+    `Df (VIF)`         = Df,
+    `GVIF^(1/(2*Df))`  = `GVIF^(1/(2*Df))`
   ) %>%
-  mutate(
-    Variable = case_when(
-      Variable == "total_malaria_episodes"              ~ "Total malaria episodes",
-      Variable == "study_armSP"                         ~ "Treatment arm (SP vs DP)",
-      Variable == "age_at_enrollment_years"             ~ "Age at enrollment",
-      Variable == "gravidity"                           ~ "Gravidity",
-      grepl("^education_level", Variable)               ~ 
-        paste("Education:", sub("education_level", "", Variable)),
-      Variable == "total_malaria_episodes:study_armSP"  ~ "Interaction: episodes × SP",
-      TRUE                                              ~ Variable
+  dplyr::mutate(
+    Variable = dplyr::case_when(
+      Variable == "total_malaria_episodes"             ~ "Total malaria episodes",
+      Variable == "study_armSP"                        ~ "Treatment arm (SP vs DP)",
+      Variable == "age_at_enrollment_years"            ~ "Age at enrollment",
+      Variable == "gravidity"                          ~ "Gravidity",
+      grepl("^education_level", Variable)              ~ paste0("Education:", sub("education_level", "", Variable)),
+      Variable == "total_malaria_episodes:study_armSP" ~ "Interaction: episodes × SP",
+      TRUE                                             ~ Variable
     )
   ) %>%
-  select(Variable, GVIF, `Df (VIF)`, `GVIF^(1/(2*Df))`)
+  dplyr::select(Variable, GVIF, `Df (VIF)`, `GVIF^(1/(2*Df))`)
 
-# 4) Print the VIF table to the console
+# 4) View
 print(vif_df)
 
 ```
@@ -963,113 +950,121 @@ print(paste("Logistic Regression AUC:", round(auc_logit, 2)))
 ```
 
 
+## Random Forest: Specification, Tuning & ROC Comparison
+This section performs a 70/30 stratified train/test split, tunes a 500-tree random forest via 10-fold cross-validation to maximize ROC-AUC, fits the final model on the training set, and plots its ROC curve (alongside the logistic regression) as an alternative ML approach for Research Question 1.
+```{r model-comparison, echo=TRUE}
+# 0) Load required packages
+library(dplyr)
+library(rsample)     # for initial_split()
+library(tidymodels)  # recipes, workflows, tuning
+library(dials)       # for parameter grids
+library(pROC)        # for ROC curves
 
-## Random Forest Model Specification and Hyperparameter Tuning
-*Train/Test Split and Random Forest Model* which fits a random forest model and plots its ROC curve, is also used for Research Question 1 as an alternative ML approach
-```{r}
-# 0) Make sure the outcome is a factor
+# 1) Train/test split (70/30 stratified on outcome)
+set.seed(1234)
+split_data <- initial_split(promo_data_clean, prop = 0.7, strata = adverse_birth_outcome)
+train_data <- training(split_data)
+test_data  <- testing(split_data)
+
+# 2) Convert outcome to a two‐level factor (no/yes)
 train_data <- train_data %>%
-  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0, 1)))
+  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1), labels = c("no","yes")))
+test_data <- test_data %>%
+  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1), labels = c("no","yes")))
 
-# 1) Define the random‐forest spec
-rf_model <- rand_forest(
-  trees = 500,
-  mtry  = tune(),
-  min_n = tune()
-) %>%
-  set_engine("ranger") %>%
-  set_mode("classification")
-
-library(dials)   # for finalize()
-
-# 2) Build the recipe 
-rf_recipe <- recipe(adverse_birth_outcome ~ 
-                      total_malaria_episodes + study_arm + 
-                      age_at_enrollment_years + gravidity + education_level,
-                    data = train_data) %>%
-  step_dummy(all_nominal_predictors())
-
-# 3) Assemble workflow
-rf_workflow <- workflow() %>%
-  add_model(rf_model) %>%
-  add_recipe(rf_recipe)
-
-# 4) Extract and finalize parameters
-rf_params <- parameters(rf_model) %>%
-  finalize(train_data)    # now mtry knows how many predictors
-
-# 5) Create a random tuning grid of size 20
-rf_grid <- grid_random(rf_params, size = 20)
-
-# 6) 10-fold stratified CV
-rf_folds <- vfold_cv(train_data, v = 10, strata = adverse_birth_outcome)
-
-# 7) Tune
-set.seed(123)
-rf_tune <- tune_grid(
-  rf_workflow,
-  resamples = rf_folds,
-  grid      = rf_grid,
-  metrics   = metric_set(roc_auc)
+# --------------------------------------------------
+# 3) Fit logistic regression and build its ROC curve
+# --------------------------------------------------
+logit_fit <- glm(
+  adverse_birth_outcome ~ 
+    total_malaria_episodes * study_arm + 
+    age_at_enrollment_years + 
+    gravidity + 
+    education_level,
+  family = binomial(link = "logit"),
+  data   = train_data
 )
 
-# 8) View results
-rf_tune %>% 
-  collect_metrics() %>% 
-  filter(.metric == "roc_auc")
+# Predict and construct ROC for logistic model
+logit_probs <- predict(logit_fit, newdata = test_data, type = "response")
+roc_logit  <- roc(test_data$adverse_birth_outcome, logit_probs, levels = c("no","yes"), direction = "<")
 
-```
-
-
-
-# Random Forest model training and OOB Brier score output
-```{r}
-# 1)  outcome is a factor
-train_data <- train_data %>%
-  mutate(
-    adverse_birth_outcome = factor(
-      adverse_birth_outcome,
-      levels = c(0, 1),
-      labels = c("no", "yes")
-    )
-  )
-
-# 2) Define a Random Forest model (with fixed hyperparameters for illustration)
-rf_model <- rand_forest(
+# --------------------------------------------------
+# 4) Hyperparameter tuning for Random Forest
+# --------------------------------------------------
+rf_spec <- rand_forest(
     trees = 500,
-    mtry  = 3,    # you can choose a sensible default or tune later
-    min_n = 5     # likewise
+    mtry  = tune(),
+    min_n = tune()
   ) %>%
   set_engine("ranger") %>%
   set_mode("classification")
 
-# 3) Build the recipe
 rf_recipe <- recipe(
-    adverse_birth_outcome ~
-      total_malaria_episodes +
-      study_arm +
-      age_at_enrollment_years +
-      gravidity +
+    adverse_birth_outcome ~ 
+      total_malaria_episodes + 
+      study_arm + 
+      age_at_enrollment_years + 
+      gravidity + 
       education_level,
     data = train_data
   ) %>%
   step_dummy(all_nominal_predictors())
 
-# 4) Assemble into a workflow
-rf_workflow <- workflow() %>%
-  add_model(rf_model) %>%
+rf_wf <- workflow() %>%
+  add_model(rf_spec) %>%
   add_recipe(rf_recipe)
 
-# 5) Fit the random forest
-rf_fit <- rf_workflow %>% 
-  fit(data = train_data)
+rf_params <- parameters(rf_spec) %>%
+  finalize(train_data)
 
-# 6) Inspect the fitted workflow
-rf_fit
+set.seed(123)
+rf_tune <- tune_grid(
+  rf_wf,
+  resamples = vfold_cv(train_data, v = 10, strata = adverse_birth_outcome),
+  grid      = grid_random(rf_params, size = 20),
+  metrics   = metric_set(roc_auc)
+)
 
+# Select best hyperparameters and finalize
+best_rf <- select_best(rf_tune, metric = "roc_auc")
+rf_final_spec <- finalize_model(rf_spec, best_rf)
+
+# --------------------------------------------------
+# 5) Fit final Random Forest and build its ROC curve
+# --------------------------------------------------
+rf_final_wf <- workflow() %>%
+  add_model(rf_final_spec) %>%
+  add_recipe(rf_recipe)
+
+rf_fit <- fit(rf_final_wf, data = train_data)
+
+rf_probs <- predict(rf_fit, new_data = test_data, type = "prob") %>%
+  pull(.pred_yes)
+
+roc_rf <- roc(test_data$adverse_birth_outcome, rf_probs, levels = c("no","yes"), direction = "<")
+
+# --------------------------------------------------
+# 6) Plot both ROC curves together
+# --------------------------------------------------
+plot(
+  roc_logit,
+  col  = "blue",
+  lwd  = 2,
+  main = "ROC Comparison: Logistic Regression vs. Random Forest"
+)
+lines(roc_rf, col = "red", lwd = 2)
+legend(
+  "bottomright",
+  legend = c("Logistic Regression", "Random Forest"),
+  col    = c("blue", "red"),
+  lwd    = 2
+)
 ```
-- Random forest fit ran without errors, but the OOB Brier score shows it’s essentially no better than random. 
-- That echoes what you saw with your logistic and other ML models (AUCs ~0.4–0.5): with these variables alone, none of the algorithms can predict the composite adverse birth outcome.
+
+
+
+
 
 
 
@@ -1088,72 +1083,104 @@ legend("bottomright", legend = c("Logistic Regression", "Random Forest"),
 
 ```
 
-I started by performing a 70/30 train/test split, stratified on the adverse birth outcome. For Research Question 1, I fit a logistic regression model with an interaction term on the training set, generated predictions on the test set, and plotted the ROC curve (with an AUC computed to assess discriminative performance). Then, I fit a random forest classifier (converting factor predictors to dummies in the recipe) and similarly evaluated its performance on the test set using ROC analysis. Finally, I overlaid both ROC curves to compare the models directly. This approach provides an "honest" assessment of model performance on unseen data and allows me to explore additional machine learning methods for addressing my research question.
+I performed a 70/30 train/test split stratified on adverse birth outcome. On the training set I fit a logistic regression (including our pre-specified interaction term), then generated test-set predictions and computed its ROC curve (AUC = 0.57). In parallel, I tuned a 500-tree random forest via 10-fold CV (stratified on outcome), fit the final model, and similarly evaluated its ROC (AUC = 0.54). Finally, I overlaid both ROC curves against the 45° no-skill line. Both models lie only slightly above that baseline, indicating poor discrimination with our current predictors—though the logistic regression edges out the random forest by a slim margin.
 
 From these plots, I see that both the logistic regression (blue) and random forest (red) models produce ROC curves only slightly above the diagonal, indicating that neither model has strong discriminative ability for predicting adverse outcomes in this dataset. In the combined plot, the logistic regression curve sits just above the random forest curve, suggesting it might be marginally better, but the difference is small—both are near an AUC of around 0.55–0.60. Overall, these results tell me that, with my current predictors and data, neither model reliably distinguishes between those who experience adverse birth outcomes and those who do not.
 
 
 
 # Define a boosting model for classification (using boost_tree)
-```{r}
-# Define a boosting model for classification (using boost_tree)
-boost_model <- boost_tree(
-  mode = "classification",
-  trees = 500,
-  learn_rate = tune(),
-  tree_depth = tune()
-) %>%
+
+
+```{r boost-model, echo=TRUE}
+library(dplyr)
+library(rsample)
+library(tidymodels)  # recipes, workflows, tune_grid
+library(pROC)
+
+# 0) Subset & drop any rows with missing outcome/predictors
+ml_data <- promo_data_clean %>%
+  dplyr::select(
+    adverse_birth_outcome,
+    total_malaria_episodes,
+    study_arm,
+    age_at_enrollment_years,
+    gravidity,
+    education_level
+  ) %>%
+  tidyr::drop_na()
+
+
+# 1) 70/30 split, stratified on the now‐clean outcome
+set.seed(1234)
+split_obj  <- initial_split(ml_data, prop = 0.7, strata = adverse_birth_outcome)
+train_data  <- training(split_obj)
+test_data   <- testing(split_obj)
+
+# 2) Make sure the outcome is a 2‐level factor
+train_data <- train_data %>%
+  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1), labels = c("no","yes")))
+test_data  <- test_data  %>%
+  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1), labels = c("no","yes")))
+
+# 3) Boosting spec + recipe + workflow
+boost_spec <- boost_tree(
+    mode       = "classification",
+    trees      = 500,
+    learn_rate = tune(),
+    tree_depth = tune()
+  ) %>%
   set_engine("xgboost")
 
-# Build a recipe (convert factor predictors to dummy variables)
-boost_recipe <- recipe(adverse_birth_outcome ~ total_malaria_episodes + study_arm +
-                         age_at_enrollment_years + gravidity + education_level,
-                       data = train_data) %>%
+boost_rec <- recipe(
+    adverse_birth_outcome ~
+      total_malaria_episodes +
+      study_arm +
+      age_at_enrollment_years +
+      gravidity +
+      education_level,
+    data = train_data
+  ) %>%
   step_dummy(all_nominal_predictors())
 
-# Create a workflow
-boost_workflow <- workflow() %>%
-  add_model(boost_model) %>%
-  add_recipe(boost_recipe)
+boost_wf <- workflow() %>%
+  add_model(boost_spec) %>%
+  add_recipe(boost_rec)
 
-# Create a tuning grid for learning rate and tree depth
+# 4) Tuning grid + CV + tune_grid (with roc_auc)
 boost_grid <- grid_regular(
   learn_rate(range = c(0.01, 0.3)),
   tree_depth(range = c(3, 8)),
   levels = 5
 )
 
-# Create 10-fold cross-validation folds from the training data
-cv_folds <- vfold_cv(train_data, v = 10)
+cv_folds <- vfold_cv(train_data, v = 10, strata = adverse_birth_outcome)
 
-# Perform 10-fold cross-validation tuning using the boosting model workflow
+set.seed(2345)
 boost_tune <- tune_grid(
-  boost_workflow,
+  boost_wf,
   resamples = cv_folds,
-  grid = boost_grid
+  grid      = boost_grid,
+  metrics   = metric_set(roc_auc)
 )
 
-
-# Select best parameters based on ROC AUC
+# 5) Finalize, fit & evaluate
 best_boost <- select_best(boost_tune, metric = "roc_auc")
+final_boost_spec <- finalize_model(boost_spec, best_boost)
 
-# Finalize the workflow with best parameters
-final_boost <- finalize_workflow(boost_workflow, best_boost)
+boost_final_wf <- workflow() %>%
+  add_model(final_boost_spec) %>%
+  add_recipe(boost_rec)
 
-# Fit the final boosting model on the training data
-boost_fit <- final_boost %>% fit(data = train_data)
+boost_fit <- fit(boost_final_wf, data = train_data)
 
-# Generate predicted probabilities on the test set
-boost_preds <- predict(boost_fit, new_data = test_data, type = "prob")
-
-# Compute ROC for the boosting model using the probability for class "1"
-roc_boost <- roc(test_data$adverse_birth_outcome, boost_preds$.pred_1)
-plot(roc_boost, col = "green", lwd = 2, main = "ROC Curve: Boosting Model")
+# ROC on the test set
+boost_probs <- predict(boost_fit, new_data = test_data, type = "prob") %>% pull(.pred_yes)
+roc_boost  <- roc(test_data$adverse_birth_outcome, boost_probs, levels = c("no","yes"))
+plot(roc_boost, col = "darkgreen", lwd = 2, main = "ROC Curve: XGBoost")
 auc_boost <- auc(roc_boost)
 print(paste("Boosting Model AUC:", round(auc_boost, 2)))
-
 ```
-
 The ROC curve for the boosting model rises more clearly above the diagonal line than the previous models, suggesting it does a better job distinguishing between those who experience adverse birth outcomes and those who do not. Although it’s still not perfect, the curve indicates an improvement in predictive performance compared to the logistic regression and random forest models, meaning the boosting model likely has a higher AUC and provides a more accurate risk estimate for adverse outcomes in this dataset.
 
 
@@ -1580,42 +1607,63 @@ legend("bottomright",
 
 
 ```{r}
-# Fit logistic regression with rms
-dd <- datadist(train_data); options(datadist = "dd")
-rms_model <- lrm(adverse_birth_outcome ~ gravidity + total_malaria_episodes + study_arm + education_level,
-                 data = train_data, x = TRUE, y = TRUE)
-# Calibration plot
-cal <- calibrate(rms_model, method="boot", B = 200)
-plot(cal, xlab="Predicted probability", ylab="Observed proportion")
+# only these variables are needed for the logistic model
+dd <- datadist(
+  train_data[, c(
+    "gravidity",
+    "total_malaria_episodes",
+    "study_arm",
+    "education_level",
+    "adverse_birth_outcome"
+  )]
+)
+options(datadist = "dd")
+
+# now fit with rms
+rms_model <- lrm(
+  adverse_birth_outcome ~ 
+    gravidity + total_malaria_episodes + study_arm + education_level,
+  data = train_data,
+  x = TRUE, y = TRUE
+)
+
+# bootstrap‐calibrated calibration curve
+cal <- calibrate(rms_model, method = "boot", B = 200)
+plot(
+  cal,
+  xlab = "Predicted probability",
+  ylab = "Observed proportion"
+)
 
 ```
 
 
 ```{r}
-library(dplyr); library(ggplot2)
+library(dplyr)
+library(ggplot2)
 
 # 1) Get predictions on the train set
 train_data <- train_data %>%
   mutate(
-    pred = predict(model_gravidity, type = "response"),
+    pred   = predict(model_gravidity, newdata = ., type = "response"),
     decile = ntile(pred, 10)
   )
 
-# 2) Summarize observed vs. predicted in each decile
+# 2) Summarize observed vs. predicted in each decile (explicitly using dplyr)
 calib_df <- train_data %>%
-  group_by(decile) %>%
-  summarize(
-    mean_pred = mean(pred),
-    obs_rate  = mean(as.numeric(adverse_birth_outcome) - 1)
+  dplyr::group_by(decile) %>%
+  dplyr::summarize(
+    mean_pred = mean(pred, na.rm = TRUE),
+    obs_rate  = mean(as.numeric(adverse_birth_outcome) - 1, na.rm = TRUE)
   )
 
-# 3) Plot
+# 3) Plot calibration curve
 ggplot(calib_df, aes(x = mean_pred, y = obs_rate)) +
   geom_point(size = 3) +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
   labs(
-    x = "Mean predicted probability",
-    y = "Observed event rate",
+    x     = "Mean predicted probability",
+    y     = "Observed event rate",
     title = "Calibration plot (deciles)"
   ) +
   theme_minimal()
@@ -1712,18 +1760,18 @@ enet_tune %>%
 
 ```{r}
 library(dplyr)
-library(knitr)
 
-enet_tune %>%
+# Get top 5 elastic‐net hyperparameter combinations and print as a regular tibble
+top5_enet <- enet_tune %>%
   collect_metrics() %>%
   filter(.metric == "roc_auc") %>%
   arrange(desc(mean)) %>%
-  slice_head(n = 5) %>%                # ← pull the top 5 rows
-  mutate(`AUC (mean ± SE)` = sprintf("%.3f \u00B1 %.3f", mean, std_err)) %>%
-  select(penalty, mixture, `AUC (mean ± SE)`) %>%
-  kable(
-    caption = "Table X. Top 5 elastic‐net hyperparameter combinations, ranked by mean cross‐validated AUC"
-  )
+  slice_head(n = 5) %>%
+  mutate(`AUC (mean ± SE)` = sprintf("%.3f ± %.3f", mean, std_err)) %>%
+  dplyr::select(penalty, mixture, `AUC (mean ± SE)`)
+
+# Print the table
+print(top5_enet)
 
 ```
 
@@ -1731,16 +1779,18 @@ enet_tune %>%
 
 
 ```{r}
-enet_tune %>%
+library(dplyr)
+
+# Extract and print the top 5 elastic-net tuning results as a regular tibble
+top5_enet <- enet_tune %>%
   collect_metrics() %>%
   filter(.metric == "roc_auc") %>%
   arrange(desc(mean)) %>%
-  head(5) %>%                          # ← base‐R head()
-  mutate(`AUC (mean ± SE)` = sprintf("%.3f \u00B1 %.3f", mean, std_err)) %>%
-  select(penalty, mixture, `AUC (mean ± SE)`) %>%
-  kable(
-    caption = "Table X. Top 5 elastic‐net hyperparameter combinations, ranked by mean cross‐validated AUC"
-  )
+  slice_head(n = 5) %>%
+  mutate(`AUC (mean ± SE)` = sprintf("%.3f ± %.3f", mean, std_err)) %>%
+  dplyr::select(penalty, mixture, `AUC (mean ± SE)`)
+
+print(top5_enet)
 
 ```
 
@@ -1775,65 +1825,89 @@ enet_tune %>%
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ################################################################################################################################################################## 
 
 
-
-```{r}
-# 2) Specify elastic‑net logistic regression
-enet_spec <- logistic_reg(
-    penalty = tune(),   # strength of regularization
-    mixture = tune()    # 0=ridge ↔ 1=lasso
-  ) %>%
-  set_engine("glmnet")
-
-```
+## Elastic Net Logistic Regression: Specification, Tuning & Evaluation
 
 
+```{r feature-engineering}
 
-```{r}
-# 3) Build the workflow
-enet_wf <- workflow() %>%
-  add_recipe(improved_recipe) %>%
-  add_model(enet_spec)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(rsample)
+library(tidymodels)
 
-```
+# 0) Engineer features and impute their NAs
+full_data <- promo_data_clean %>%
+  mutate(
+    enroll_month = month(enrollment_date),
+    episodes_per_trimester = total_malaria_episodes /
+      (gestational_age_at_enrollment_weeks / (40/3))
+  )
 
+# compute medians for imputation
+median_enroll <- median(full_data$enroll_month, na.rm = TRUE)
+median_eps    <- median(full_data$episodes_per_trimester, na.rm = TRUE)
 
+full_data <- full_data %>%
+  mutate(
+    enroll_month           = if_else(is.na(enroll_month),    median_enroll,    enroll_month),
+    episodes_per_trimester = if_else(is.na(episodes_per_trimester),
+                                     median_eps,
+                                     episodes_per_trimester)
+  )
 
+# 1) Safe stratification check
+stratum_counts <- full_data %>% count(adverse_birth_outcome)
+can_stratify   <- nrow(stratum_counts) >= 2 && all(stratum_counts$n >= 2)
 
+# 2) 70/30 split (stratified if safe)
+set.seed(1234)
+split_obj <- if (can_stratify) {
+  initial_split(full_data, prop = 0.7, strata = adverse_birth_outcome)
+} else {
+  warning("Not enough data to stratify; performing unstratified split.")
+  initial_split(full_data, prop = 0.7)
+}
 
-```{r}
-# 4) Create a tuning grid & 5) tune via 10‑fold CV
-enet_grid <- grid_regular(
-  penalty(range = c(-5, -1), trans = log10_trans()),  # 1e-5 → 1e-1
-  mixture(range = c(0, 1)),
-  levels = 5
-)
+raw_train <- training(split_obj)
+raw_test  <- testing(split_obj)
 
+# 3) Drop rows with NAs in the *core* six predictors or outcome
+train_data <- raw_train %>%
+  tidyr::drop_na(
+    adverse_birth_outcome,
+    total_malaria_episodes,
+    study_arm,
+    age_at_enrollment_years,
+    gravidity,
+    education_level
+  )
+
+test_data <- raw_test %>%
+  tidyr::drop_na(
+    adverse_birth_outcome,
+    total_malaria_episodes,
+    study_arm,
+    age_at_enrollment_years,
+    gravidity,
+    education_level
+  )
+
+# 4) Build dynamic v-fold CV (up to 10, but ≤ nrow(train_data))
+n_train <- nrow(train_data)
+if (n_train < 2) stop("Not enough rows for cross‐validation (need ≥ 2).")
+v <- min(10, n_train)
+
+cv_folds <- if (can_stratify) {
+  vfold_cv(train_data, v = v, strata = adverse_birth_outcome)
+} else {
+  vfold_cv(train_data, v = v)
+}
+
+# 5) Finally, tune your workflow—no more stray NAs in enroll_month
 enet_tune <- tune_grid(
   enet_wf,
   resamples = cv_folds,
@@ -1841,150 +1915,51 @@ enet_tune <- tune_grid(
   metrics   = metric_set(roc_auc)
 )
 
-```
-
-
-
-
-
-```{r}
-# 6) Select best, finalize, fit on train, & evaluate on test
-best_enet  <- select_best(enet_tune, metric = "roc_auc")
-enet_final <- finalize_workflow(enet_wf, best_enet)
-enet_fit   <- fit(enet_final, data = train_data)
-
-enet_preds <- predict(enet_fit, test_data, type = "prob") %>% bind_cols(test_data)
-enet_auc   <- roc_auc(enet_preds, truth = adverse_birth_outcome, .pred_1)
-print(enet_auc)
-
-```
-The elastic‑net model achieved an AUC of 0.49 on the held‑out test set—below the 0.50 threshold for random guessing. This indicates that, even with polynomial, interaction, and SMOTE steps, the model cannot reliably distinguish between pregnancies with and without adverse outcomes. Such near‑random performance suggests either insufficient predictive signal in the available features or the need for additional, more informative variables and further model refinement.
-
-
-
-
-################################################################################################################################################################## 
-
-
-
-```{r}
-# Create temporal & composite features in the training set
-train_data <- train_data %>%
-  mutate(
-    enroll_month = lubridate::month(enrollment_date),
-    episodes_per_trimester = total_malaria_episodes / (gestational_age_at_enrollment_weeks / (40/3))
-  )
-
-test_data <- test_data %>%
-  mutate(
-    enroll_month = lubridate::month(enrollment_date),
-    episodes_per_trimester = total_malaria_episodes / (gestational_age_at_enrollment_weeks / (40/3))
-  )
-
-```
-
-
-```{r}
-imbalanced_recipe <- recipe(adverse_birth_outcome ~ ., data = train_data) %>%
-  step_dummy(all_nominal_predictors(), one_hot = TRUE) %>%
-  step_mutate(
-    total_malaria_episodes = as.numeric(total_malaria_episodes),
-    gravidity = as.numeric(gravidity)
-  ) %>%
-  step_adasyn(adverse_birth_outcome) %>%
-  step_normalize(all_predictors())
-
-```
-
-
-```{r}
-enet_wf <- workflow() %>%
-  add_model(enet_spec) %>%
-  add_recipe(imbalanced_recipe)
-
-enet_bayes <- tune_bayes(
-  enet_wf,
-  resamples = cv_folds,
-  initial = enet_tune,
-  iter = 20,
-  metrics = metric_set(roc_auc)
-)
-
-best_enet_bayes <- select_best(enet_bayes, metric = "roc_auc")
 
 ```
 
 
 
-
-
-
-
-
-
 ```{r}
-library(stacks)
+library(tidymodels)
 
-# Assume you've tuned logistic, rf, xgb already: logistic_tune, rf_tune, xgb_tune
-stack <- stacks() %>%
-  add_candidates(logistic_tune) %>%
-  add_candidates(rf_tune)       %>%
-  add_candidates(xgb_tune)      %>%
-  blend_predictions()           %>%
-  fit_members()
-
-# Evaluate on test set
-stack_preds <- predict(stack, test_data, type = "prob") %>% bind_cols(test_data)
-stack_auc   <- roc_auc(stack_preds, truth = adverse_birth_outcome, .pred_1)
-print(stack_auc)
-
-```
-
-
-
-
-
-
-```{r}
-svm_spec <- svm_rbf(
-    cost      = tune(),
-    rbf_sigma = tune()
-  ) %>%
-  set_engine("kernlab") %>%
-  set_mode("classification")
-
-svm_wf <- workflow() %>%
-  add_model(svm_spec) %>%
-  add_recipe(improved_recipe)  # or your imbalanced_recipe
-
-svm_grid <- grid_regular(
-  cost(range = c(-5, 2), trans = log2_trans()),
-  rbf_sigma(range = c(-3, 0), trans = log2_trans()),
-  levels = 5
-)
-
-svm_tune <- tune_grid(
-  svm_wf,
-  resamples = cv_folds,
-  grid      = svm_grid,
+# (A) Tune hyperparameters via grid search
+enet_tune <- tune_grid(
+  enet_wf,               # your workflow
+  resamples = cv_folds,  # the vfold_cv object you just built
+  grid      = enet_grid, # the grid of penalty/mixture values
   metrics   = metric_set(roc_auc)
 )
 
-best_svm <- select_best(svm_tune, metric = "roc_auc")
+# (B) Look at the tuning results
+collect_metrics(enet_tune) %>% 
+  filter(.metric == "roc_auc") %>%
+  arrange(desc(mean))
+
+# (C) Pick the best parameters
+best_params <- select_best(enet_tune, "roc_auc")
+
+# (D) Finalize & refit on all of train_data
+final_enet_wf <- finalize_workflow(enet_wf, best_params)
+enet_fit      <- fit(final_enet_wf, data = train_data)
+
+# (E) Evaluate on the test set
+enet_preds <- predict(enet_fit, new_data = test_data, type = "prob") %>%
+  bind_cols(test_data)
+
+enet_auc <- roc_auc(enet_preds, truth = adverse_birth_outcome, .pred_yes)
+print(enet_auc)
 
 ```
 
 
 
-```{r}
-# For your best model (e.g. enet_fit or stack)
-pr    <- pr_curve(stack_preds, truth = adverse_birth_outcome, .pred_1)
-pr_auc <- pr_auc(stack_preds, truth = adverse_birth_outcome, .pred_1)
 
-autoplot(pr) +
-  labs(title = "Precision–Recall Curve", subtitle = paste("PR AUC =", round(pr_auc$.estimate,2)))
 
-```
+
+
+
+
 
 
 ################################################################################################################################################################## 

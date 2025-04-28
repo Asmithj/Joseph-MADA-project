@@ -32,30 +32,30 @@ knitr::opts_chunk$set(
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-# Load Required Libraries for Data Handling, Visualization, and Analysis
-
 # Load Required Libraries
 
 # Path management
 library(here)               # File path handling
 
-# Data manipulation and wrangling
-library(dplyr)              # Data manipulation
-library(tidyverse)          # Core tidyverse packages (ggplot2, readr, etc.)
+# Tidyverse core for data import, manipulation & visualization
+library(tidyverse)          # includes ggplot2, dplyr, tidyr, readr, purrr, etc.
+
+# Data cleaning & summaries
 library(janitor)            # Clean column names
 library(skimr)              # Quick data summaries
+
+# Date/time and categorical helpers
 library(lubridate)          # Date/time handling
 library(forcats)            # Categorical variable tools
-
-# Visualization
-library(ggplot2)            # Data visualization
-library(ggpubr)             # Publication-ready plots
 
 # Tables and reporting
 library(gtsummary)          # Summary tables
 library(gt)                 # Advanced table formatting
 library(knitr)              # Report generation
 library(kableExtra)         # Enhanced markdown tables
+
+# Visualization enhancements
+library(ggpubr)             # Publication-ready plots
 
 # Data exploration & preparation
 library(Amelia)             # Missing-data visualization
@@ -71,14 +71,18 @@ library(ggeffects)          # Marginal effects extraction
 library(broom)              # Tidy model outputs
 
 # Machine learning & modeling
-library(tidymodels)         # Modeling framework (recipes, parsnip, workflows, tune, yardstick, rsample)
+library(tidymodels)         # Modeling framework (recipes, workflows, tune, yardstick, rsample)
 library(themis)             # Class-imbalance sampling (e.g., SMOTE)
 library(dials)              # Parameter tuning grids
 library(ranger)             # Random forest engine
 library(xgboost)            # Gradient boosting engine
-library(generalhoslem)
-library(ResourceSelection)
-library(rms)
+
+# Goodness-of-fit & diagnostics
+library(generalhoslem)      # Hosmer–Lemeshow tests
+library(ResourceSelection)  # Additional GOF tests
+library(rms)                # Regression modeling strategies
+library(car)                # Companion to applied regression
+
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
