@@ -1,0 +1,154 @@
+---
+title: "Impact of IPTp Regimen on Pregnancy Outcomes in a Malaria-Endemic Setting" 
+author: Shaun van den Hurk
+date: 25 April 2025
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+---
+
+# Overview
+
+Title of project: Impact of IPTp Regimen on Pregnancy Outcomes in a Malaria-Endemic Setting
+
+Name of project author(s): Asmith Joseph
+
+Name of project reviewer: Shaun van den Hurk
+
+
+# Specific project content evaluation
+
+## Background, Context and Motivation
+How well is the context of the project described? Is a comprehensive background, including summary of previous/related work given? Is the project well placed into the context of existing work (including proper referencing of existing work). Is it clear why the project was undertaken and what new information it hopes to provide?
+
+### Feedback and Comments
+The background is very strong. The project offers a comprehensive overview of malaria in pregnancy, current preventive strategies (IPTp with SP and DP), and knowledge gaps around regimen-specific effects. Previous work is properly referenced, and the study is well-placed within the broader context of malaria research and maternal health. The motivation is clear and compelling. The value of this work and the authors familiarity wit the topic is also clear.
+
+### Summary assessment (PICK ONE, DELETE THE OTHERS)
+* strong contextualization and motivation
+
+## Question description
+How well and clear are the question(s)/hypotheses the project aims to address described? Is it clear how the questions relate to the data?
+
+
+### Feedback and Comments
+The research questions are clearly defined: (1) Does IPTp regimen modify the association between malaria episodes and adverse outcomes? (2) Does gravidity protect against adverse outcomes among younger women? Both are explicitly linked to the data and study goals and throroughly investigated.
+
+### Summary assessment
+* question/hypotheses fully clear
+
+## Data description
+How well is the data overall described? Is the source provided? Is a codebook or other meta-information available that makes it clear what the data is? 
+
+### Feedback and Comments
+The dataset source (ClinEpiDB) is clearly cited, and the structure of the data (variables, missingness) is explained well.
+
+### Summary assessment
+* source and overall structure of data well explained
+
+## Data wrangling and exploratory analysis
+How well is the data cleaned/processed and explored? Are all steps reasonable and well explained? Are alternatives discussed and considered? Are meaningful exploratory results shown (e.g. in the supplementary materials)?
+
+### Feedback and Comments
+The data cleaning and preprocessing steps are reasonable and clearly described (e.g. missing data handling, recoding of variables, exploratory summaries). Exploratory figures and tables are provided and meaningful. One small weakness: the processing files can be removed since cleaning and eda both took place in the eda files and this could be made clearer. Otherwise, very good.
+
+### Summary assessment
+* essentially no weaknesses in wrangling and exploratory component
+
+## Appropriateness of Analysis
+Were the analysis methods appropriate for the data? Was the analysis done properly? Were different components of the analysis (e.g. performance measure, variable selection, data pre-processing, model evaluation) done in the best way possible and explained well?
+
+### Feedback and Comments
+The analysis approach is appropriate: multivariable logistic regression with interaction terms, subgroup analysis, and appropriate model adjustments. The use of predicted probabilities to interpret interaction effects is a good approach. There appears to be good fundamental statistical basis for the approaches and in the analysis. 
+
+### Summary assessment
+* strong and reasonable analysis
+
+## Presentation
+How well are results presented? Are tables and figures easy to read and understand? Are the main figures/tables publication level quality? 
+
+### Feedback and Comments
+I did not get to view the final rendered Word document of the manuscript (the current version appears a bit outdated). However, the version available looks good and mthe figures look good. There are quite a few figures and tables though and maybe this can be reviewed to make sure that they are all adding value and necessary or if any can be moved to the supplementary document.
+Tables and figures are clean, clear, and mostly publication-quality.
+
+### Summary assessment
+* results are very well presented
+
+## Discussion/Conclusions
+Are the study findings properly discussed? Are strengths and limitations acknowledged? Are findings interpreted properly?
+
+### Feedback and Comments
+The discussion is thorough, acknowledges limitations appropriately, and interprets findings in light of existing literature. Limitations are realistic (e.g. trial setting, missing data, model performance). The conclusions are logical and grounded in the results. There is also a clear link to the public health benefits of this data which is positive and strong.
+
+### Summary assessment
+* strong, complete and clear discussion
+
+## Further comments
+- Strong writing quality overall.
+- Excellent use of predicted probabilities for interaction interpretation.
+- You could consider adding brief notes on clinical relevance of findings (e.g. potential policy implications for IPTp protocols)?
+
+# Overall project content evaluation
+Evaluate overall features of the project by filling in the sections below.
+
+## Structure
+Is the project well structured? Are files in well labeled folders? Do files have reasonable names? Are all "junk" files not needed for analysis/reproduction removed? By just looking at files and folders, can you get an idea of how things fit together?
+
+### Feedback and Comments
+The structure of the project and the flow is very good and clear.
+- You can remove the processing folder and files since you seem to have done your processing in your eda file.
+- I recommend updating the ReadME files.
+
+### Summary assessment
+* well structured
+
+## Documentation 
+How well is the project documented? Are you able to understand each step of the whole analysis, each decision that was made, and each line of code? Is enough information provided as comments in code or as part of Rmd files? 
+
+### Feedback and Comments
+Documentation is good overall — analysis steps are explained in the R scripts, and major coding decisions are annotated.
+I appreciatye the inclusion of summaries of the results/interpretations within the statistical analysis file.
+
+### Summary assessment
+* fully and well documented
+
+## Reproducibility
+Are all results fully reproducible? Is documentation provided which clearly explains how to reproduce things, and does it work without the need for any manual intervention? Are you able to re-run the whole analysis without having to do manual interventions/edits?
+
+### Feedback and Comments
+
+There are a few issues with reproducibility. However, the actual issues are small and should be quick to fix.
+
+_ You have a lot of different packages in your code that are loaded in different places. I would recommend putting all of the loading of packages together at the start, because I did not have many of them installed and so I kept having to go back and install and rerun scripts which was jarring. If this is all done in the beginning then it would help the flow.
+- There are issues in the statistical analysis document that do not allow it to be reproduced. I have tried to run chunks separately but it seems that some variables are missing from multiple chunks. Here are some of the issues: Error: object 'anova_out' not found, Error: object 'rf_model' not found, Error: object 'logistic_tune' not found, Error: object 'stack_preds' not found
+Maybe just go back and see if some variables are not being created somewhere.
+- In your manuscript you set your working directory to your own computer which limits the reproducibility. It would be better to stick to using the "here" function and removing that setwd.
+- The manuscript document does not render a Word document - there are issues from line 417 (the code does run though) with a missing object. I would recommend removing the raw code that produces these tables and figures and rather create them in the statistical analysis and import completed figures. That way you have fewer lines of code that can go wrong and you have a cleaner looking manuscript.
+
+### Summary assessment
+* major parts not reproducible 
+
+
+## Thoroughness
+How thorough was the overall study? Were alternatives (e.g. different ways of processing the data or different models) considered? Were alternatives discussed? Were the questions/hypotheses fully and thoroughly addressed?
+
+### Feedback and Comments
+The main research questions were thoroughly addressed. Interaction effects were carefully explored. Minor improvements could include testing alternative modeling approaches, but overall, the study is thorough and well thought out. This is a complete project.
+
+### Summary assessment
+* strong level of thorougness
+
+
+## Further comments
+You did a good job! Very polished project overall. Impressive handling of interaction effects, a relatively advanced topic.
+There are a couple things that can be worked upon that I outlined under other points which should be simple to fix and will help complete the product.
+Remember to update your references as well.
+
+
+
+
+
+
+

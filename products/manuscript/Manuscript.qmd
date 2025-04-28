@@ -17,12 +17,16 @@ csl: ../../assets/american-journal-of-epidemiology.csl
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
+# 1) Tell here where this file lives:
 library(here)
 here::i_am("products/manuscript/Manuscript.qmd")
 
-# ← THIS is the one that actually sets the working dir for *all* chunks:
-library(knitr)
-knitr::opts_chunk$set(root.dir = here::here("products/manuscript"))
+# 2) Set your global chunk options (no setwd or root.dir needed):
+knitr::opts_chunk$set(
+  echo    = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
 
 ```
 
@@ -168,72 +172,29 @@ knitr::include_graphics("Images/Table1Baseline.png")
 
 
 **Figure 1: Distribution of Total Malaria Episodes by IPTp Treatment Arm**
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r,echo=FALSE, message=FALSE, warning=FALSE}}
+knitr::include_graphics("Images/Figure1.DistribTotal Malaria.png")
 
-ggplot(promo_data_clean, aes(x = total_malaria_episodes, fill = study_arm)) +
-  geom_histogram(binwidth = 1, alpha = 0.6, position = "dodge") +
-  labs(title = "",
-       x = "Total Malaria Episodes",
-       y = "Frequency",
-       fill = "Treatment Arm") +
-  theme_minimal()
 ```
+
 
 
 &nbsp;
 &nbsp;
 
 **Table 2: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen**
-```{r,  echo=FALSE, message=FALSE, warning=FALSE}
-# Load necessary libraries
-library(dplyr)
-library(gtsummary)
-library(here)
+```{r}
+knitr::include_graphics("Images/Table2.Outcome Measures Malaria .png")
 
-# Read in the cleaned data (if not already read)
-promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
-
-# Recode variables as needed for outcomes analysis:
-promo_data_clean <- promo_data_clean %>%
-  mutate(
-    # Create a composite adverse outcome variable: 1 if any of preterm birth, stillbirth, or low birth weight (<2.5 kg) occurs
-    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
-    adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0),
-    
-    # Recode Preterm Births Count: combine 0 and 1 as "1", and 2 as "2"
-    PretermBirths_cat = case_when(
-      preterm_births_count %in% c(0, 1) ~ "1",
-      preterm_births_count == 2 ~ "2"
-    ),
-    PretermBirths_cat = factor(PretermBirths_cat, levels = c("1", "2"))
-  )
-
-# Create Table Z: Outcome Variables by IPTp Treatment Arm with p-values
-table_outcomes <- promo_data_clean %>%
-  dplyr::select(
-    study_arm,
-    `Malaria Infection Rate During Pregnancy` = malaria_infection_rate_during_pregnancy,
-    `Placental Malaria (Rogerson Criteria)` = placental_malaria_by_rogerson_criteria,
-    `Preterm Births Count` = PretermBirths_cat,
-    `Stillbirth bin` = stillbirth_bin,
-    `Birthweight` = birth_weight,
-    `Composite Adverse Outcome` = adverse_birth_outcome
-  ) %>%
-  tbl_summary(
-    by = study_arm,
-    missing = "no",
-    statistic = list(
-      all_continuous() ~ "{mean} ({sd})",
-      all_categorical() ~ "{n} ({p}%)"
-    )
-  ) %>%
-  add_p() %>%
-  modify_header(label = "") %>%
-  modify_caption("")
-
-# Print Table Z
-table_outcomes
 ```
+
+
+
+
+
+
+
+
 
 
 
@@ -244,95 +205,15 @@ table_outcomes
 
 
 **Figure 2: Differential Impact of IPTp Treatment on the Relationship Between Malaria Episodes and Adverse Birth Outcomes**
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Create the composite adverse outcome variable
-promo_data_clean <- promo_data_clean %>%
-  mutate(
-    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
-    adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0)
-  )
-
-# Fit the interaction model (ensuring that adverse_birth_outcome now exists)
-model_interaction <- glm(adverse_birth_outcome ~ total_malaria_episodes * study_arm + 
-                           age_at_enrollment_years + gravidity + education_level,
-                         family = binomial(link = "logit"),
-                         data = promo_data_clean)
-
-# Generate predicted probabilities over the range of total malaria episodes by study arm
-pred <- ggeffect(model_interaction, terms = c("total_malaria_episodes [all]", "study_arm"))
-
-# Plot the predicted probabilities
-interaction_plot <- ggplot(pred, aes(x = x, y = predicted, color = group)) +
-  geom_line(size = 1.2) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
-  labs(title = "",
-       x = "Total Malaria Episodes",
-       y = "Predicted Probability of Adverse Outcome",
-       color = "Treatment Arm",
-       fill = "Treatment Arm") +
-  theme_minimal()
-
-interaction_plot
+```{r}
+knitr::include_graphics("Images/Figure2.Differential Impact of IPTp.png")
 ```
-
 
 
 &nbsp;
 &nbsp;
 
 
-
-**Table 3: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen**
-```{r,  echo=FALSE, message=FALSE, warning=FALSE}
-# Load necessary libraries
-library(dplyr)
-library(gtsummary)
-library(here)
-
-# Read in the cleaned data (if not already read)
-promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
-
-# Recode variables as needed for outcomes analysis:
-promo_data_clean <- promo_data_clean %>%
-  mutate(
-    # Create a composite adverse outcome variable: 1 if any of preterm birth, stillbirth, or low birth weight (<2.5 kg) occurs
-    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
-    adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0),
-    
-    # Recode Preterm Births Count: combine 0 and 1 as "1", and 2 as "2"
-    PretermBirths_cat = case_when(
-      preterm_births_count %in% c(0, 1) ~ "1",
-      preterm_births_count == 2 ~ "2"
-    ),
-    PretermBirths_cat = factor(PretermBirths_cat, levels = c("1", "2"))
-  )
-
-# Create Table Z: Outcome Variables by IPTp Treatment Arm with p-values
-table_outcomes <- promo_data_clean %>%
-  dplyr::select(
-    study_arm,
-    `Malaria Infection Rate During Pregnancy` = malaria_infection_rate_during_pregnancy,
-    `Placental Malaria (Rogerson Criteria)` = placental_malaria_by_rogerson_criteria,
-    `Preterm Births Count` = PretermBirths_cat,
-    `Stillbirth bin` = stillbirth_bin,
-    `Birthweight` = birth_weight,
-    `Composite Adverse Outcome` = adverse_birth_outcome
-  ) %>%
-  tbl_summary(
-    by = study_arm,
-    missing = "no",
-    statistic = list(
-      all_continuous() ~ "{mean} ({sd})",
-      all_categorical() ~ "{n} ({p}%)"
-    )
-  ) %>%
-  add_p() %>%
-  modify_header(label = "") %>%
-  modify_caption("")
-
-# Print Table Z
-table_outcomes
-```
 
 
 &nbsp;
@@ -362,7 +243,7 @@ When stratifying individual adverse outcomes, rates of low birth weight (< 2.5 k
 &nbsp;
 
 
-**Table 4: Interaction Between Malaria Exposure and IPTp Treatment Arm in Predicting Adverse Birth Outcomes**
+**Table 3: Interaction Between Malaria Exposure and IPTp Treatment Arm in Predicting Adverse Birth Outcomes**
 
 ```{r,echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Table4Interaction.png")
@@ -398,7 +279,7 @@ Among the 284 women under 25 years old (150 DP, 134 SP), 61.3% (174/284) experie
 
 
 
-**Table 5: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)**
+**Table 4: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/AdjustedRatio.png")
 
@@ -459,7 +340,7 @@ knitr::include_graphics("Images/Figure 3. Predicted Probability.png")
 
 
 
-**Table 6:  Discriminative Performance (AUC) of Machine Learning Models Predicting Adverse Birth Outcomes Under Different IPTp Regimens**
+**Table 5:  Discriminative Performance (AUC) of Machine Learning Models Predicting Adverse Birth Outcomes Under Different IPTp Regimens**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Table6.Discriminative Performance (AUC) of ML Models.png")
 
