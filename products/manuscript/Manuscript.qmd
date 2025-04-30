@@ -82,7 +82,6 @@ library(generalhoslem)      # Hosmer–Lemeshow tests
 library(ResourceSelection)  # Additional GOF tests
 library(rms)                # Regression modeling strategies
 library(car)                # Companion to applied regression
-
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
@@ -162,7 +161,6 @@ Multivariable logistic regression models were employed to evaluate whether the I
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Table1Baseline.png")
-
 ```
 
 
@@ -177,7 +175,6 @@ knitr::include_graphics("Images/Table1Baseline.png")
 **Figure 1: Distribution of Total Malaria Episodes by IPTp Treatment Arm**
 ```{r,echo=FALSE, message=FALSE, warning=FALSE}}
 knitr::include_graphics("Images/Figure1.DistribTotal Malaria.png")
-
 ```
 
 
@@ -188,7 +185,6 @@ knitr::include_graphics("Images/Figure1.DistribTotal Malaria.png")
 **Table 2: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen**
 ```{r}
 knitr::include_graphics("Images/Table2.Outcome Measures Malaria .png")
-
 ```
 
 
@@ -250,7 +246,6 @@ When stratifying individual adverse outcomes, rates of low birth weight (< 2.5 k
 
 ```{r,echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Table4Interaction.png")
-
 ```
 
 
@@ -285,7 +280,6 @@ Among the 284 women under 25 years old (150 DP, 134 SP), 61.3% (174/284) experie
 **Table 4: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/AdjustedRatio.png")
-
 ```
 
 
@@ -329,7 +323,6 @@ The best elastic-net configuration (penalty = 0.01, mixture = 0) achieved a cros
 **Figure 4: Predicted Probability of Adverse Outcome by Gravidity (Age < 25)**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Figure 3. Predicted Probability.png")
-
 ```
 
 
@@ -346,7 +339,6 @@ knitr::include_graphics("Images/Figure 3. Predicted Probability.png")
 **Table 5:  Discriminative Performance (AUC) of Machine Learning Models Predicting Adverse Birth Outcomes Under Different IPTp Regimens**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Table6.Discriminative Performance (AUC) of ML Models.png")
-
 ```
 
 
@@ -361,7 +353,6 @@ knitr::include_graphics("Images/Table6.Discriminative Performance (AUC) of ML Mo
 **Figure 5 : Comparative Discriminative Performance of ML Models for Predicting Adverse Birth Outcomes**
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 knitr::include_graphics("Images/Figure 4.Comparative Discriminative Performance of ML .png")
-
 ```
 
 
