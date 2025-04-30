@@ -173,9 +173,10 @@ knitr::include_graphics("Images/Table1Baseline.png")
 
 
 **Figure 1: Distribution of Total Malaria Episodes by IPTp Treatment Arm**
-```{r,echo=FALSE, message=FALSE, warning=FALSE}}
-knitr::include_graphics("Images/Figure1.DistribTotal Malaria.png")
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("Images/Figure1.DistribTotalMalaria.png")
 ```
+
 
 
 
@@ -183,14 +184,10 @@ knitr::include_graphics("Images/Figure1.DistribTotal Malaria.png")
 &nbsp;
 
 **Table 2: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen**
-```{r}
-knitr::include_graphics("Images/Table2.Outcome Measures Malaria .png")
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("Images/Table2.OutcomeMeasuresandMalariaExposure.png")
 ```
-
-
-
-
-
 
 
 
@@ -204,9 +201,10 @@ knitr::include_graphics("Images/Table2.Outcome Measures Malaria .png")
 
 
 **Figure 2: Differential Impact of IPTp Treatment on the Relationship Between Malaria Episodes and Adverse Birth Outcomes**
-```{r}
-knitr::include_graphics("Images/Figure2.Differential Impact of IPTp.png")
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("Images/Figure2.DifferentialImpactofIPTp.png")
 ```
+
 
 
 &nbsp;
@@ -243,10 +241,16 @@ When stratifying individual adverse outcomes, rates of low birth weight (< 2.5 k
 
 
 **Table 3: Interaction Between Malaria Exposure and IPTp Treatment Arm in Predicting Adverse Birth Outcomes**
-
-```{r,echo=FALSE, message=FALSE, warning=FALSE}
-knitr::include_graphics("Images/Table4Interaction.png")
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("Images/Table3Interaction.png")
 ```
+
+
+
+
+
+
+
 
 
 
@@ -321,8 +325,8 @@ The best elastic-net configuration (penalty = 0.01, mixture = 0) achieved a cros
 
 
 **Figure 4: Predicted Probability of Adverse Outcome by Gravidity (Age < 25)**
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-knitr::include_graphics("Images/Figure 3. Predicted Probability.png")
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("Images/Figure3.PredictedProbability.png")
 ```
 
 
@@ -337,9 +341,11 @@ knitr::include_graphics("Images/Figure 3. Predicted Probability.png")
 
 
 **Table 5:  Discriminative Performance (AUC) of Machine Learning Models Predicting Adverse Birth Outcomes Under Different IPTp Regimens**
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-knitr::include_graphics("Images/Table6.Discriminative Performance (AUC) of ML Models.png")
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("Images/Table6.DiscriminativePerformance(AUC)ofMLModels.png")
 ```
+
+
 
 
 &nbsp;
@@ -351,9 +357,12 @@ knitr::include_graphics("Images/Table6.Discriminative Performance (AUC) of ML Mo
 
 
 **Figure 5 : Comparative Discriminative Performance of ML Models for Predicting Adverse Birth Outcomes**
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-knitr::include_graphics("Images/Figure 4.Comparative Discriminative Performance of ML .png")
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("Images/Figure5Calibration.png")
 ```
+
+
+
 
 
 
