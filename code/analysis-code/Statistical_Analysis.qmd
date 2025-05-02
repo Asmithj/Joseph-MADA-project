@@ -1834,80 +1834,76 @@ enet_tune %>%
 ```{r feature-engineering}
 
 library(dplyr)
-library(tidyr)
 library(lubridate)
 library(rsample)
 library(tidymodels)
+library(themis)    # for step_smote()
+library(scales)    # for log10_trans()
 
-# 0) Engineer features and impute their NAs
+set.seed(1234)
+
+# 1) PREPARE full_data (no complex imputation needed)
 full_data <- promo_data_clean %>%
   mutate(
-    enroll_month = month(enrollment_date),
-    episodes_per_trimester = total_malaria_episodes /
-      (gestational_age_at_enrollment_weeks / (40/3))
-  )
-
-# compute medians for imputation
-median_enroll <- median(full_data$enroll_month, na.rm = TRUE)
-median_eps    <- median(full_data$episodes_per_trimester, na.rm = TRUE)
-
-full_data <- full_data %>%
-  mutate(
-    enroll_month           = if_else(is.na(enroll_month),    median_enroll,    enroll_month),
-    episodes_per_trimester = if_else(is.na(episodes_per_trimester),
-                                     median_eps,
-                                     episodes_per_trimester)
-  )
-
-# 1) Safe stratification check
-stratum_counts <- full_data %>% count(adverse_birth_outcome)
-can_stratify   <- nrow(stratum_counts) >= 2 && all(stratum_counts$n >= 2)
-
-# 2) 70/30 split (stratified if safe)
-set.seed(1234)
-split_obj <- if (can_stratify) {
-  initial_split(full_data, prop = 0.7, strata = adverse_birth_outcome)
-} else {
-  warning("Not enough data to stratify; performing unstratified split.")
-  initial_split(full_data, prop = 0.7)
-}
-
-raw_train <- training(split_obj)
-raw_test  <- testing(split_obj)
-
-# 3) Drop rows with NAs in the *core* six predictors or outcome
-train_data <- raw_train %>%
-  tidyr::drop_na(
+    adverse_birth_outcome               = factor(adverse_birth_outcome, levels = c(0,1), labels = c("no","yes")),
+    total_malaria_episodes              = as.integer(total_malaria_episodes),
+    gravidity                           = as.integer(gravidity),
+    gestational_age_at_enrollment_weeks = as.numeric(gestational_age_at_enrollment_weeks),
+    malaria_infection_rate_during_pregnancy = as.numeric(malaria_infection_rate_during_pregnancy),
+    placental_malaria_by_rogerson_criteria = factor(placental_malaria_by_rogerson_criteria)
+  ) %>%
+  drop_na(
     adverse_birth_outcome,
     total_malaria_episodes,
+    gravidity,
+    gestational_age_at_enrollment_weeks,
+    malaria_infection_rate_during_pregnancy,
+    placental_malaria_by_rogerson_criteria,
     study_arm,
     age_at_enrollment_years,
-    gravidity,
     education_level
   )
 
-test_data <- raw_test %>%
-  tidyr::drop_na(
-    adverse_birth_outcome,
-    total_malaria_episodes,
-    study_arm,
-    age_at_enrollment_years,
-    gravidity,
-    education_level
-  )
+# 2) Split 70/30 (unstratified)
+split_obj  <- initial_split(full_data, prop = 0.7)
+train_data <- training(split_obj)
+test_data  <- testing(split_obj)
 
-# 4) Build dynamic v-fold CV (up to 10, but ≤ nrow(train_data))
-n_train <- nrow(train_data)
-if (n_train < 2) stop("Not enough rows for cross‐validation (need ≥ 2).")
-v <- min(10, n_train)
+# 3) Recipe (no more enroll_month or episodes_per_trimester)
+enet_recipe <- recipe(adverse_birth_outcome ~
+                        total_malaria_episodes +
+                        gravidity +
+                        gestational_age_at_enrollment_weeks +
+                        malaria_infection_rate_during_pregnancy +
+                        placental_malaria_by_rogerson_criteria +
+                        study_arm +
+                        age_at_enrollment_years +
+                        education_level,
+                      data = train_data) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_smote(adverse_birth_outcome) %>%
+  step_normalize(all_numeric_predictors())
 
-cv_folds <- if (can_stratify) {
-  vfold_cv(train_data, v = v, strata = adverse_birth_outcome)
-} else {
-  vfold_cv(train_data, v = v)
-}
+# 4) Model spec & workflow
+enet_spec <- logistic_reg(penalty = tune(), mixture = tune()) %>%
+  set_engine("glmnet") %>%
+  set_mode("classification")
 
-# 5) Finally, tune your workflow—no more stray NAs in enroll_month
+enet_wf <- workflow() %>%
+  add_recipe(enet_recipe) %>%
+  add_model(enet_spec)
+
+# 5) Tuning grid
+enet_grid <- grid_regular(
+  penalty(range = c(-5, -1), trans = log10_trans()),
+  mixture(range = c(0, 1)),
+  levels = 5
+)
+
+# 6) CV folds
+cv_folds <- vfold_cv(train_data, v = 5)
+
+# 7) Tune
 enet_tune <- tune_grid(
   enet_wf,
   resamples = cv_folds,
@@ -1915,6 +1911,16 @@ enet_tune <- tune_grid(
   metrics   = metric_set(roc_auc)
 )
 
+# 8) Select best & refit
+best_params   <- select_best(enet_tune, metric = "roc_auc")
+final_enet_wf <- finalize_workflow(enet_wf, best_params)
+enet_fit      <- fit(final_enet_wf, data = train_data)
+
+# 9) Evaluate on test set
+enet_preds <- predict(enet_fit, new_data = test_data, type = "prob") %>%
+  bind_cols(test_data)
+
+print( roc_auc(enet_preds, truth = adverse_birth_outcome, .pred_yes) )
 
 ```
 
@@ -1926,18 +1932,20 @@ library(tidymodels)
 # (A) Tune hyperparameters via grid search
 enet_tune <- tune_grid(
   enet_wf,               # your workflow
-  resamples = cv_folds,  # the vfold_cv object you just built
-  grid      = enet_grid, # the grid of penalty/mixture values
+  resamples = cv_folds,  # the vfold_cv object
+  grid      = enet_grid, # grid of penalty/mixture values
   metrics   = metric_set(roc_auc)
 )
 
-# (B) Look at the tuning results
-collect_metrics(enet_tune) %>% 
+# (B) Look at the tuning results for ROC AUC
+roc_results <- collect_metrics(enet_tune) %>%
   filter(.metric == "roc_auc") %>%
   arrange(desc(mean))
 
-# (C) Pick the best parameters
-best_params <- select_best(enet_tune, "roc_auc")
+print(roc_results)
+
+# (C) Pick the best parameters (note the named argument)
+best_params <- select_best(enet_tune, metric = "roc_auc")
 
 # (D) Finalize & refit on all of train_data
 final_enet_wf <- finalize_workflow(enet_wf, best_params)
@@ -1971,32 +1979,197 @@ To explore whether flexible, data‐driven classifiers could outperform our regr
 
 
 ```{r}
+library(tidymodels)
+library(readr)
+library(here)
+
 # 2. Read & split data
 df <- read_csv(here("data","clean","PROMO_Data_clean.csv")) %>%
   mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1)))
 
 set.seed(2025)
-split    <- initial_split(df, prop = 0.7, strata = adverse_birth_outcome)
-train    <- training(split)
-test     <- testing(split)
-cv_folds <- vfold_cv(train, v = 5, strata = adverse_birth_outcome)
+splits    <- initial_split(df, prop = 0.7, strata = adverse_birth_outcome)
+train     <- training(splits)
+test      <- testing(splits)
+cv_folds  <- vfold_cv(train, v = 5, strata = adverse_birth_outcome)
+
+# 3. Preprocessing recipe
+ml_rec <- recipe(adverse_birth_outcome ~ 
+                   age_at_enrollment_years +
+                   gravidity +
+                   total_malaria_episodes +
+                   education_level +
+                   study_arm +
+                   normalized_malaria_rate,   # ← replaced here
+                 data = train) %>%
+  step_dummy(all_nominal_predictors()) %>%  # one‐hot encode
+  step_zv(all_predictors()) %>%             # remove zero‐variance
+  step_normalize(all_numeric_predictors())  # center & scale
+
+# 4. Model specifications & workflows
+
+## (a) LASSO‐penalized logistic regression
+lasso_mod <- logistic_reg(penalty = tune(), mixture = 1) %>%
+  set_engine("glmnet") %>%
+  set_mode("classification")
+
+lasso_wf  <- workflow() %>% 
+  add_model(lasso_mod) %>% 
+  add_recipe(ml_rec)
+
+## (b) Random forest
+rf_mod <- rand_forest(mtry = tune(), trees = 1000, min_n = tune()) %>%
+  set_engine("ranger") %>%
+  set_mode("classification")
+
+rf_wf  <- workflow() %>% 
+  add_model(rf_mod) %>% 
+  add_recipe(ml_rec)
+
+## (c) XGBoost
+xgb_mod <- boost_tree(trees = tune(),
+                      tree_depth = tune(),
+                      learn_rate = tune()) %>%
+  set_engine("xgboost") %>%
+  set_mode("classification")
+
+xgb_wf <- workflow() %>% 
+  add_model(xgb_mod) %>% 
+  add_recipe(ml_rec)
+
+# 5. Tuning grids & 5‐fold CV
+set.seed(2025)
+
+lasso_grid <- grid_regular(penalty(), levels = 20)
+
+rf_params <- parameters(rf_mod) %>%
+  update(mtry = mtry(c(1, 6)))
+rf_grid   <- grid_latin_hypercube(rf_params, size = 20)
+
+xgb_params <- parameters(xgb_mod)
+xgb_grid   <- grid_latin_hypercube(xgb_params, size = 30)
+
+ml_metrics <- metric_set(roc_auc)
+
+lasso_res <- tune_grid(lasso_wf, resamples = cv_folds,
+                       grid = lasso_grid, metrics = ml_metrics)
+
+rf_res    <- tune_grid(rf_wf,    resamples = cv_folds,
+                       grid = rf_grid,    metrics = ml_metrics)
+
+xgb_res   <- tune_grid(xgb_wf,   resamples = cv_folds,
+                       grid = xgb_grid,   metrics = ml_metrics)
+
+library(dplyr)
+library(knitr)
+
+# 6) Pull the metrics into plain tibbles
+lasso_metrics <- collect_metrics(lasso_res)
+rf_metrics    <- collect_metrics(rf_res)
+xgb_metrics   <- collect_metrics(xgb_res)
+
+# 7) Summarize AUC for each model
+lasso_auc <- lasso_metrics %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean),
+    SE   = mean(std_err)
+  ) %>%
+  mutate(Model = "LASSO")
+
+rf_auc <- rf_metrics %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean),
+    SE   = mean(std_err)
+  ) %>%
+  mutate(Model = "Random Forest")
+
+xgb_auc <- xgb_metrics %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean),
+    SE   = mean(std_err)
+  ) %>%
+  mutate(Model = "XGBoost")
+
+library(dplyr)
+library(knitr)
+
+# 8) Combine into one data frame and print as a plain table
+table6 <- bind_rows(lasso_auc, rf_auc, xgb_auc) %>%
+  dplyr::select(Model, Mean, SE)
+
+print(table6)
 
 ```
 
 
 
+
 ```{r}
-# 3. Preprocessing recipe
-ml_rec <- recipe(adverse_birth_outcome ~ age_at_enrollment_years
-                  + gravidity
-                  + total_malaria_episodes
-                  + education_level
-                  + study_arm
-                  + socioeconomic_status,
-                data = train) %>%
-  step_dummy(all_nominal_predictors()) %>%  # one‐hot encode
-  step_zv(all_predictors()) %>%             # remove zero‐variance
-  step_normalize(all_numeric_predictors())  # center & scale
+library(tidymodels)  # for collect_metrics()
+
+# 1) Collect tuning metrics into plain tibbles
+lasso_metrics <- collect_metrics(lasso_res)
+rf_metrics    <- collect_metrics(rf_res)
+xgb_metrics   <- collect_metrics(xgb_res)
+
+# 2) Summarize ROC AUC for each model
+lasso_auc <- lasso_metrics %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean),
+    SE   = mean(std_err)
+  ) %>%
+  mutate(Model = "LASSO")
+
+rf_auc <- rf_metrics %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean),
+    SE   = mean(std_err)
+  ) %>%
+  mutate(Model = "Random Forest")
+
+xgb_auc <- xgb_metrics %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean),
+    SE   = mean(std_err)
+  ) %>%
+  mutate(Model = "XGBoost")
+
+# 3) Combine into one table
+auc_table <- bind_rows(lasso_auc, rf_auc, xgb_auc)
+
+# 4) Print Table 6
+auc_table %>%
+  dplyr::select(Model, Mean, SE) %>%
+  knitr::kable(
+    digits  = 3,
+    caption = "Table 6: 5‑fold CV ROC AUC for Each Model"
+  )
+# 4) Print as a plain data frame (regular table)
+print(auc_table)
+
+```
+
+
+
+
+```{r}
+ml_rec <- recipe(adverse_birth_outcome ~
+                   age_at_enrollment_years +
+                   gravidity +
+                   total_malaria_episodes +
+                   education_level +
+                   study_arm +
+                   normalized_malaria_rate,
+                 data = train) %>%
+  step_dummy(all_nominal_predictors()) %>%   # one‑hot encode factors
+  step_zv(all_predictors()) %>%              # drop zero‑variance
+  step_normalize(all_numeric_predictors())   # center & scale numerics
 
 ```
 
@@ -2061,14 +2234,62 @@ xgb_res   <- tune_grid(xgb_wf,   resamples = cv_folds,
 ```
 
 ```{r}
-# 6. Collect cross‐validated AUC results
-lasso_auc <- lasso_res %>% filter(.metric=="roc_auc") %>% summarize(mean = mean(mean), se = mean(std_err)) %>% mutate(model="LASSO")
-rf_auc    <- rf_res    %>% filter(.metric=="roc_auc") %>% summarize(mean = mean(mean), se = mean(std_err)) %>% mutate(model="RF")
-xgb_auc   <- xgb_res   %>% filter(.metric=="roc_auc") %>% summarize(mean = mean(mean), se = mean(std_err)) %>% mutate(model="XGB")
+library(dplyr)
 
-bind_rows(lasso_auc, rf_auc, xgb_auc) %>%
-  rename(AUC = mean, SE = se) %>%
-  knitr::kable(digits=3, caption="Table 6: 5‐fold CV ROC AUC for Each Model")
+# 6) Pull the AUC metrics out and summarize
+lasso_auc <- collect_metrics(lasso_res) %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean, na.rm = TRUE),
+    SE   = mean(std_err, na.rm = TRUE)
+  ) %>%
+  mutate(Model = "LASSO")
+
+rf_auc <- collect_metrics(rf_res) %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean, na.rm = TRUE),
+    SE   = mean(std_err, na.rm = TRUE)
+  ) %>%
+  mutate(Model = "Random Forest")
+
+xgb_auc <- collect_metrics(xgb_res) %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean, na.rm = TRUE),
+    SE   = mean(std_err, na.rm = TRUE)
+  ) %>%
+  mutate(Model = "XGBoost")
+
+# 7) Combine & print
+auc_table <- bind_rows(lasso_auc, rf_auc, xgb_auc) %>%
+  dplyr::select(Model, Mean, SE)
+
+print(auc_table)
 
 ```
+
+
+################################################################################################################################################################## 
+
+
+*END*
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
