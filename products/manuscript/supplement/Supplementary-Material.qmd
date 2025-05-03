@@ -344,53 +344,6 @@ I see that the ROC curve for my model is close to the diagonal, with an AUC only
 
 
 
-```{r}
-library(dplyr)
-library(knitr)
-
-# 6) Collect tuning metrics
-lasso_metrics <- collect_metrics(lasso_res)
-rf_metrics    <- collect_metrics(rf_res)
-xgb_metrics   <- collect_metrics(xgb_res)
-
-# 7) Summarize AUC for each model
-lasso_auc <- lasso_metrics %>%
-  filter(.metric == "roc_auc") %>%
-  summarise(
-    Mean = mean(mean),
-    SE   = mean(std_err)
-  ) %>%
-  mutate(Model = "LASSO")
-
-rf_auc <- rf_metrics %>%
-  filter(.metric == "roc_auc") %>%
-  summarise(
-    Mean = mean(mean),
-    SE   = mean(std_err)
-  ) %>%
-  mutate(Model = "Random Forest")
-
-xgb_auc <- xgb_metrics %>%
-  filter(.metric == "roc_auc") %>%
-  summarise(
-    Mean = mean(mean),
-    SE   = mean(std_err)
-  ) %>%
-  mutate(Model = "XGBoost")
-
-# 8) Combine into one data frame
-table6 <- bind_rows(lasso_auc, rf_auc, xgb_auc)
-
-# 9) Render with kable for Word, explicitly namespacing select
-kable(
-  table6 %>% dplyr::select(Model, Mean, SE),
-  format  = "pandoc",
-  digits  = 3,
-  caption = "Table 6: Cross‑validated AUC (mean ± SE) for Each Model"
-)
-
-```
-
 During 5‑fold cross‑validation, the elastic‐net model achieved the highest mean AUC (0.55±0.01), followed by random forest (0.52±0.01) and XGBoost (0.50±0.01).
 
 
@@ -400,9 +353,7 @@ During 5‑fold cross‑validation, the elastic‐net model achieved the highest
 
 # Discussion
 
-Any additional discussion regarding the supplementary material/findings.
 
-These papers [@mckay2020; @mckay2020a] are good examples of papers published using a fully reproducible setup similar to the one shown in this template. 
 
 {{< pagebreak >}}
 
