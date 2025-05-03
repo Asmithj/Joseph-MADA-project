@@ -66,44 +66,6 @@
 \fi
 \makeatother
 
-\usepackage{color}
-\usepackage{fancyvrb}
-\newcommand{\VerbBar}{|}
-\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
-\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
-% Add ',fontsize=\small' for more characters per line
-\newenvironment{Shaded}{}{}
-\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.33,0.33}{\textbf{#1}}}
-\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.42,0.45,0.49}{#1}}
-\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.84,0.23,0.29}{#1}}
-\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.36,0.77}{#1}}
-\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.84,0.23,0.29}{#1}}
-\newcommand{\CharTok}[1]{\textcolor[rgb]{0.01,0.18,0.38}{#1}}
-\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.42,0.45,0.49}{#1}}
-\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.42,0.45,0.49}{#1}}
-\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.36,0.77}{#1}}
-\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.84,0.23,0.29}{#1}}
-\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.84,0.23,0.29}{#1}}
-\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.36,0.77}{#1}}
-\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.42,0.45,0.49}{#1}}
-\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.33,0.33}{\underline{#1}}}
-\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.84,0.23,0.29}{\textbf{#1}}}
-\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.36,0.77}{#1}}
-\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.44,0.26,0.76}{#1}}
-\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.01,0.18,0.38}{#1}}
-\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.42,0.45,0.49}{#1}}
-\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.84,0.23,0.29}{#1}}
-\newcommand{\NormalTok}[1]{\textcolor[rgb]{0.14,0.16,0.18}{#1}}
-\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.14,0.16,0.18}{#1}}
-\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.44,0.26,0.76}{#1}}
-\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.84,0.23,0.29}{#1}}
-\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.42,0.45,0.49}{#1}}
-\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.36,0.77}{#1}}
-\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.01,0.18,0.38}{#1}}
-\newcommand{\StringTok}[1]{\textcolor[rgb]{0.01,0.18,0.38}{#1}}
-\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.89,0.38,0.04}{#1}}
-\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.01,0.18,0.38}{#1}}
-\newcommand{\WarningTok}[1]{\textcolor[rgb]{1.00,0.33,0.33}{#1}}
 
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
@@ -195,6 +157,7 @@
 \urlstyle{same} % disable monospaced font for URLs
 \hypersetup{
   pdftitle={Supplementary Materials of Impact of IPTp Regimen on Pregnancy Outcomes},
+  pdfauthor={Asmith Joseph},
   colorlinks=true,
   linkcolor={blue},
   filecolor={Maroon},
@@ -205,7 +168,7 @@
 
 \title{Supplementary Materials of Impact of IPTp Regimen on Pregnancy
 Outcomes}
-\author{}
+\author{Asmith Joseph}
 \date{}
 
 \begin{document}
@@ -263,106 +226,13 @@ analyses that didn't make it into the main text.
 \emph{Bar Graph of Total Malaria Episodes During Pregnancy by Treatment
 Arm}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Load necessary libraries}
-\FunctionTok{library}\NormalTok{(dplyr)}
-\FunctionTok{library}\NormalTok{(ggplot2)}
-\FunctionTok{library}\NormalTok{(here)}
-
-\CommentTok{\# Read in the cleaned data}
-\NormalTok{promo\_data\_clean }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"data"}\NormalTok{, }\StringTok{"clean"}\NormalTok{, }\StringTok{"PROMO\_Data\_clean.csv"}\NormalTok{))}
-
-\CommentTok{\# Recode \textquotesingle{}total\_malaria\_episodes\_during\_pregnancy\textquotesingle{} into a categorical variable}
-\NormalTok{promo\_data\_clean }\OtherTok{\textless{}{-}}\NormalTok{ promo\_data\_clean }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{mutate}\NormalTok{(}
-    \AttributeTok{MalariaEpisodesPreg\_cat =} \FunctionTok{case\_when}\NormalTok{(}
-\NormalTok{      total\_malaria\_episodes\_during\_pregnancy }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{) }\SpecialCharTok{\textasciitilde{}} \StringTok{"1"}\NormalTok{,}
-\NormalTok{      total\_malaria\_episodes\_during\_pregnancy }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{) }\SpecialCharTok{\textasciitilde{}} \StringTok{"2–3"}\NormalTok{,}
-\NormalTok{      total\_malaria\_episodes\_during\_pregnancy }\SpecialCharTok{\textgreater{}=} \DecValTok{4} \SpecialCharTok{\textasciitilde{}} \StringTok{"≥4"}
-\NormalTok{    ),}
-    \AttributeTok{MalariaEpisodesPreg\_cat =} \FunctionTok{factor}\NormalTok{(MalariaEpisodesPreg\_cat, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"1"}\NormalTok{, }\StringTok{"2–3"}\NormalTok{, }\StringTok{"≥4"}\NormalTok{))}
-\NormalTok{  )}
-
-\CommentTok{\# Create the bar graph}
-\FunctionTok{ggplot}\NormalTok{(promo\_data\_clean, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ MalariaEpisodesPreg\_cat, }\AttributeTok{fill =}\NormalTok{ study\_arm)) }\SpecialCharTok{+}
-  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{position =} \StringTok{"dodge"}\NormalTok{) }\SpecialCharTok{+}
-  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Total Malaria Episodes During Pregnancy by Treatment Arm"}\NormalTok{,}
-       \AttributeTok{x =} \StringTok{"Total Malaria Episodes During Pregnancy (Categorical)"}\NormalTok{,}
-       \AttributeTok{y =} \StringTok{"Count"}\NormalTok{,}
-       \AttributeTok{fill =} \StringTok{"Treatment Arm"}\NormalTok{) }\SpecialCharTok{+}
-  \FunctionTok{theme\_minimal}\NormalTok{()}
-\end{Highlighting}
-\end{Shaded}
-
 \pandocbounded{\includegraphics[keepaspectratio]{Supplementary-Material_files/figure-pdf/unnamed-chunk-4-1.pdf}}
 
 \emph{Bar Graphs for Gravidity and Parity}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Load necessary libraries}
-
-\CommentTok{\# Read in the cleaned data}
-\NormalTok{promo\_data\_clean }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"data"}\NormalTok{, }\StringTok{"clean"}\NormalTok{, }\StringTok{"PROMO\_Data\_clean.csv"}\NormalTok{))}
-
-\CommentTok{\# Recode Gravidity into categories: "1", "2–3", "≥4"}
-\NormalTok{promo\_data\_clean }\OtherTok{\textless{}{-}}\NormalTok{ promo\_data\_clean }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{mutate}\NormalTok{(}
-    \AttributeTok{Gravidity\_cat =} \FunctionTok{case\_when}\NormalTok{(}
-\NormalTok{      gravidity }\SpecialCharTok{==} \DecValTok{1} \SpecialCharTok{\textasciitilde{}} \StringTok{"1"}\NormalTok{,}
-\NormalTok{      gravidity }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{) }\SpecialCharTok{\textasciitilde{}} \StringTok{"2–3"}\NormalTok{,}
-\NormalTok{      gravidity }\SpecialCharTok{\textgreater{}=} \DecValTok{4} \SpecialCharTok{\textasciitilde{}} \StringTok{"≥4"}
-\NormalTok{    ),}
-    \AttributeTok{Gravidity\_cat =} \FunctionTok{factor}\NormalTok{(Gravidity\_cat, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"1"}\NormalTok{, }\StringTok{"2–3"}\NormalTok{, }\StringTok{"≥4"}\NormalTok{))}
-\NormalTok{  )}
-
-\CommentTok{\# Create the bar graph for Gravidity by Treatment Arm}
-\FunctionTok{ggplot}\NormalTok{(promo\_data\_clean, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Gravidity\_cat, }\AttributeTok{fill =}\NormalTok{ study\_arm)) }\SpecialCharTok{+}
-  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{position =} \StringTok{"dodge"}\NormalTok{) }\SpecialCharTok{+}
-  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Gravidity Distribution by Treatment Arm"}\NormalTok{,}
-       \AttributeTok{x =} \StringTok{"Gravidity Category (1, 2–3, ≥4)"}\NormalTok{,}
-       \AttributeTok{y =} \StringTok{"Count"}\NormalTok{,}
-       \AttributeTok{fill =} \StringTok{"Treatment Arm"}\NormalTok{) }\SpecialCharTok{+}
-  \FunctionTok{theme\_minimal}\NormalTok{()}
-\end{Highlighting}
-\end{Shaded}
-
 \pandocbounded{\includegraphics[keepaspectratio]{Supplementary-Material_files/figure-pdf/unnamed-chunk-5-1.pdf}}
 
 \emph{Parity Distribution by Treatment Arm}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Load necessary libraries}
-\FunctionTok{library}\NormalTok{(dplyr)}
-\FunctionTok{library}\NormalTok{(ggplot2)}
-\FunctionTok{library}\NormalTok{(here)}
-
-\CommentTok{\# Read in the cleaned data}
-\NormalTok{promo\_data\_clean }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"data"}\NormalTok{, }\StringTok{"clean"}\NormalTok{, }\StringTok{"PROMO\_Data\_clean.csv"}\NormalTok{))}
-
-\CommentTok{\# Recode Parity into categories: "0", "1–2", "≥3"}
-\NormalTok{promo\_data\_clean }\OtherTok{\textless{}{-}}\NormalTok{ promo\_data\_clean }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{mutate}\NormalTok{(}
-    \AttributeTok{Parity\_cat =} \FunctionTok{case\_when}\NormalTok{(}
-\NormalTok{      parity }\SpecialCharTok{==} \DecValTok{0} \SpecialCharTok{\textasciitilde{}} \StringTok{"0"}\NormalTok{,}
-\NormalTok{      parity }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{) }\SpecialCharTok{\textasciitilde{}} \StringTok{"1–2"}\NormalTok{,}
-\NormalTok{      parity }\SpecialCharTok{\textgreater{}=} \DecValTok{3} \SpecialCharTok{\textasciitilde{}} \StringTok{"≥3"}
-\NormalTok{    ),}
-    \AttributeTok{Parity\_cat =} \FunctionTok{factor}\NormalTok{(Parity\_cat, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"0"}\NormalTok{, }\StringTok{"1–2"}\NormalTok{, }\StringTok{"≥3"}\NormalTok{))}
-\NormalTok{  )}
-
-\CommentTok{\# Create the bar graph for Parity by Treatment Arm}
-\FunctionTok{ggplot}\NormalTok{(promo\_data\_clean, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Parity\_cat, }\AttributeTok{fill =}\NormalTok{ study\_arm)) }\SpecialCharTok{+}
-  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{position =} \StringTok{"dodge"}\NormalTok{) }\SpecialCharTok{+}
-  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Parity Distribution by Treatment Arm"}\NormalTok{,}
-       \AttributeTok{x =} \StringTok{"Parity Category (0, 1–2, ≥3)"}\NormalTok{,}
-       \AttributeTok{y =} \StringTok{"Count"}\NormalTok{,}
-       \AttributeTok{fill =} \StringTok{"Treatment Arm"}\NormalTok{) }\SpecialCharTok{+}
-  \FunctionTok{theme\_minimal}\NormalTok{()}
-\end{Highlighting}
-\end{Shaded}
 
 \pandocbounded{\includegraphics[keepaspectratio]{Supplementary-Material_files/figure-pdf/unnamed-chunk-6-1.pdf}}
 
@@ -406,87 +276,13 @@ the R scripts.
 \section{Evaluating Discrimination (ROC Curve and
 AUC)}\label{evaluating-discrimination-roc-curve-and-auc}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# 1) Load required libraries}
-\FunctionTok{library}\NormalTok{(dplyr)}
-\FunctionTok{library}\NormalTok{(pROC)}
-\FunctionTok{library}\NormalTok{(caret)}
-\FunctionTok{library}\NormalTok{(here)}
-
-\CommentTok{\# 2) Read cleaned data and subset to women \textless{} 25}
-\NormalTok{promo\_data\_clean }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{here}\NormalTok{(}\StringTok{"data/clean/PROMO\_Data\_clean.csv"}\NormalTok{))}
-\NormalTok{promo\_data\_young }\OtherTok{\textless{}{-}}\NormalTok{ promo\_data\_clean }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{filter}\NormalTok{(age\_at\_enrollment\_years }\SpecialCharTok{\textless{}} \DecValTok{25}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
-  \FunctionTok{mutate}\NormalTok{(}
-    \CommentTok{\# Composite adverse outcome: 1 if preterm, stillbirth, or low birth weight}
-    \AttributeTok{low\_birth\_weight      =} \FunctionTok{as.integer}\NormalTok{(birth\_weight }\SpecialCharTok{\textless{}} \FloatTok{2.5}\NormalTok{),}
-    \AttributeTok{adverse\_birth\_outcome =} \FunctionTok{as.integer}\NormalTok{(}
-\NormalTok{      preterm\_births\_count }\SpecialCharTok{\textgreater{}} \DecValTok{0} \SpecialCharTok{|}
-\NormalTok{      stillbirth\_bin }\SpecialCharTok{==} \DecValTok{1}        \SpecialCharTok{|}
-\NormalTok{      low\_birth\_weight }\SpecialCharTok{==} \DecValTok{1}
-\NormalTok{    )}
-\NormalTok{  )}
-
-\CommentTok{\# 3) Fit logistic regression model}
-\NormalTok{model\_gravidity }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(}
-\NormalTok{  adverse\_birth\_outcome }\SpecialCharTok{\textasciitilde{}}\NormalTok{ gravidity }\SpecialCharTok{+}\NormalTok{ total\_malaria\_episodes }\SpecialCharTok{+}
-\NormalTok{    study\_arm }\SpecialCharTok{+}\NormalTok{ education\_level,}
-  \AttributeTok{family =} \FunctionTok{binomial}\NormalTok{(}\AttributeTok{link =} \StringTok{"logit"}\NormalTok{),}
-  \AttributeTok{data   =}\NormalTok{ promo\_data\_young}
-\NormalTok{)}
-
-\CommentTok{\# 4) Generate predicted probabilities}
-\NormalTok{promo\_data\_young}\SpecialCharTok{$}\NormalTok{predicted\_prob }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(}
-\NormalTok{  model\_gravidity,}
-  \AttributeTok{newdata =}\NormalTok{ promo\_data\_young,}
-  \AttributeTok{type    =} \StringTok{"response"}
-\NormalTok{)}
-
-\CommentTok{\# 5) ROC curve and AUC}
-\NormalTok{roc\_obj  }\OtherTok{\textless{}{-}} \FunctionTok{roc}\NormalTok{(}
-\NormalTok{  promo\_data\_young}\SpecialCharTok{$}\NormalTok{adverse\_birth\_outcome,}
-\NormalTok{  promo\_data\_young}\SpecialCharTok{$}\NormalTok{predicted\_prob}
-\NormalTok{)}
-\FunctionTok{plot}\NormalTok{(}
-\NormalTok{  roc\_obj,}
-  \AttributeTok{col   =} \StringTok{"blue"}\NormalTok{,}
-  \AttributeTok{lwd   =} \DecValTok{2}\NormalTok{,}
-  \AttributeTok{main  =} \StringTok{"ROC Curve: Gravidity Model (Age \textless{} 25)"}
-\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
-\pandocbounded{\includegraphics[keepaspectratio]{Supplementary-Material_files/figure-pdf/roc-calibration-1.pdf}}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{auc\_val }\OtherTok{\textless{}{-}} \FunctionTok{auc}\NormalTok{(roc\_obj)}
-\FunctionTok{cat}\NormalTok{(}\StringTok{"AUC:"}\NormalTok{, }\FunctionTok{round}\NormalTok{(auc\_val, }\DecValTok{2}\NormalTok{), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{verbatim}
 AUC: 0.58 
 \end{verbatim}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# 6) Calibration plot}
-\NormalTok{data\_cal }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
-  \AttributeTok{observed =} \FunctionTok{factor}\NormalTok{(promo\_data\_young}\SpecialCharTok{$}\NormalTok{adverse\_birth\_outcome, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{1}\NormalTok{)),}
-  \AttributeTok{predicted =}\NormalTok{ promo\_data\_young}\SpecialCharTok{$}\NormalTok{predicted\_prob}
-\NormalTok{)}
-\NormalTok{cal\_plot }\OtherTok{\textless{}{-}} \FunctionTok{calibration}\NormalTok{(}
-\NormalTok{  observed }\SpecialCharTok{\textasciitilde{}}\NormalTok{ predicted,}
-  \AttributeTok{data  =}\NormalTok{ data\_cal,}
-  \AttributeTok{class =} \StringTok{"1"}
-\NormalTok{)}
-\FunctionTok{plot}\NormalTok{(cal\_plot, }\AttributeTok{main =} \StringTok{"Calibration Plot: Gravidity Model (Age \textless{} 25)"}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
+\pandocbounded{\includegraphics[keepaspectratio]{Supplementary-Material_files/figure-pdf/unnamed-chunk-9-1.pdf}}
 
-\pandocbounded{\includegraphics[keepaspectratio]{Supplementary-Material_files/figure-pdf/roc-calibration-2.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{Supplementary-Material_files/figure-pdf/unnamed-chunk-9-2.pdf}}
 
 I see that the ROC curve for my model is close to the diagonal, with an
 AUC only slightly above 0.5. This tells me that the model doesn't have

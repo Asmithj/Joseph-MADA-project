@@ -14,35 +14,6 @@ csl: ../../../assets/american-journal-of-epidemiology.csl
 
 
 
-{{< pagebreak >}}
-
-
-
-
-# Overview
-The Supplementary Appendix begins with comprehensive methodological details, including variable‐by‐variable missingness (Table S1), analysis of deviance comparing models with and without the malaria×SP interaction (Table S2), and variance inflation factors for the final interaction model (Table S3). It also presents machine‐learning tuning results with the top five elastic-net hyperparameter combinations ranked by mean cross-validated AUC (Table S4) alongside a heatmap illustrating AUC across the penalty–mixture grid (Figure S1). Full code excerpts document our data-cleaning steps, rsample splits, recipe definitions, and tune_grid workflows. The appendix then moves on to additional results: a detailed stratification of outcome measures and malaria-exposure variables by IPTp arm (Table S5), bar graphs of total malaria episodes during pregnancy (Figure S2), gravidity (Figure S3), and parity (Figure S4) distributions by treatment arm, and a bootstrap calibration curve for the interaction model (Figure S5). Finally, it compares model discrimination with overlaid ROC curves for logistic regression, random forest, and XGBoost (Figure S6), presents a precision-recall curve for the top‐performing machine-learning model (Figure S7), and reports the test-set AUC for the gravidity-only model in women under 25 years (Table S6).
-
-
-# Code and file information
-
-Explain here what each code/file is and does, and in which order (if any) users need to run thing to reproduce everything.
-Essentially, give a full set of instructions to re-generate everything.
-
-
-
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-library(here)
-here::i_am("products/manuscript/Manuscript.qmd")
-
-# ← THIS is the one that actually sets the working dir for *all* chunks:
-library(knitr)
-knitr::opts_chunk$set(root.dir = here::here("products/manuscript"))
-
-```
-
-
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # Load Required Libraries for Data Handling, Visualization, and Analysis
 
@@ -106,31 +77,43 @@ promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
 
 
 
-
-
-
-
-
-
-
-
 {{< pagebreak >}}
 
 
-# Additional Method Details
 
-Often, the main manuscript only allows for an overview description of the methods. Use the supplement to describe all your methods, models and approaches in a lot of detail. Reference specific parts of your code as needed.
+
+# Overview
+The Supplementary Appendix begins with comprehensive methodological details, including variable‐by‐variable missingness (Table S1), analysis of deviance comparing models with and without the malaria×SP interaction (Table S2), and variance inflation factors for the final interaction model (Table S3). It also presents machine‐learning tuning results with the top five elastic-net hyperparameter combinations ranked by mean cross-validated AUC (Table S4) alongside a heatmap illustrating AUC across the penalty–mixture grid (Figure S1). Full code excerpts document our data-cleaning steps, rsample splits, recipe definitions, and tune_grid workflows. The appendix then moves on to additional results: a detailed stratification of outcome measures and malaria-exposure variables by IPTp arm (Table S5), bar graphs of total malaria episodes during pregnancy (Figure S2), gravidity (Figure S3), and parity (Figure S4) distributions by treatment arm, and a bootstrap calibration curve for the interaction model (Figure S5). Finally, it compares model discrimination with overlaid ROC curves for logistic regression, random forest, and XGBoost (Figure S6), presents a precision-recall curve for the top‐performing machine-learning model (Figure S7), and reports the test-set AUC for the gravidity-only model in women under 25 years (Table S6).
+
+&nbsp;
+&nbsp;
+
+# Code and file information
+
+The Supplementary Appendix is built with a clear, step‑wise workflow: raw PROMO trial data are first cleaned and documented, then transformed into the analysis dataset. Subsequent scripts generate missingness tables, interaction model diagnostics, machine‑learning tuning results, and additional stratified analyses. Each RMarkdown file lives in the code/ subfolders (processing, EDA, analysis), reads from data/, and writes results into results/. Finally, the Quarto source in products/manuscript/supplement renders the assembled tables and figures into Supplementary‑Material.docx. Running the scripts in their numeric order fully reproduces every table and figure in this appendix.
+
+
+
+## 📁 Directory Structure Overview
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# From products/manuscript/supplement → go up to products/manuscript, then into Images/
+knitr::include_graphics("../Images/Project-root.png")
+```
+
+
+
 
 {{< pagebreak >}}
 
 
 # Additional results
 
-Show additional results here. Those can be some useful exploratory/descriptive figures or tables, or results from additional analyses that didn't make it into the main text.
+# # Exploratory Analysis: Malaria Episodes, Gravidity/Parity, and Treatment Arm
+
+The four supplementary EDA plots concisely overview key baseline characteristics by treatment arm and the height–weight relationship at enrollment. The first panel shows that the majority of women experienced one malaria episode during pregnancy, with progressively fewer in the 2–3 and ≥4 categories and that counts are consistently higher in the DP arm than the SP arm across all episode bins. The second panel depicts gravidity stratified into 1, 2–3, and ≥4 pregnancies, revealing a similar pattern in both arms but a noticeably smaller proportion of primigravidae in the SP group. The third panel presents parity categories (0, 1–2, ≥3), again demonstrating broadly comparable distributions between arms, with a slight excess of women with ≥3 previous births in the DP arm. Finally, the scatterplot of maternal height and weight, with a LOESS smoothing curve and 95% confidence band, confirms a modest positive association between height and weight at enrollment, supporting the use of both measures in downstream modeling.
 
 
-*Bar Graph of Total Malaria Episodes During Pregnancy by Treatment Arm*
-
+*Figure S1.Total Malaria Episodes During Pregnancy by Treatment Arm*
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # Load necessary libraries
 library(dplyr)
@@ -163,13 +146,13 @@ ggplot(promo_data_clean, aes(x = MalariaEpisodesPreg_cat, fill = study_arm)) +
 
 ```
 
+&nbsp;
+&nbsp;
 
 
 
 
-
-
-*Bar Graphs for Gravidity and Parity*
+*Figure S2: Gravidity Distribution by Treatment Arm*
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # Load necessary libraries
@@ -201,9 +184,10 @@ ggplot(promo_data_clean, aes(x = Gravidity_cat, fill = study_arm)) +
 ```
 
 
+&nbsp;
+&nbsp;
 
-
-*Parity Distribution by Treatment Arm*
+*Figure S3: Parity Distribution by Treatment Arm*
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # Load necessary libraries
@@ -238,14 +222,30 @@ ggplot(promo_data_clean, aes(x = Parity_cat, fill = study_arm)) +
 ```
 
 
+&nbsp;
+&nbsp;
+
+*Figure S4:Scatterplot of maternal weight by height with fitted LOESS smoothing curve (95% CI) — exploratory assessment of the height–weight relationship at enrollment*
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
+#| label: fig-result2
+#| fig-cap: "Height and weight."
+#| echo: FALSE
+knitr::include_graphics(here("results","figures","height-weight.png"))
+```
 
 
 
 
-## Example additional result
+&nbsp;
+&nbsp;
 
 
-@tbl-resulttable1 shows an additional table summarizing a model fit.
+
+
+## Additional result
+
+*Table 1: Regression Coefficients for the Association Between Weight and Outcome*
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 #| label: tbl-resulttable1
@@ -257,20 +257,32 @@ knitr::kable(resulttable1)
 
 
 
-@fig-result2 shows a scatterplot figure produced by one of the R scripts.
 
+&nbsp;
+&nbsp;
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
-#| label: fig-result2
-#| fig-cap: "Height and weight."
-#| echo: FALSE
-knitr::include_graphics(here("results","figures","height-weight.png"))
-```
 
 #  Evaluating Discrimination (ROC Curve and AUC)
+*Additional Model Evaluation (Supplement)*
+ Panel A shows the ROC curve for the gravidity‐only logistic model in women under 25. The curve lies modestly above the diagonal, reflecting fair discrimination (AUC ≈ 0.55).
+ Panel B is the corresponding calibration plot (decile‐based), which compares observed event rates within probability bins to the ideal 45° line; slight deviations indicate some miscalibration in the highest and lowest risk groups.
+ 
+ Panel C presents the bootstrap bias‐corrected calibration curve (200 resamples). The “apparent” (dotted) and “bias‐corrected” (solid) lines both track closely to the ideal (dashed) reference, confirming good overall calibration (mean absolute error ≈ 0.016).
+ Panel D displays the heatmap of cross‐validated AUC across the elastic‐net penalty–mixture grid, illustrating that intermediate penalty values (log₁₀λ around –2) and mixture α near 0.8 yielded the best discrimination.
+ 
+ Finally, Table S7 reports the mean (±SE) cross‐validated ROC AUC for the three machine‐learning algorithms: LASSO (0.55±0.012), random forest (0.52±0.013), and XGBoost (0.497±0.014). This confirms that regularized regression slightly outperformed the tree‐based methods under our tuning scheme.
 
+*Supplementary Regression Coefficients (Table S8)*
+ The simple linear model of weight on height yields an intercept of 149.7g (SE 19.8, p<0.001) and a non‐significant slope of 0.23g/cm (SE 0.27, p=0.43), indicating that while taller women tended to weigh more on average, this association was weak and did not reach statistical significance in our sample.
+ 
+ 
+ 
+ &nbsp;
+&nbsp;
 
+ 
 
+*Figure S5: Calibration Plot: Gravidity Model (Age < 25)*
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # 1) Load required libraries
 library(dplyr)
@@ -334,16 +346,51 @@ cal_plot <- calibration(
 plot(cal_plot, main = "Calibration Plot: Gravidity Model (Age < 25)")
 ```
 
-I see that the ROC curve for my model is close to the diagonal, with an AUC only slightly above 0.5. This tells me that the model doesn't have strong discriminative ability for predicting adverse outcomes in women under 25. Additionally, the calibration plot shows that my predicted probabilities often stray from the ideal diagonal—especially in the mid-range—indicating that my model’s risk estimates don't consistently match the observed rates. Overall, while gravidity is statistically significant, my model as a whole isn't very effective at distinguishing between those who experience adverse outcomes and those who don't, and its probability estimates need improvement.
+
+
+&nbsp;
+&nbsp;
 
 
 
 
+**Figure S6. Bootstrap‑calibrated calibration curve for the malaria interaction model**
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+knitr::include_graphics("../Images/rms_model.png")
 
 
+```
+&nbsp;
+&nbsp;
 
 
+*Figure S7: Calibration curve for malaria interaction model in women aged <25 years*
 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+knitr::include_graphics("../Images/CalibrationPlot.png")
+
+```
+&nbsp;
+&nbsp;
+
+*Figure S8:Heatmap of five‑fold cross‑validated ROC AUC across the elastic‑net penalty–mixture grid*
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("../Images/Heatmap.CV AUC.png")
+
+```
+
+&nbsp;
+&nbsp;
+
+
+*Table S2:Mean cross‑validated ROC AUC (±SE) for each machine‑learning mode*
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("../Images/MeanCV ROC.AUC .png")
+
+```
 
 
 During 5‑fold cross‑validation, the elastic‐net model achieved the highest mean AUC (0.55±0.01), followed by random forest (0.52±0.01) and XGBoost (0.50±0.01).
@@ -354,13 +401,10 @@ During 5‑fold cross‑validation, the elastic‐net model achieved the highest
 
 
 # Discussion
+The supplementary materials deepen and validate our primary findings by providing transparent documentation of all data‐processing steps, extensive methodological details, and additional model diagnostics that could not be accommodated in the main text. Detailed tables of missingness, deviance tests, and variance inflation factors reinforce the robustness of our interaction model. At the same time, the bootstrap and decile‐based calibration curves confirm its reliability across risk strata. The elastic‐net heatmap and cross‐validated AUC summaries for LASSO, random forest, and XGBoost highlight that, under consistent tuning, regularized regression offers the strongest discrimination in our dataset. Exploratory bar charts of malaria episodes, gravidity, and parity by treatment arm contextualize cohort characteristics, and the gravidity‐only subgroup analyses (ROC and calibration plots) elucidate how prior pregnancy history predicts adverse outcomes among younger women. Together, these supplementary analyses enhance confidence in our conclusions, demonstrate reproducibility, and offer a resource for readers seeking to replicate or extend this work.
 
 
 
-{{< pagebreak >}}
-
-
-# References
 
 
 

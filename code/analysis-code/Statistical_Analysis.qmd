@@ -705,7 +705,6 @@ result_table <- tidy_model_gravidity %>%
 
 # 6) Print the final table
 print(result_table)
-
 ```
 
 
@@ -1577,8 +1576,6 @@ print(hl)
 # Calibration curve
 
 ```{r calibration-plot, fig.width=6, fig.height=6, warning=FALSE}
-# assume `cal` is your calibrate() object from rms::calibrate(lrm_fit, method="boot", B=200)
-
 # 1) Plot without default legend
 plot(cal,
      lty    = c(3, 1, 2),                             # dashed, solid, dashed
@@ -1607,7 +1604,6 @@ legend("bottomright",
 
 
 ```{r}
-# only these variables are needed for the logistic model
 dd <- datadist(
   train_data[, c(
     "gravidity",
