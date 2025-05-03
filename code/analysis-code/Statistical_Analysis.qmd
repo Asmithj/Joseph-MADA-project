@@ -1576,27 +1576,19 @@ print(hl)
 # Calibration curve
 
 ```{r calibration-plot, fig.width=6, fig.height=6, warning=FALSE}
-# 1) Plot without default legend
-plot(cal,
-     lty    = c(3, 1, 2),                             # dashed, solid, dashed
-     col    = c("#1f78b4", "#33a02c", "#e31a1c"),     # blue, green, red
-     lwd    = 2,
-     xlab   = "Predicted Probability of Adverse Outcome",
-     ylab   = "Observed Proportion of Adverse Outcome",
-     main   = "Calibration of Gravidity Model\nin Women Aged < 25",
-     legend = FALSE,                                  # <-- turn off built‐in legend
-     xlim   = c(0.4, 0.8),
-     ylim   = c(0.4, 0.8)
-)
+library(rms)
 
-# 2) Add a single, custom legend
-legend("bottomright",
-       legend = c("Apparent", "Bias–Corrected", "Ideal"),
-       col    = c("#1f78b4", "#33a02c", "#e31a1c"),
-       lty    = c(3, 1, 2),
-       lwd    = 2,
-       bty    = "n"
-)
+# pick only the model variables
+md <- train_data[, c("gravidity", "age_at_enrollment_years", "total_malaria_episodes", "adverse_birth_outcome")]
+
+dd <- datadist(md)
+options(datadist = "dd")
+
+# fit the logistic model
+f <- lrm(adverse_birth_outcome ~ gravidity, data = md, x = TRUE, y = TRUE)
+
+cal <- calibrate(f, method="boot", B = 200)
+# then plot(cal, ...)
 
 ```
 
