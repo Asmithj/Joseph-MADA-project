@@ -22,57 +22,47 @@ Optional: A TeX distribution (e.g., TinyTeX) if you wish to render PDF outputs.
 
 
 
-# Template structure and content
+# Template Structure and Content
 
-1. data/
-- raw-data/: Original PROMO trial CSV files
-- clean/: Cleaned CSV plus codebook (XLSX)
-- processed-data/: Final analysis dataset (.rds)
+1. data
+  - raw-data/: Original PROMO trial CSV files
+  - clean/: Cleaned CSV plus codebook (XLSX)
+  - processed-data/: Final analysis dataset (.rds)
+  
+2. code
+  - processing-code/: Data‐cleaning RMarkdown scripts
+  - eda-code/: Exploratory data analysis RMarkdowns
+  - analysis-code/: Modeling & statistical analysis RMarkdowns
 
+3. results
+  - figures/: Output figures (PNG/PDF)
+  - tables/: Output tables (.rds or image files)
+  - output/: Rendered reports (HTML/PDF)
 
-2. code/
-- processing-code/: Data‐cleaning RMarkdown scripts
-- eda-code/: Exploratory data analysis RMarkdowns
-- analysis-code/: Modeling & statistical analysis RMarkdowns
+4. products
+  - manuscript/: Quarto source and compiled manuscript
+  - supplement/: Quarto source and compiled supplementary material
 
-
-3. results/
-- figures/: Output figures (PNG/PDF)
-- tables/: Output tables (.rds or image files)
-- output/: Rendered reports (HTML/PDF)
-
-
-4. products/
-- manuscript/: Quarto source and compiled manuscript
-- supplement/: Quarto source and compiled supplementary material
-
-
-5. Images/
-- Static images referenced in the manuscript
-
+5. Images
+  - Static images referenced in the manuscript
 
 6. Manuscript.qmd
-- Quarto source file for the main report
-
+  - Quarto source file for the main report
 
 7. Manuscript.docx
-- Generated Word document of the manuscript
-
+  - Generated Word document of the manuscript
 
 8. .RData
-- Snapshot of the R workspace (all objects)
-
+  - Snapshot of the R workspace (all objects)
 
 9. .Rhistory
-- R console history log of commands run
-
+  - R console history log of commands run
 
 10. README.md
-- Project overview and instructions
-
+  - Project overview and instructions
 
 11. gitignore, .Rprofile
--  Git and RStudio configuration files
+  -  Git and RStudio configuration files
 
 
 
@@ -89,7 +79,7 @@ To recreate this analysis from start to finish, you will need:
 
 
 
-# Data Sources
+# Data Source
 PROMO Trial Data
 Retrieved from ClinEpiDB (Dataset ID DS_8786631aaf). Download the cleaned trial CSV here:
 https://clinepidb.org/ce/app/workspace/analyses/DS_8786631aaf/new/download
