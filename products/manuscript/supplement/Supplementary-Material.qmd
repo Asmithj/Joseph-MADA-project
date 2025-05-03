@@ -1,16 +1,13 @@
 ---
-title: "Supplement Materials of Impact of IPTp Regimen on Pregnancy Outcomes in a Malaria-Endemic Setting"
+title: "Supplementary Materials of Impact of IPTp Regimen on Pregnancy Outcomes"
 format:
-  docx:
+  pdf:
     toc: false
     number-sections: true
     highlight-style: github
-resources:
-  - Images/**
-execute:
-  root: products/manuscript
-bibliography: ../../assets/dataanalysis-references.bib
-csl: ../../assets/american-journal-of-epidemiology.csl
+bibliography:
+  - ../../../assets/dataanalysis-references.bib
+csl: ../../../assets/american-journal-of-epidemiology.csl
 ---
 
 
