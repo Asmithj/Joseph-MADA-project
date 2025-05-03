@@ -345,91 +345,10 @@ I see that the ROC curve for my model is close to the diagonal, with an AUC only
 
 
 ```{r}
-library(tidymodels)
-library(readr)
-library(here)
-
-# 2. Read & split data
-df <- read_csv(here("data","clean","PROMO_Data_clean.csv")) %>%
-  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1)))
-
-set.seed(2025)
-splits    <- initial_split(df, prop = 0.7, strata = adverse_birth_outcome)
-train     <- training(splits)
-test      <- testing(splits)
-cv_folds  <- vfold_cv(train, v = 5, strata = adverse_birth_outcome)
-
-# 3. Preprocessing recipe
-ml_rec <- recipe(adverse_birth_outcome ~ 
-                   age_at_enrollment_years +
-                   gravidity +
-                   total_malaria_episodes +
-                   education_level +
-                   study_arm +
-                   normalized_malaria_rate,   # ← replaced here
-                 data = train) %>%
-  step_dummy(all_nominal_predictors()) %>%  # one‐hot encode
-  step_zv(all_predictors()) %>%             # remove zero‐variance
-  step_normalize(all_numeric_predictors())  # center & scale
-
-# 4. Model specifications & workflows
-
-## (a) LASSO‐penalized logistic regression
-lasso_mod <- logistic_reg(penalty = tune(), mixture = 1) %>%
-  set_engine("glmnet") %>%
-  set_mode("classification")
-
-lasso_wf  <- workflow() %>% 
-  add_model(lasso_mod) %>% 
-  add_recipe(ml_rec)
-
-## (b) Random forest
-rf_mod <- rand_forest(mtry = tune(), trees = 1000, min_n = tune()) %>%
-  set_engine("ranger") %>%
-  set_mode("classification")
-
-rf_wf  <- workflow() %>% 
-  add_model(rf_mod) %>% 
-  add_recipe(ml_rec)
-
-## (c) XGBoost
-xgb_mod <- boost_tree(trees = tune(),
-                      tree_depth = tune(),
-                      learn_rate = tune()) %>%
-  set_engine("xgboost") %>%
-  set_mode("classification")
-
-xgb_wf <- workflow() %>% 
-  add_model(xgb_mod) %>% 
-  add_recipe(ml_rec)
-
-# 5. Tuning grids & 5‐fold CV
-set.seed(2025)
-
-lasso_grid <- grid_regular(penalty(), levels = 20)
-
-rf_params <- parameters(rf_mod) %>%
-  update(mtry = mtry(c(1, 6)))
-rf_grid   <- grid_latin_hypercube(rf_params, size = 20)
-
-xgb_params <- parameters(xgb_mod)
-xgb_grid   <- grid_latin_hypercube(xgb_params, size = 30)
-
-ml_metrics <- metric_set(roc_auc)
-
-lasso_res <- tune_grid(lasso_wf, resamples = cv_folds,
-                       grid = lasso_grid, metrics = ml_metrics)
-
-rf_res    <- tune_grid(rf_wf,    resamples = cv_folds,
-                       grid = rf_grid,    metrics = ml_metrics)
-
-xgb_res   <- tune_grid(xgb_wf,   resamples = cv_folds,
-                       grid = xgb_grid,   metrics = ml_metrics)
-
 library(dplyr)
 library(knitr)
 
-# 6) Pull the metrics into plain tibbles
+# 6) Collect tuning metrics
 lasso_metrics <- collect_metrics(lasso_res)
 rf_metrics    <- collect_metrics(rf_res)
 xgb_metrics   <- collect_metrics(xgb_res)
@@ -437,7 +356,7 @@ xgb_metrics   <- collect_metrics(xgb_res)
 # 7) Summarize AUC for each model
 lasso_auc <- lasso_metrics %>%
   filter(.metric == "roc_auc") %>%
-  dplyr::summarise(
+  summarise(
     Mean = mean(mean),
     SE   = mean(std_err)
   ) %>%
@@ -445,7 +364,7 @@ lasso_auc <- lasso_metrics %>%
 
 rf_auc <- rf_metrics %>%
   filter(.metric == "roc_auc") %>%
-  dplyr::summarise(
+  summarise(
     Mean = mean(mean),
     SE   = mean(std_err)
   ) %>%
@@ -453,18 +372,22 @@ rf_auc <- rf_metrics %>%
 
 xgb_auc <- xgb_metrics %>%
   filter(.metric == "roc_auc") %>%
-  dplyr::summarise(
+  summarise(
     Mean = mean(mean),
     SE   = mean(std_err)
   ) %>%
   mutate(Model = "XGBoost")
 
+# 8) Combine into one data frame
+table6 <- bind_rows(lasso_auc, rf_auc, xgb_auc)
 
-# 8) Combine into one data frame and print as a plain table
-table6 <- bind_rows(lasso_auc, rf_auc, xgb_auc) %>%
-  dplyr::select(Model, Mean, SE)
-
-print(table6)
+# 9) Render with kable for Word, explicitly namespacing select
+kable(
+  table6 %>% dplyr::select(Model, Mean, SE),
+  format  = "pandoc",
+  digits  = 3,
+  caption = "Table 6: Cross‑validated AUC (mean ± SE) for Each Model"
+)
 
 ```
 
