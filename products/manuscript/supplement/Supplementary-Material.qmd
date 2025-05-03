@@ -1,5 +1,6 @@
 ---
 title: "Supplementary Materials of Impact of IPTp Regimen on Pregnancy Outcomes"
+author: "Asmith Joseph"
 format:
   pdf:
     toc: false
@@ -88,7 +89,7 @@ library(xgboost)            # Gradient boosting engine
 library(generalhoslem)
 library(ResourceSelection)
 library(rms)
-library(tinytex)
+
 ```
 
 
@@ -130,7 +131,7 @@ Show additional results here. Those can be some useful exploratory/descriptive f
 
 *Bar Graph of Total Malaria Episodes During Pregnancy by Treatment Arm*
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # Load necessary libraries
 library(dplyr)
 library(ggplot2)
@@ -170,7 +171,7 @@ ggplot(promo_data_clean, aes(x = MalariaEpisodesPreg_cat, fill = study_arm)) +
 
 *Bar Graphs for Gravidity and Parity*
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # Load necessary libraries
 
 # Read in the cleaned data
@@ -204,7 +205,7 @@ ggplot(promo_data_clean, aes(x = Gravidity_cat, fill = study_arm)) +
 
 *Parity Distribution by Treatment Arm*
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # Load necessary libraries
 library(dplyr)
 library(ggplot2)
@@ -246,7 +247,7 @@ ggplot(promo_data_clean, aes(x = Parity_cat, fill = study_arm)) +
 
 @tbl-resulttable1 shows an additional table summarizing a model fit.
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 #| label: tbl-resulttable1
 #| tbl-cap: "Another fit table."
 #| echo: FALSE
@@ -259,7 +260,7 @@ knitr::kable(resulttable1)
 @fig-result2 shows a scatterplot figure produced by one of the R scripts.
 
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 #| label: fig-result2
 #| fig-cap: "Height and weight."
 #| echo: FALSE
@@ -269,7 +270,8 @@ knitr::include_graphics(here("results","figures","height-weight.png"))
 #  Evaluating Discrimination (ROC Curve and AUC)
 
 
-```{r roc-calibration, echo=TRUE, message=FALSE, warning=FALSE}
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold"}
 # 1) Load required libraries
 library(dplyr)
 library(pROC)
@@ -330,7 +332,6 @@ cal_plot <- calibration(
   class = "1"
 )
 plot(cal_plot, main = "Calibration Plot: Gravidity Model (Age < 25)")
-
 ```
 
 I see that the ROC curve for my model is close to the diagonal, with an AUC only slightly above 0.5. This tells me that the model doesn't have strong discriminative ability for predicting adverse outcomes in women under 25. Additionally, the calibration plot shows that my predicted probabilities often stray from the ideal diagonal—especially in the mid-range—indicating that my model’s risk estimates don't consistently match the observed rates. Overall, while gravidity is statistically significant, my model as a whole isn't very effective at distinguishing between those who experience adverse outcomes and those who don't, and its probability estimates need improvement.
