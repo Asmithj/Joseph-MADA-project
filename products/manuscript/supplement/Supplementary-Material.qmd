@@ -60,8 +60,10 @@ library(xgboost)            # Gradient boosting engine
 library(generalhoslem)
 library(ResourceSelection)
 library(rms)
+library(tinytex)
 
 ```
+
 
 
 

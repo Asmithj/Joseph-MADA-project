@@ -60,13 +60,21 @@ library(rms)
 
 
 *Data Import*
-```{r}
-# Data Import & Initial Inspection 
-# load the Dataset
-PROMO_Data <- read_csv(here("data", "raw-data", "PROMO_Data.csv"))
 
+```{r summary-numerics, message=FALSE, warning=FALSE}
+library(tidyverse)      
 
-promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+# 1) import your cleaned data as a tibble
+promo_data_clean <- read_csv(
+  here("data", "clean", "PROMO_Data_clean.csv"),
+  show_col_types = FALSE
+)
+
+# 2) now explicitly call dplyr::select() so there’s no ambiguity
+promo_data_clean %>%
+  dplyr::select(where(is.numeric)) %>%
+  summary()
+
 ```
 
 
@@ -108,9 +116,12 @@ names(promo_data_clean)
 *Summary Statistics*
 Numeric Variables
 ```{r}
-# Summary of numeric variables
-promo_data_clean %>% 
-  select(where(is.numeric)) %>% 
+# make sure dplyr is loaded
+library(dplyr)
+
+# explicitly call dplyr::select()
+promo_data_clean %>%
+  dplyr::select(where(is.numeric)) %>%
   summary()
 
 ```
@@ -118,10 +129,11 @@ promo_data_clean %>%
 
 *Categorical Variables*
 ```{r}
-# Frequency tables for categorical variables
-promo_data_clean %>% 
-  select(where(is.character)) %>% 
-  map(~table(.))
+library(purrr)
+
+promo_data_clean %>%
+  dplyr::select(where(is.character)) %>%
+  map(~ table(.))
 
 ```
 
@@ -152,14 +164,27 @@ naniar::vis_miss(promo_data_clean)
 *Univariate Plots*
 Numeric Variables
 ```{r}
-# Histograms of numeric variables
-promo_data_clean %>% 
-  select(where(is.numeric)) %>% 
-  gather() %>% 
+# 0) load the necessary tidyverse packages
+library(tidyverse)   # brings in dplyr, tidyr, ggplot2, purrr, etc.
+
+# 1) read your data (if you haven’t already)
+promo_data_clean <- read_csv(
+  here("data", "clean", "PROMO_Data_clean.csv"),
+  show_col_types = FALSE
+)
+
+# 2) select only the numerics, reshape, and plot
+promo_data_clean %>%
+  dplyr::select(where(is.numeric)) %>%             # force dplyr::select
+  tidyr::pivot_longer(                              # modern replacement for gather()
+    cols      = everything(),
+    names_to  = "variable",
+    values_to = "value"
+  ) %>%
   ggplot(aes(x = value)) +
-  geom_histogram(bins = 30, fill = "steelblue", color = "black") +
-  facet_wrap(~key, scales = "free") +
-  theme_minimal()
+    geom_histogram(bins = 30) +
+    facet_wrap(~ variable, scales = "free") +
+    theme_minimal()
 
 ```
 
@@ -281,15 +306,28 @@ ggplot(young_mothers, aes(x = gravidity, fill = factor(adverse_birth_outcome))) 
 
 *Categorical Variables*
 ```{r}
-# Bar plots of categorical variables
-promo_data_clean %>% 
-  select(where(is.character)) %>% 
-  gather() %>% 
+# 0) load the tidyverse (includes dplyr, tidyr, ggplot2, etc.)
+library(tidyverse)
+
+# 1) read your cleaned data as a tibble
+promo_data_clean <- read_csv(
+  here("data", "clean", "PROMO_Data_clean.csv"),
+  show_col_types = FALSE
+)
+
+# 2) select character columns, pivot longer, and plot
+promo_data_clean %>%
+  dplyr::select(where(is.character)) %>%        # force dplyr::select
+  tidyr::pivot_longer(
+    cols      = everything(),
+    names_to  = "variable",
+    values_to = "value"
+  ) %>%
   ggplot(aes(x = value)) +
-  geom_bar(fill = "lightblue", color = "black") +
-  facet_wrap(~key, scales = "free") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    geom_bar(fill = "lightblue", color = "black") +
+    facet_wrap(~ variable, scales = "free") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
 
