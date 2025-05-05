@@ -1,0 +1,2395 @@
+---
+title: "Impact of IPTp Regimen on Pregnancy Outcomes in a Malaria-Endemic Setting"
+author: "Asmith Joseph"
+date: "2025-02-23"
+output: html_document
+---
+
+```{r}
+# Load Required Libraries
+
+# Path management
+library(here)               # File path handling
+
+# Tidyverse core for data import, manipulation & visualization
+library(tidyverse)          # includes ggplot2, dplyr, tidyr, readr, purrr, etc.
+
+# Data cleaning & summaries
+library(janitor)            # Clean column names
+library(skimr)              # Quick data summaries
+
+# Date/time and categorical helpers
+library(lubridate)          # Date/time handling
+library(forcats)            # Categorical variable tools
+
+# Tables and reporting
+library(gtsummary)          # Summary tables
+library(gt)                 # Advanced table formatting
+library(knitr)              # Report generation
+library(kableExtra)         # Enhanced markdown tables
+
+# Visualization enhancements
+library(ggpubr)             # Publication-ready plots
+
+# Data exploration & preparation
+library(Amelia)             # Missing-data visualization
+library(pwr)                # Power analysis
+library(DiagrammeR)         # Diagrams and flowcharts
+
+# Survival analysis
+library(survival)           # Survival models
+library(survminer)          # Survival plots
+
+# Model effects & outputs
+library(ggeffects)          # Marginal effects extraction
+library(broom)              # Tidy model outputs
+
+# Machine learning & modeling
+library(tidymodels)         # Modeling framework (recipes, workflows, tune, yardstick, rsample)
+library(themis)             # Class-imbalance sampling (e.g., SMOTE)
+library(dials)              # Parameter tuning grids
+library(ranger)             # Random forest engine
+library(xgboost)            # Gradient boosting engine
+
+# Goodness-of-fit & diagnostics
+library(generalhoslem)      # Hosmer–Lemeshow tests
+library(ResourceSelection)  # Additional GOF tests
+library(rms)                # Regression modeling strategies
+library(car)                # Companion to applied regression
+
+```
+
+```{r}
+# Data Import & Initial Inspection 
+# load the Dataset
+# ────────────────────────────────────────────────────────────────────────────────
+# Project setup: anchor here() at the project root
+# ────────────────────────────────────────────────────────────────────────────────
+library(here)
+here::i_am("data/raw-data/PROMO_Data.csv")
+
+# ────────────────────────────────────────────────────────────────────────────────
+# Load data using project‐relative paths
+# ────────────────────────────────────────────────────────────────────────────────
+library(readr)
+
+PROMO_Data <- read_csv(
+  here("data", "raw-data", "PROMO_Data.csv")
+)
+
+promo_data_clean <- read_csv(
+  here("data", "clean", "PROMO_Data_clean.csv")
+)
+```
+
+```{r}
+colnames(promo_data_clean)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+*Table 1*
+
+
+```{r}
+# Recode variables for baseline table presentation:
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    # Create an age group variable (for potential subgroup analyses)
+    age_group = ifelse(age_at_enrollment_years < 25, "Young", "Older"),
+    
+    # Recode Gravidity into categories: "1", "2–3", "≥4" (ordered chronologically)
+    Gravidity_cat = case_when(
+      gravidity == 1 ~ "1",
+      gravidity %in% c(2, 3) ~ "2–3",
+      gravidity >= 4 ~ "≥4"
+    ),
+    Gravidity_cat = factor(Gravidity_cat, levels = c("1", "2–3", "≥4")),
+    
+    # Recode Parity into categories: "0", "1–2", "≥3" (ordered chronologically)
+    Parity_cat = case_when(
+      parity == 0 ~ "0",
+      parity %in% c(1, 2) ~ "1–2",
+      parity >= 3 ~ "≥3"
+    ),
+    Parity_cat = factor(Parity_cat, levels = c("0", "1–2", "≥3")),
+    
+    # Recode Total Malaria Episodes into categories:
+    # Combine 0 and 1 episodes as "1", 2-3 as "2–3", and 4 or more as "≥4"
+    MalariaEpisodes_cat = case_when(
+      total_malaria_episodes %in% c(0, 1) ~ "1",
+      total_malaria_episodes %in% c(2, 3) ~ "2–3",
+      total_malaria_episodes >= 4 ~ "≥4"
+    ),
+    MalariaEpisodes_cat = factor(MalariaEpisodes_cat, levels = c("1", "2–3", "≥4")),
+    
+    # Recode Total Malaria Episodes During Pregnancy similarly:
+    MalariaEpisodesPreg_cat = case_when(
+      total_malaria_episodes_during_pregnancy %in% c(0, 1) ~ "1",
+      total_malaria_episodes_during_pregnancy %in% c(2, 3) ~ "2–3",
+      total_malaria_episodes_during_pregnancy >= 4 ~ "≥4"
+    ),
+    MalariaEpisodesPreg_cat = factor(MalariaEpisodesPreg_cat, levels = c("1", "2–3", "≥4")),
+    
+    # Recode Preterm Births Count into categories:
+    # Combine 0 and 1 as "1", and 2 as "2"
+    PretermBirths_cat = case_when(
+      preterm_births_count %in% c(0, 1) ~ "1",
+      preterm_births_count == 2 ~ "2"
+    ),
+    PretermBirths_cat = factor(PretermBirths_cat, levels = c("1", "2"))
+  )
+
+# Create Table X: Baseline Characteristics Stratified by IPTp Treatment Arm
+baseline_table_treatment <- promo_data_clean %>%
+  dplyr::select(
+    study_arm,
+    `Age (years)` = age_at_enrollment_years,
+    `Gestational Age (weeks)` = gestational_age_at_enrollment_weeks,
+    `Maternal Education Level` = education_level,
+    Gravidity = Gravidity_cat,
+    Parity = Parity_cat,
+    `Total Malaria Episodes` = MalariaEpisodes_cat,
+    `Total Malaria Episodes During Pregnancy` = MalariaEpisodesPreg_cat,
+    `Malaria Infection Rate During Pregnancy` = malaria_infection_rate_during_pregnancy,
+    `Placental Malaria (Rogerson Criteria)` = placental_malaria_by_rogerson_criteria,
+    `Preterm Births Count` = PretermBirths_cat,
+    `Stillbirth bin` = stillbirth_bin,
+    `Birthweight` = birth_weight
+  ) %>%
+  tbl_summary(
+    by = study_arm,
+    missing = "no",
+    statistic = list(
+      all_continuous() ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    )
+  ) %>%
+  modify_header(label = "") %>%
+  modify_caption("**Table X: Baseline Characteristics by IPTp Treatment Arm**")
+
+# Print Table X
+baseline_table_treatment
+
+```
+
+
+
+*Table 2: Outcome Measures and Malaria Exposure Variables Stratified by IPTp Regimen*
+
+
+
+```{r}
+# Read in the cleaned data (if not already read)
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+
+# Recode variables as needed for outcomes analysis:
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    # Create a composite adverse outcome variable: 1 if any of preterm birth, stillbirth, or low birth weight (<2.5 kg) occurs
+    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
+    adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0),
+    
+    # Recode Preterm Births Count as before (0/1 -> "1", 2 -> "2")
+    PretermBirths_cat = case_when(
+      preterm_births_count %in% c(0, 1) ~ "1",
+      preterm_births_count == 2 ~ "2"
+    ),
+    PretermBirths_cat = factor(PretermBirths_cat, levels = c("1", "2"))
+  )
+
+# Create Table Z: Outcome Variables by IPTp Treatment Arm with p-values
+table_outcomes <- promo_data_clean %>%
+  dplyr::select(
+    study_arm,
+    `Malaria Infection Rate During Pregnancy` = malaria_infection_rate_during_pregnancy,
+    `Placental Malaria (Rogerson Criteria)` = placental_malaria_by_rogerson_criteria,
+    `Preterm Births Count` = PretermBirths_cat,
+    `Stillbirth bin` = stillbirth_bin,
+    `Birthweight` = birth_weight,
+    `Composite Adverse Outcome` = adverse_birth_outcome
+  ) %>%
+  tbl_summary(
+    by = study_arm,
+    missing = "no",
+    statistic = list(
+      all_continuous() ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    )
+  ) %>%
+  add_p() %>%
+  modify_header(label = "") %>%
+  modify_caption("")
+
+# Print Table Z
+table_outcomes
+
+```
+
+
+
+# Visualization
+
+*Figure 1: Histogram of Total Malaria Episodes by IPTp Treatment Arm*
+
+
+
+```{r}
+ggplot(promo_data_clean, aes(x = total_malaria_episodes, fill = study_arm)) +
+  geom_histogram(binwidth = 1, alpha = 0.6, position = "dodge") +
+  labs(title = "Distribution of Total Malaria Episodes by IPTp Treatment Arm",
+       x = "Total Malaria Episodes",
+       y = "Frequency",
+       fill = "Treatment Arm") +
+  theme_minimal()
+
+```
+
+
+
+
+
+
+
+
+
+
+
+*Figure 1: Differential Impact of IPTp Treatment on the Relationship Between Malaria Episodes and Adverse Birth Outcomes*
+
+
+
+```{r}
+# Create the composite adverse outcome variable
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
+    adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0)
+  )
+
+# Fit the interaction model (ensuring that adverse_birth_outcome now exists)
+model_interaction <- glm(adverse_birth_outcome ~ total_malaria_episodes * study_arm + 
+                           age_at_enrollment_years + gravidity + education_level,
+                         family = binomial(link = "logit"),
+                         data = promo_data_clean)
+
+# Generate predicted probabilities over the range of total malaria episodes by study arm
+pred <- ggeffect(model_interaction, terms = c("total_malaria_episodes [all]", "study_arm"))
+
+# Plot the predicted probabilities
+interaction_plot <- ggplot(pred, aes(x = x, y = predicted, color = group)) +
+  geom_line(size = 1.2) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
+  labs(title = "Differential Impact of IPTp Treatment on the Relationship\nBetween Malaria Episodes and Adverse Birth Outcomes",
+       x = "Total Malaria Episodes",
+       y = "Predicted Probability of Adverse Outcome",
+       color = "Treatment Arm",
+       fill = "Treatment Arm") +
+  theme_minimal()
+
+interaction_plot
+
+```
+
+
+
+*Research questions 1& 2*
+
+
+
+```{r}
+# Convert date columns to Date objects
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    enrollment_date = as.Date(enrollment_date, format = "%Y-%m-%d"),
+    withdrawal_date = as.Date(withdrawal_date, format = "%Y-%m-%d"),
+    child_withdrawal_date = as.Date(child_withdrawal_date, format = "%Y-%m-%d")
+  )
+
+# Convert key categorical variables to factors
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    study_arm = as.factor(study_arm),
+    fathers_consent_for_unborn_child = as.factor(fathers_consent_for_unborn_child),
+    education_level = as.factor(education_level),
+    alcohol_use = as.factor(alcohol_use),
+    tobacco_use = as.factor(tobacco_use),
+    drug_use = as.factor(drug_use),
+    hypertension = as.factor(hypertension),
+    diabetes_mellitus = as.factor(diabetes_mellitus),
+    rheumatic_fever = as.factor(rheumatic_fever),
+    cardiac_disease = as.factor(cardiac_disease),
+    renal_disease = as.factor(renal_disease),
+    asthma = as.factor(asthma),
+    sickle_cell_disease = as.factor(sickle_cell_disease),
+    placental_malaria = as.factor(placental_malaria),
+    preeclampsia = as.factor(preeclampsia),
+    dp_treatment = as.factor(dp_treatment)
+  )
+
+# Check for missing values in each column
+missing_values <- sapply(promo_data_clean, function(x) sum(is.na(x)))
+print(missing_values)
+
+
+
+# Ensure the 'data/clean' directory exists
+if (!dir.exists(here("data", "clean"))) {
+  dir.create(here("data", "clean"), recursive = TRUE)
+}
+
+# Save the cleaned data
+write.csv(promo_data_clean, here("data", "clean", "PROMO_Data_clean.csv"), row.names = FALSE)
+
+
+# Read in the cleaned data
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+
+
+```
+
+
+
+
+
+
+################################################################################################################################################################## 
+
+*Question 1: "Does the type of IPTp regimen modify the association between malaria episode frequency and adverse birth outcomes in Ugandan pregnant women?"*
+
+
+
+```{r}
+# Read in the cleaned data
+promo_data_clean <- read.csv(here("data", "clean", "PROMO_Data_clean.csv"))
+
+# Create the composite adverse outcome variable:
+# adverse_birth_outcome = 1 if any of the following occur:
+# preterm birth (preterm_births_count > 0), stillbirth (stillbirth_bin == 1), or low birth weight (<2.5 kg)
+promo_data_clean <- promo_data_clean %>%
+  mutate(
+    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
+    adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0)
+  )
+
+# Fit the logistic regression model with an interaction term
+model_interaction <- glm(adverse_birth_outcome ~ total_malaria_episodes * study_arm +
+                           age_at_enrollment_years + gravidity + education_level,
+                         family = binomial(link = "logit"),
+                         data = promo_data_clean)
+
+# Display the model summary
+summary(model_interaction)
+
+# Tidy the model output (exponentiating coefficients to yield odds ratios)
+tidy_model <- tidy(model_interaction, exponentiate = TRUE, conf.int = TRUE)
+print(tidy_model)
+
+# Generate predicted probabilities over the range of total malaria episodes by treatment arm
+pred <- ggeffect(model_interaction, terms = c("total_malaria_episodes [all]", "study_arm"))
+
+# Create the interaction plot
+interaction_plot <- ggplot(pred, aes(x = x, y = predicted, color = group)) +
+  geom_line(size = 1.2) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
+  labs(title = "Differential Impact of IPTp Treatment on the Relationship\nBetween Malaria Episodes and Adverse Birth Outcomes",
+       x = "Total Malaria Episodes",
+       y = "Predicted Probability of Adverse Outcome",
+       color = "Treatment Arm",
+       fill = "Treatment Arm") +
+  theme_minimal()
+
+interaction_plot
+
+```
+
+
+
+
+
+
+*Table 3: Interaction Between Malaria Exposure and IPTp Treatment Arm in Predicting Adverse Birth Outcomes*
+
+
+
+```{r}
+# Tidy the model output with exponentiated coefficients (odds ratios)
+tidy_model <- tidy(model_interaction, exponentiate = TRUE, conf.int = TRUE)
+
+# Remove the intercept row and recode variable names using case_when()
+tidy_model_filtered <- tidy_model %>%
+  filter(term != "(Intercept)") %>%
+  mutate(
+    term = case_when(
+      term == "total_malaria_episodes" ~ "Total Malaria Episodes",
+      term == "study_armSP" ~ "Treatment Arm (SP)",
+      term == "age_at_enrollment_years" ~ "Age at Enrollment (years)",
+      term == "gravidity" ~ "Gravidity",
+      term == "education_levelSecondary" ~ "Secondary Education",
+      term == "education_levelTertiary" ~ "Tertiary Education",
+      term == "education_levelUniversity" ~ "University Education",
+      term == "total_malaria_episodes:study_armSP" ~ "Interaction: Malaria Episodes × SP",
+      TRUE ~ term
+    )
+  )
+
+# Round key values for clarity
+tidy_model_filtered <- tidy_model_filtered %>%
+  mutate(
+    estimate = round(estimate, 2),
+    std.error = round(std.error, 2),
+    statistic = round(statistic, 2),
+    p.value = round(p.value, 3),
+    conf.low = round(conf.low, 2),
+    conf.high = round(conf.high, 2)
+  )
+
+# Render the table with a blank header for the first column
+kable(
+  tidy_model_filtered,
+  format = "pandoc",
+  caption = "*Table X: Regression Results with VIFs*",
+  col.names = c("", "Odds Ratio", "Std. Error", "z value", "p-value", "95% CI Lower", "95% CI Upper")
+) %>% 
+  kable_styling(full_width = FALSE, position = "center")
+
+```
+
+
+
+**Model 1: Main‐Effects Logistic Regression (No Interaction)**
+
+
+
+```{r compare-models-lrt-vif, message=FALSE, warning=FALSE}
+# 1) Subset to the exact variables and drop any rows with missingness
+analysis_data <- promo_data_clean %>%
+  dplyr::select(
+    adverse_birth_outcome,
+    total_malaria_episodes,
+    study_arm,
+    age_at_enrollment_years,
+    gravidity,
+    education_level
+  ) %>%
+  tidyr::drop_na()
+
+# 2) Fit the model WITHOUT the interaction
+model_no_interaction <- glm(
+  adverse_birth_outcome ~ 
+    total_malaria_episodes +
+    study_arm +
+    age_at_enrollment_years +
+    gravidity +
+    education_level,
+  family = binomial(link = "logit"),
+  data   = analysis_data
+)
+
+# 3) Fit the model WITH the regimen × malaria interaction
+model_interaction <- glm(
+  adverse_birth_outcome ~ 
+    total_malaria_episodes * study_arm +
+    age_at_enrollment_years +
+    gravidity +
+    education_level,
+  family = binomial(link = "logit"),
+  data   = analysis_data
+)
+
+# 4) Likelihood–Ratio Test (Analysis of Deviance)
+anova_out <- anova(
+  model_no_interaction,
+  model_interaction,
+  test = "LRT"
+)
+
+# 5) Tidy LRT into a data frame
+anova_df <- as.data.frame(anova_out) %>%
+  dplyr::mutate(
+    Model = c("Model 1 (No Interaction)", "Model 2 (With Interaction)")
+  ) %>%
+  dplyr::select(
+    Model,
+    `Resid. Df`,
+    `Resid. Dev`,
+    Df,
+    Deviance,
+    `Pr(>Chi)`
+  )
+
+
+# 6) Print the LRT results
+print("Analysis of Deviance (LRT) Comparing Models With and Without Interaction:")
+print(anova_df)
+
+# 7) Compute VIFs for the interaction model
+vif_vals <- car::vif(model_interaction)
+
+
+if (is.matrix(vif_vals)) {
+  # Use the orthonormalized GVIF: GVIF^(1/(2*Df))
+  vif_eff <- vif_vals[, "GVIF^(1/(2*Df))"]
+  terms   <- rownames(vif_vals)
+} else {
+  vif_eff <- vif_vals
+  terms   <- names(vif_vals)
+}
+
+vif_df <- data.frame(
+  Term = terms,
+  VIF  = vif_eff,
+  row.names = NULL
+)
+
+# 8) Print the VIF table
+print("Variance Inflation Factors for the Interaction Model:")
+print(vif_df)
+
+```
+
+
+
+
+
+
+
+
+
+ **Fit Model 2 with the regimen × malaria‐episodes interaction**
+
+
+
+```{r vif-model2, message=FALSE, warning=FALSE}
+# 1) Fit Model 2 with the regimen × malaria-episodes interaction
+model2 <- glm(
+  adverse_birth_outcome ~ 
+    total_malaria_episodes * study_arm +
+    age_at_enrollment_years +
+    gravidity +
+    education_level,
+  family = binomial(link = "logit"),
+  data   = promo_data_clean
+)
+
+# 2) Compute VIFs treating interaction terms as separate predictors
+vif_mat <- car::vif(model2, type = "predictor")
+
+# 3) Tidy into a data frame, explicitly using tibble::rownames_to_column() and dplyr:: verbs
+vif_df <- as.data.frame(vif_mat) %>%
+  tibble::rownames_to_column("Variable") %>%
+  dplyr::rename(
+    GVIF               = GVIF,
+    `Df (VIF)`         = Df,
+    `GVIF^(1/(2*Df))`  = `GVIF^(1/(2*Df))`
+  ) %>%
+  dplyr::mutate(
+    Variable = dplyr::case_when(
+      Variable == "total_malaria_episodes"             ~ "Total malaria episodes",
+      Variable == "study_armSP"                        ~ "Treatment arm (SP vs DP)",
+      Variable == "age_at_enrollment_years"            ~ "Age at enrollment",
+      Variable == "gravidity"                          ~ "Gravidity",
+      grepl("^education_level", Variable)              ~ paste0("Education:", sub("education_level", "", Variable)),
+      Variable == "total_malaria_episodes:study_armSP" ~ "Interaction: episodes × SP",
+      TRUE                                             ~ Variable
+    )
+  ) %>%
+  dplyr::select(Variable, GVIF, `Df (VIF)`, `GVIF^(1/(2*Df))`)
+
+# 4) View
+print(vif_df)
+
+```
+
+
+
+
+#############################################################################################################################################################################################################
+
+
+
+
+
+## Research Question 2:
+
+*"Among younger (women under 25 years old) Ugandan pregnant women, is increased gravidity associated with a reduced risk of adverse birth outcomes?"*
+
+
+
+```{r}
+# 1) Subset to women <25 and build the composite outcome
+promo_data_young <- promo_data_clean %>%
+  filter(age_at_enrollment_years < 25) %>%
+  mutate(
+    low_birth_weight      = ifelse(birth_weight < 2.5, 1, 0),
+    adverse_birth_outcome = ifelse(preterm_births_count > 0 |
+                                   stillbirth_bin == 1    |
+                                   low_birth_weight   == 1, 1, 0)
+  )
+
+# 2) Fit the logistic regression
+model_gravidity <- glm(
+  adverse_birth_outcome ~ 
+    gravidity +
+    total_malaria_episodes +
+    study_arm +
+    education_level,
+  family = binomial(link = "logit"),
+  data   = promo_data_young
+)
+
+# 3) Quick look at the coefficients
+summary(model_gravidity)
+
+# 4) Tidy up the output into odds ratios + 95% CI
+tidy_model_gravidity <- broom::tidy(
+  model_gravidity,
+  exponentiate = TRUE,
+  conf.int     = TRUE
+)
+print(tidy_model_gravidity)
+
+# 5) Plot predicted probability vs gravidity
+predicted_probs <- ggeffects::ggeffect(
+  model_gravidity,
+  terms = "gravidity"
+)
+
+ggplot(predicted_probs, aes(x = x, y = predicted)) +
+  geom_line(size = 1.2) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), 
+              alpha = 0.2, fill = "steelblue") +
+  labs(
+    title = "Predicted Probability of Adverse Outcome by Gravidity (Age < 25)",
+    x     = "Gravidity (number of prior pregnancies)",
+    y     = "Predicted Probability"
+  ) +
+  theme_minimal()
+
+```
+
+
+
+
+
+*Table 6: Adjusted Odds Ratios for Adverse Birth Outcomes Among Young Pregnant Women (<25 Years)*
+
+
+
+```{r}
+# 2) Subset to women <25 and create the composite outcome
+promo_data_young <- promo_data_clean %>%
+  filter(age_at_enrollment_years < 25) %>%
+  mutate(
+    low_birth_weight      = ifelse(birth_weight < 2.5, 1, 0),
+    adverse_birth_outcome = ifelse(
+      preterm_births_count > 0 |
+      stillbirth_bin == 1    |
+      low_birth_weight == 1,
+      1, 0
+    )
+  )
+
+# 3) Fit the logistic regression model
+model_gravidity <- glm(
+  adverse_birth_outcome ~
+    gravidity +
+    total_malaria_episodes +
+    study_arm +
+    education_level,
+  family = binomial(link = "logit"),
+  data   = promo_data_young
+)
+
+# 4) Tidy and exponentiate coefficients (to get odds ratios + 95% CIs)
+tidy_model_gravidity <- broom::tidy(
+  model_gravidity,
+  exponentiate = TRUE,
+  conf.int     = TRUE
+)
+
+# 5) Build a neat summary table (dropping the intercept and renaming terms)
+result_table <- tidy_model_gravidity %>%
+  filter(term != "(Intercept)") %>%
+  mutate(
+    term = case_when(
+      term == "gravidity"                 ~ "Gravidity",
+      term == "total_malaria_episodes"    ~ "Total Malaria Episodes",
+      term == "study_armSP"               ~ "Treatment Arm (SP)",
+      term == "education_levelSecondary"  ~ "Secondary Education",
+      term == "education_levelTertiary"   ~ "Tertiary Education",
+      term == "education_levelUniversity" ~ "University Education",
+      TRUE                                ~ term
+    ),
+    `Odds Ratio (95% CI)` = sprintf(
+      "%.2f (%.2f, %.2f)",
+      estimate, conf.low, conf.high
+    )
+  ) %>%
+  # first select the raw column names
+  dplyr::select(term, `Odds Ratio (95% CI)`, p.value) %>%
+  # then rename for presentation
+  dplyr::rename(
+    Variable = term,
+    `p-value` = p.value
+  )
+
+# 6) Print the final table
+print(result_table)
+```
+
+
+
+
+
+
+
+
+
+*Logistic Regression Model Fitting and Summary*
+
+
+
+```{r}
+# Subset the data to include only women under 25 years of age and create the composite adverse outcome variable
+promo_data_young <- promo_data_clean %>%
+  filter(age_at_enrollment_years < 25) %>%
+  mutate(
+    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
+    adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0)
+  )
+
+
+# Fit the logistic regression model for Research Question 2
+model_gravidity <- glm(adverse_birth_outcome ~ gravidity + total_malaria_episodes + study_arm + education_level,
+                       family = binomial(link = "logit"),
+                       data = promo_data_young)
+
+# Display the model summary
+summary(model_gravidity)
+
+# Tidy the model output with exponentiated coefficients (odds ratios)
+tidy_model_gravidity <- tidy(model_gravidity, exponentiate = TRUE, conf.int = TRUE)
+print(tidy_model_gravidity)
+
+
+```
+
+
+
+
+
+
+# Summarize gravidity model: build table of odds ratios (95% CI) and p-values
+
+
+```{r}
+# 1) Subset to <25 and define outcome
+promo_data_young <- promo_data_clean %>%
+  filter(age_at_enrollment_years < 25) %>%
+  mutate(
+    low_birth_weight      = as.integer(birth_weight < 2.5),
+    adverse_birth_outcome = as.integer(
+      preterm_births_count > 0 |
+      stillbirth_bin == 1    |
+      low_birth_weight == 1
+    )
+  )
+
+# 2) Fit logistic regression
+model_gravidity <- glm(
+  adverse_birth_outcome ~ 
+    gravidity +
+    total_malaria_episodes +
+    study_arm +
+    education_level,
+  family = binomial(link = "logit"),
+  data   = promo_data_young
+)
+
+# 3) Tidy into ORs + 95% CIs
+tidy_model_gravidity <- tidy(
+  model_gravidity,
+  exponentiate = TRUE,
+  conf.int     = TRUE
+)
+
+# 4) Build a clean summary table
+result_table <- tidy_model_gravidity %>%
+  filter(term != "(Intercept)") %>%
+  mutate(
+    Variable = case_when(
+      term == "gravidity"                ~ "Gravidity",
+      term == "total_malaria_episodes"   ~ "Total Malaria Episodes",
+      term == "study_armSP"              ~ "Treatment Arm (SP)",
+      term == "education_levelSecondary" ~ "Secondary Education",
+      term == "education_levelTertiary"  ~ "Tertiary Education",
+      term == "education_levelUniversity"~ "University Education",
+      TRUE                                ~ term
+    ),
+    `Odds Ratio (95% CI)` = sprintf(
+      "%.2f (%.2f–%.2f)",
+      estimate, conf.low, conf.high
+    ),
+    `p-value` = p.value
+  ) %>%
+  # explicitly call dplyr::select to avoid masking
+  dplyr::select(Variable, `Odds Ratio (95% CI)`, `p-value`)
+
+# 5) Print
+print(result_table)
+
+```
+
+
+
+
+
+
+
+
+*Predicted Probability of Adverse Outcome by Gravidity (Age < 25)*
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Subset to women under 25 and define outcome. Logistic Regression
+promo_data_young <- promo_data_clean %>%
+  filter(age_at_enrollment_years < 25) %>%
+  mutate(
+    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
+    adverse_birth_outcome = ifelse(
+      preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0
+    )
+  )
+
+# Fit logistic regression model
+model_gravidity <- glm(
+  adverse_birth_outcome ~ gravidity + total_malaria_episodes + 
+    study_arm + education_level,
+  family = binomial(link = "logit"),
+  data = promo_data_young
+)
+
+
+# Display model summary as odds ratios with 95% CI
+tidy(model_gravidity, exponentiate = TRUE, conf.int = TRUE)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*Predicted Probability of Adverse Outcome by Gravidity (Age < 25)*
+
+
+
+```{r}
+# Load necessary package for generating predicted effects
+library(ggeffects)
+
+# Generate predicted probabilities over the range of gravidity
+predicted_probs <- ggeffect(model_gravidity, terms = "gravidity")
+
+# Create a scatter/line plot of predicted probabilities by gravidity
+ggplot(predicted_probs, aes(x = x, y = predicted)) +
+  geom_line(size = 1.2) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2, fill = "blue") +
+  labs(title = "",
+       x = "Gravidity",
+       y = "Predicted Probability") +
+  theme_minimal()
+
+```
+
+
+
+In my logistic regression model, I found that gravidity has a statistically significant protective effect (OR = 0.857, 95% CI: 0.737–0.995, p = 0.044), suggesting that each additional pregnancy among young women under 25 reduces the odds of adverse birth outcomes. In contrast, total malaria episodes, treatment arm, and education level were not statistically significant predictors. This indicates that, within this subgroup, prior pregnancy experience is the key factor influencing birth outcomes, while other factors seem to have little effect.
+
+In my model, gravidity has an odds ratio of 0.857 (95% CI: 0.737–0.995, p = 0.044), indicating that each additional pregnancy among women under 25 reduces the odds of adverse birth outcomes by roughly 14%. Other predictors (total malaria episodes, treatment arm, and education level) were not statistically significant, suggesting that gravidity is the key protective factor in this subgroup.
+
+
+
+################################################################################################################################################################## 
+
+
+#  Evaluating Discrimination (ROC Curve and AUC)
+
+
+
+```{r}
+# Load necessary package for ROC analysis
+library(pROC)
+
+# Generate predicted probabilities using the logistic regression model (model_gravidity)
+promo_data_young$predicted_prob <- predict(model_gravidity, type = "response")
+
+# Create the ROC curve
+roc_obj <- roc(promo_data_young$adverse_birth_outcome, promo_data_young$predicted_prob)
+plot(roc_obj, col = "blue", lwd = 2, main = "ROC Curve for Model: Gravidity in Women < 25")
+auc_value <- auc(roc_obj)
+print(paste("AUC:", round(auc_value, 2)))
+
+# Load necessary package for calibration plot
+library(caret)
+
+# Create a calibration plot
+calibration_data <- data.frame(
+  observed = factor(promo_data_young$adverse_birth_outcome, levels = c(0,1)),
+  predicted = promo_data_young$predicted_prob
+)
+
+# Use the calibration function from the caret package
+cal_plot <- calibration(observed ~ predicted, data = calibration_data, class = "1")
+plot(cal_plot, main = "Calibration Plot for Model: Gravidity in Women < 25")
+
+```
+
+
+
+I see that the ROC curve for my model is close to the diagonal, with an AUC only slightly above 0.5. This tells me that the model doesn't have strong discriminative ability for predicting adverse outcomes in women under 25. Additionally, the calibration plot shows that my predicted probabilities often stray from the ideal diagonal—especially in the mid-range—indicating that my model’s risk estimates don't consistently match the observed rates. Overall, while gravidity is statistically significant, my model as a whole isn't very effective at distinguishing between those who experience adverse outcomes and those who don't, and its probability estimates need improvement.
+
+
+
+
+*Train/Test Split and Logistic Regression (Interaction Model)* *Research Question 1*
+
+ML (Research Question 1. I built and evaluated logistic regression, random forest, and boosting models (using cross-validation and train/test splits) to assess how IPTp regimen modifies the impact of malaria episodes on adverse birth outcomes.)
+
+Research Question 1, which examines whether the IPTp regimen modifies the association between malaria episodes and adverse birth outcomes.
+
+Below is an example of how I can extend my analysis by performing a train/test split and comparing a couple of machine learning classification models. For Research Question 1 (the logistic regression with the interaction term), I'll split the data into training (70%) and test (30%) sets and then fit both a logistic regression and a random forest classifier. This lets me assess model performance on unseen data using metrics like ROC AUC.
+
+
+
+```{r}
+# Set seed and perform a 70/30 train/test split (stratified on adverse outcomes)
+# Load necessary package for data splitting
+library(rsample)
+
+# Set seed and perform a 70/30 train/test split (stratified on adverse outcomes)
+set.seed(1234)
+split_data <- initial_split(promo_data_clean, prop = 0.7, strata = adverse_birth_outcome)
+train_data <- training(split_data)
+test_data  <- testing(split_data)
+
+
+# Fit the logistic regression model with an interaction term on training data
+model_interaction <- glm(adverse_birth_outcome ~ total_malaria_episodes * study_arm +
+                           age_at_enrollment_years + gravidity + education_level,
+                         family = binomial(link = "logit"),
+                         data = train_data)
+
+# Summarize the model
+summary(model_interaction)
+
+# Generate predictions on the test set and compute the ROC curve
+library(pROC)
+pred_test_logit <- predict(model_interaction, newdata = test_data, type = "response")
+roc_logit <- roc(test_data$adverse_birth_outcome, pred_test_logit)
+plot(roc_logit, col = "blue", lwd = 2, main = "ROC Curve: Logistic Regression")
+auc_logit <- auc(roc_logit)
+print(paste("Logistic Regression AUC:", round(auc_logit, 2)))
+
+```
+
+
+
+
+## Random Forest: Specification, Tuning & ROC Comparison
+This section performs a 70/30 stratified train/test split, tunes a 500-tree random forest via 10-fold cross-validation to maximize ROC-AUC, fits the final model on the training set, and plots its ROC curve (alongside the logistic regression) as an alternative ML approach for Research Question 1.
+
+
+```{r model-comparison, echo=TRUE}
+# 0) Load required packages
+library(dplyr)
+library(rsample)     # for initial_split()
+library(tidymodels)  # recipes, workflows, tuning
+library(dials)       # for parameter grids
+library(pROC)        # for ROC curves
+
+# 1) Train/test split (70/30 stratified on outcome)
+set.seed(1234)
+split_data <- initial_split(promo_data_clean, prop = 0.7, strata = adverse_birth_outcome)
+train_data <- training(split_data)
+test_data  <- testing(split_data)
+
+# 2) Convert outcome to a two‐level factor (no/yes)
+train_data <- train_data %>%
+  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1), labels = c("no","yes")))
+test_data <- test_data %>%
+  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1), labels = c("no","yes")))
+
+# --------------------------------------------------
+# 3) Fit logistic regression and build its ROC curve
+# --------------------------------------------------
+logit_fit <- glm(
+  adverse_birth_outcome ~ 
+    total_malaria_episodes * study_arm + 
+    age_at_enrollment_years + 
+    gravidity + 
+    education_level,
+  family = binomial(link = "logit"),
+  data   = train_data
+)
+
+# Predict and construct ROC for logistic model
+logit_probs <- predict(logit_fit, newdata = test_data, type = "response")
+roc_logit  <- roc(test_data$adverse_birth_outcome, logit_probs, levels = c("no","yes"), direction = "<")
+
+# --------------------------------------------------
+# 4) Hyperparameter tuning for Random Forest
+# --------------------------------------------------
+rf_spec <- rand_forest(
+    trees = 500,
+    mtry  = tune(),
+    min_n = tune()
+  ) %>%
+  set_engine("ranger") %>%
+  set_mode("classification")
+
+rf_recipe <- recipe(
+    adverse_birth_outcome ~ 
+      total_malaria_episodes + 
+      study_arm + 
+      age_at_enrollment_years + 
+      gravidity + 
+      education_level,
+    data = train_data
+  ) %>%
+  step_dummy(all_nominal_predictors())
+
+rf_wf <- workflow() %>%
+  add_model(rf_spec) %>%
+  add_recipe(rf_recipe)
+
+rf_params <- parameters(rf_spec) %>%
+  finalize(train_data)
+
+set.seed(123)
+rf_tune <- tune_grid(
+  rf_wf,
+  resamples = vfold_cv(train_data, v = 10, strata = adverse_birth_outcome),
+  grid      = grid_random(rf_params, size = 20),
+  metrics   = metric_set(roc_auc)
+)
+
+# Select best hyperparameters and finalize
+best_rf <- select_best(rf_tune, metric = "roc_auc")
+rf_final_spec <- finalize_model(rf_spec, best_rf)
+
+# --------------------------------------------------
+# 5) Fit final Random Forest and build its ROC curve
+# --------------------------------------------------
+rf_final_wf <- workflow() %>%
+  add_model(rf_final_spec) %>%
+  add_recipe(rf_recipe)
+
+rf_fit <- fit(rf_final_wf, data = train_data)
+
+rf_probs <- predict(rf_fit, new_data = test_data, type = "prob") %>%
+  pull(.pred_yes)
+
+roc_rf <- roc(test_data$adverse_birth_outcome, rf_probs, levels = c("no","yes"), direction = "<")
+
+# --------------------------------------------------
+# 6) Plot both ROC curves together
+# --------------------------------------------------
+plot(
+  roc_logit,
+  col  = "blue",
+  lwd  = 2,
+  main = "ROC Comparison: Logistic Regression vs. Random Forest"
+)
+lines(roc_rf, col = "red", lwd = 2)
+legend(
+  "bottomright",
+  legend = c("Logistic Regression", "Random Forest"),
+  col    = c("blue", "red"),
+  lwd    = 2
+)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+# Model Comparison and Interpretation
+
+
+```{r}
+# Compare ROC curves
+plot(roc_logit, col = "blue", lwd = 2, main = "ROC Comparison: Logistic Regression vs. Random Forest")
+lines(roc_rf, col = "red", lwd = 2)
+legend("bottomright", legend = c("Logistic Regression", "Random Forest"),
+       col = c("blue", "red"), lwd = 2)
+
+# Optionally, you could also compare other metrics like accuracy or calibration on the test set.
+
+```
+
+
+
+I performed a 70/30 train/test split stratified on adverse birth outcome. On the training set I fit a logistic regression (including our pre-specified interaction term), then generated test-set predictions and computed its ROC curve (AUC = 0.57). In parallel, I tuned a 500-tree random forest via 10-fold CV (stratified on outcome), fit the final model, and similarly evaluated its ROC (AUC = 0.54). Finally, I overlaid both ROC curves against the 45° no-skill line. Both models lie only slightly above that baseline, indicating poor discrimination with our current predictors—though the logistic regression edges out the random forest by a slim margin.
+
+From these plots, I see that both the logistic regression (blue) and random forest (red) models produce ROC curves only slightly above the diagonal, indicating that neither model has strong discriminative ability for predicting adverse outcomes in this dataset. In the combined plot, the logistic regression curve sits just above the random forest curve, suggesting it might be marginally better, but the difference is small—both are near an AUC of around 0.55–0.60. Overall, these results tell me that, with my current predictors and data, neither model reliably distinguishes between those who experience adverse birth outcomes and those who do not.
+
+
+
+# Define a boosting model for classification (using boost_tree)
+
+
+
+
+```{r boost-model, echo=TRUE}
+library(dplyr)
+library(rsample)
+library(tidymodels)  # recipes, workflows, tune_grid
+library(pROC)
+
+# 0) Subset & drop any rows with missing outcome/predictors
+ml_data <- promo_data_clean %>%
+  dplyr::select(
+    adverse_birth_outcome,
+    total_malaria_episodes,
+    study_arm,
+    age_at_enrollment_years,
+    gravidity,
+    education_level
+  ) %>%
+  tidyr::drop_na()
+
+
+# 1) 70/30 split, stratified on the now‐clean outcome
+set.seed(1234)
+split_obj  <- initial_split(ml_data, prop = 0.7, strata = adverse_birth_outcome)
+train_data  <- training(split_obj)
+test_data   <- testing(split_obj)
+
+# 2) Make sure the outcome is a 2‐level factor
+train_data <- train_data %>%
+  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1), labels = c("no","yes")))
+test_data  <- test_data  %>%
+  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1), labels = c("no","yes")))
+
+# 3) Boosting spec + recipe + workflow
+boost_spec <- boost_tree(
+    mode       = "classification",
+    trees      = 500,
+    learn_rate = tune(),
+    tree_depth = tune()
+  ) %>%
+  set_engine("xgboost")
+
+boost_rec <- recipe(
+    adverse_birth_outcome ~
+      total_malaria_episodes +
+      study_arm +
+      age_at_enrollment_years +
+      gravidity +
+      education_level,
+    data = train_data
+  ) %>%
+  step_dummy(all_nominal_predictors())
+
+boost_wf <- workflow() %>%
+  add_model(boost_spec) %>%
+  add_recipe(boost_rec)
+
+# 4) Tuning grid + CV + tune_grid (with roc_auc)
+boost_grid <- grid_regular(
+  learn_rate(range = c(0.01, 0.3)),
+  tree_depth(range = c(3, 8)),
+  levels = 5
+)
+
+cv_folds <- vfold_cv(train_data, v = 10, strata = adverse_birth_outcome)
+
+set.seed(2345)
+boost_tune <- tune_grid(
+  boost_wf,
+  resamples = cv_folds,
+  grid      = boost_grid,
+  metrics   = metric_set(roc_auc)
+)
+
+# 5) Finalize, fit & evaluate
+best_boost <- select_best(boost_tune, metric = "roc_auc")
+final_boost_spec <- finalize_model(boost_spec, best_boost)
+
+boost_final_wf <- workflow() %>%
+  add_model(final_boost_spec) %>%
+  add_recipe(boost_rec)
+
+boost_fit <- fit(boost_final_wf, data = train_data)
+
+# ROC on the test set
+boost_probs <- predict(boost_fit, new_data = test_data, type = "prob") %>% pull(.pred_yes)
+roc_boost  <- roc(test_data$adverse_birth_outcome, boost_probs, levels = c("no","yes"))
+plot(roc_boost, col = "darkgreen", lwd = 2, main = "ROC Curve: XGBoost")
+auc_boost <- auc(roc_boost)
+print(paste("Boosting Model AUC:", round(auc_boost, 2)))
+```
+
+
+The ROC curve for the boosting model rises more clearly above the diagonal line than the previous models, suggesting it does a better job distinguishing between those who experience adverse birth outcomes and those who do not. Although it’s still not perfect, the curve indicates an improvement in predictive performance compared to the logistic regression and random forest models, meaning the boosting model likely has a higher AUC and provides a more accurate risk estimate for adverse outcomes in this dataset.
+
+
+
+
+
+
+
+
+
+
+*ML for research question 2*
+
+*Subset Data and Create Outcome Variable & Fit Logistic Regression Model*
+
+
+
+```{r}
+# Subset data to include only women under 25 years
+promo_data_young <- promo_data_clean %>%
+  filter(age_at_enrollment_years < 25)
+
+# Create the composite adverse outcome variable:
+# adverse_birth_outcome = 1 if any of the following occur:
+# preterm birth (preterm_births_count > 0), stillbirth (stillbirth_bin == 1), or low birth weight (<2.5 kg)
+promo_data_young <- promo_data_young %>%
+  mutate(
+    low_birth_weight = ifelse(birth_weight < 2.5, 1, 0),
+    adverse_birth_outcome = ifelse(preterm_births_count > 0 | stillbirth_bin == 1 | low_birth_weight == 1, 1, 0)
+  )
+
+
+# Fit the logistic regression model for women under 25
+model_gravidity <- glm(adverse_birth_outcome ~ gravidity + total_malaria_episodes + study_arm + education_level,
+                       family = binomial(link = "logit"),
+                       data = promo_data_young)
+
+# Display the model summary and tidy output with exponentiated coefficients (odds ratios)
+summary(model_gravidity)
+tidy_model_gravidity <- tidy(model_gravidity, exponentiate = TRUE, conf.int = TRUE)
+print(tidy_model_gravidity)
+
+
+```
+
+
+
+-   Plot Predicted Probabilities by Gravidity\*
+
+
+
+```{r}
+# Load necessary package for generating predicted effects
+library(ggeffects)
+
+# Generate predicted probabilities over the range of gravidity
+predicted_probs <- ggeffect(model_gravidity, terms = "gravidity")
+
+# Create a line plot of predicted probabilities with confidence intervals
+ggplot(predicted_probs, aes(x = x, y = predicted)) +
+  geom_line(size = 1.2) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2, fill = "blue") +
+  labs(title = "Predicted Probability of Adverse Outcome by Gravidity (Age < 25)",
+       x = "Gravidity", y = "Predicted Probability") +
+  theme_minimal()
+
+```
+
+
+
+In this subgroup of women under 25, gravidity is the only statistically significant predictor: each additional pregnancy lowers the odds of an adverse birth outcome (OR ≈ 0.86, 95% CI: 0.74–0.995, p = 0.044). As shown in the predicted probability plot, the likelihood of an adverse outcome steadily drops from roughly 60% at gravidity = 1 to about 45% at gravidity = 5. The other predictors—total malaria episodes, treatment arm, and education level—do not significantly change the risk in this subgroup, suggesting that prior pregnancy experience is the key factor driving improved outcomes for younger women.
+
+
+
+
+################################################################################################################################################################## 
+
+
+
+## Machine Learning approaches
+
+To complement regression analysis, we implemented machine learning workflows for Research Question 1. All models were trained on 70% of the data and evaluated on a held-out 30% test set. Ten-fold cross-validation on the training set was used for hyperparameter tuning where applicable.
+
+
+# Prepare outcome as factor and split data
+
+
+
+```{r}
+promo_data_clean <- promo_data_clean %>%
+  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1)))
+set.seed(2025)
+split       <- initial_split(promo_data_clean, prop = 0.7, strata = adverse_birth_outcome)
+train_data  <- training(split)
+test_data   <- testing(split)
+cv_folds    <- vfold_cv(train_data, v = 10, strata = adverse_birth_outcome)
+```
+
+
+
+
+### Logistic regression (baseline)
+
+
+
+```{r}
+logistic_wf <- workflow() %>%
+  add_model(logistic_reg() %>% set_engine("glm")) %>%
+  add_formula(adverse_birth_outcome ~ total_malaria_episodes * study_arm +
+                age_at_enrollment_years + gravidity + education_level)
+
+logistic_fit  <- fit(logistic_wf, data = train_data)
+
+# Predict and evaluate
+logistic_preds <- predict(logistic_fit, test_data, type = "prob") %>%
+  bind_cols(test_data)
+logistic_auc <- roc_auc(logistic_preds, truth = adverse_birth_outcome, .pred_1)
+print(logistic_auc)
+```
+
+
+The logistic regression model achieved an AUC of 0.48 on the independent test set, indicating discrimination no better than random chance. This poor performance suggests that, in its current form, the linear predictor does not capture sufficient signal to distinguish between pregnancies with and without adverse outcomes. These findings highlight the need to revisit variable coding, explore non‑linear feature transformations, or consider more flexible algorithms (e.g., random forest or gradient boosting) to improve predictive accuracy.
+
+
+
+
+
+
+
+
+
+### Random Forest classifier
+
+
+
+
+```{r}
+# Tuning grid (requires library(dials) or library(tidymodels) loaded)
+rf_recipe <- recipe(adverse_birth_outcome ~ total_malaria_episodes + study_arm +
+                      age_at_enrollment_years + gravidity + education_level,
+                    data = train_data) %>%
+  step_dummy(all_nominal_predictors())
+
+rf_wf <- workflow() %>%
+  add_model(rand_forest(trees = 500, mtry = tune(), min_n = tune()) %>%
+              set_engine("ranger") %>% set_mode("classification")) %>%
+  add_recipe(rf_recipe)
+
+rf_grid <- grid_regular(
+  mtry(range = c(1, 5)),
+  min_n(range = c(2, 10)),
+  levels = 5
+)
+
+rf_tune <- tune_grid(
+  rf_wf,
+  resamples = cv_folds,
+  grid      = rf_grid,
+  metrics   = metric_set(roc_auc)
+)
+
+best_rf <- select_best(rf_tune, metric = "roc_auc")
+rf_final <- finalize_workflow(rf_wf, best_rf)
+rf_fit   <- fit(rf_final, data = train_data)
+
+rf_preds <- predict(rf_fit, test_data, type = "prob") %>%
+  bind_cols(test_data)
+rf_auc <- roc_auc(rf_preds, truth = adverse_birth_outcome, .pred_1)
+print(rf_auc)
+
+```
+
+
+The random forest classifier achieved an AUC of 0.42 on the held‑out test set, indicating discrimination well below the 0.50 threshold expected for random performance. This result demonstrates that, despite its capacity to capture non‑linear relationships, the current set of predictors does not provide sufficient signal to distinguish between pregnancies with and without adverse outcomes. These findings suggest the need for deeper feature engineering, additional or more granular clinical variables, and exploration of alternative modeling strategies to enhance predictive performance.
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Gradient boosting (XGBoost)
+
+
+
+```{r}
+# Define workflow
+# Ensure grid_regular() is available
+library(dials)
+
+# Define workflow
+xgb_wf <- workflow() %>%
+  add_model(
+    boost_tree(
+      trees = 500,
+      learn_rate = tune(),
+      tree_depth = tune()
+    ) %>%
+      set_engine("xgboost") %>%
+      set_mode("classification")
+  ) %>%
+  add_recipe(rf_recipe)
+
+# Create tuning grid
+xgb_grid <- grid_regular(
+  learn_rate(range = c(0.01, 0.3)),
+  tree_depth(range = c(3, 8)),
+  levels = 4
+)
+
+# Perform tuning
+xgb_tune <- tune_grid(
+  xgb_wf,
+  resamples = cv_folds,
+  grid      = xgb_grid,
+  metrics   = metric_set(roc_auc)
+)
+
+# Select best hyperparameters by naming the metric argument
+best_xgb <- select_best(xgb_tune, metric = "roc_auc")
+
+# Finalize and fit the final model
+xgb_final <- finalize_workflow(xgb_wf, best_xgb)
+xgb_fit   <- fit(xgb_final, data = train_data)
+
+# Predict on the test set
+xgb_preds <- predict(xgb_fit, test_data, type = "prob") %>%
+  bind_cols(test_data)
+
+# Compute and print AUC
+xgb_auc <- roc_auc(xgb_preds, truth = adverse_birth_outcome, .pred_1)
+print(xgb_auc)
+```
+
+
+The gradient boosting model (XGBoost) achieved an AUC of 0.44 on the independent test set, indicating performance substantially below the 0.50 threshold for random guessing. Despite its flexibility in modeling complex, non‑linear relationships, the current predictor set does not appear to contain enough signal to reliably distinguish between pregnancies with and without adverse outcomes. These results highlight the need for additional feature engineering, incorporation of more informative clinical variables, or alternative analytic strategies to improve predictive accuracy.
+
+
+
+
+
+
+
+
+
+
+
+### Model comparison on test set
+
+
+
+```{r}
+roc_lr  <- roc_curve(logistic_preds, truth = adverse_birth_outcome, .pred_1) %>% mutate(model = "Logistic")
+roc_rf  <- roc_curve(rf_preds,       truth = adverse_birth_outcome, .pred_1) %>% mutate(model = "RF")
+roc_xgb <- roc_curve(xgb_preds,     truth = adverse_birth_outcome, .pred_1) %>% mutate(model = "XGBoost")
+
+roc_all <- bind_rows(roc_lr, roc_rf, roc_xgb)
+
+ggplot(roc_all, aes(x = 1 - specificity, y = sensitivity, color = model)) +
+  geom_path(size = 1) +
+  labs(title = "ROC Curves: ML Models for Adverse Outcome Prediction",
+       x = "False Positive Rate", y = "True Positive Rate") +
+  theme_minimal()
+```
+
+
+Figure displays the ROC curves for logistic regression (red), random forest (green), and gradient boosting (blue) on the held‑out test set. All three curves lie close to the diagonal, reflecting poor discrimination: none of the models reliably separates pregnancies with versus without adverse outcomes. Of the three, logistic regression achieved the highest AUC (0.48), followed by XGBoost (0.44) and random forest (0.42), but these differences are marginal and all fall below the 0.50 threshold for random performance. Collectively, these results underscore that, with the current predictor set, more informative features or alternative modeling strategies will be necessary to improve predictive accuracy.
+
+
+
+
+
+
+
+
+
+
+
+## Subgroup ML: Young women (<25)
+A similar train/test and model workflow was applied to the subset of women under 25 to assess whether ML methods capture the protective effect of gravidity in this subgroup.
+
+
+
+```{r}
+# Subset and split
+set.seed(2025)
+young_split <- initial_split(
+  filter(promo_data_clean, age_at_enrollment_years < 25),
+  prop = 0.7,
+  strata = adverse_birth_outcome
+)
+young_train <- training(young_split) %>%
+  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1)))
+young_test  <- testing(young_split) %>%
+  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1)))
+
+# Logistic on gravidity only
+young_logit <- glm(
+  adverse_birth_outcome ~ gravidity,
+  family = binomial(),
+  data = young_train
+)
+
+# Evaluate performance
+young_preds <- predict(
+  young_logit,
+  newdata = young_test,
+  type = "response"
+)
+young_auc <- roc_auc_vec(
+  truth = young_test$adverse_birth_outcome,
+  estimate = young_preds
+)
+print(young_auc)
+```
+
+
+
+
+
+
+
+
+
+
+
+This ML section demonstrates train/test splitting, cross-validation for tuning, and comparison across logistic regression, random forest, and boosting models, aligned with Research Question1 and the subgroup analysis for Research Question2.
+
+## Subgroup ML: Young women (<25)
+
+A similar train/test and model workflow was applied to the subset of women under 25 to assess whether ML methods capture the protective effect of gravidity in this subgroup.
+
+
+
+```{r}
+# r ml_young
+# Subset
+young_split <- initial_split(filter(promo_data_clean, age_at_enrollment_years < 25), prop = 0.7, strata = adverse_birth_outcome)
+young_train <- training(young_split)
+young_test  <- testing(young_split)
+
+# Fit logistic with gravidity only
+young_logit <- glm(adverse_birth_outcome ~ gravidity,
+                   family = binomial(), data = young_train)
+
+# Evaluate on test set
+young_preds <- predict(young_logit, newdata = young_test, type = "response")
+roc_auc_vec <- roc_auc_vec(young_test$adverse_birth_outcome, young_preds)
+print(roc_auc_vec)
+```
+
+
+
+
+In the subgroup of women under 25 years, the machine‑learning model achieved an AUC of 0.49 on the held‑out test set, indicating discrimination essentially equivalent to random guessing. This suggests that, even within this younger cohort, the available predictors do not provide sufficient signal to distinguish pregnancies with versus without adverse outcomes. These results highlight the need for additional or more granular features and potentially alternative modeling strategies to meaningfully improve risk stratification in this subgroup.
+
+
+
+
+
+
+
+
+
+This ML section demonstrates train/test splitting, cross-validation for tuning, and comparison across logistic regression, random forest, and boosting models, aligned with Research Question1 and the subgroup analysis for Question2.
+
+
+
+
+**Include**
+
+
+```{r}
+ggplot(roc_all, aes(x = 1 - specificity, y = sensitivity, color = model)) +
+  geom_path(size = 1) +
+  labs(title = "ROC Curves: ML Models for Adverse Outcome Prediction",
+       x = "False Positive Rate", y = "True Positive Rate") +
+  theme_minimal()
+
+```
+
+
+
+
+# Model Comparison Table (AUC values)
+
+
+
+```{r}
+tibble::tibble(
+  Model = c("Logistic Regression", "Random Forest", "XGBoost", "Elastic Net"),
+  AUC = c(0.48, 0.42, 0.44, 0.49)
+)
+
+```
+
+
+
+
+
+
+
+
+# Hosmer–Lemeshow test
+
+
+```{r}
+library(ResourceSelection)
+
+# get predicted probabilities on the exact same rows as your observed outcome
+phat <- predict(
+  model_gravidity,
+  newdata = train_data,
+  type    = "response"
+)
+
+# convert the factor 0/1 outcome to numeric 0/1
+yobs <- as.numeric(train_data$adverse_birth_outcome) - 1
+
+# now run Hosmer–Lemeshow
+hl <- hoslem.test(
+  x = yobs,
+  y = phat,
+  g = 10
+)
+
+print(hl)
+
+
+```
+
+
+
+
+
+# Calibration curve
+
+
+
+```{r calibration-plot, fig.width=6, fig.height=6, warning=FALSE}
+library(rms)
+
+# pick only the model variables
+md <- train_data[, c("gravidity", "age_at_enrollment_years", "total_malaria_episodes", "adverse_birth_outcome")]
+
+dd <- datadist(md)
+options(datadist = "dd")
+
+# fit the logistic model
+f <- lrm(adverse_birth_outcome ~ gravidity, data = md, x = TRUE, y = TRUE)
+
+cal <- calibrate(f, method="boot", B = 200)
+# then plot(cal, ...)
+
+```
+
+```{r}
+dd <- datadist(
+  train_data[, c(
+    "gravidity",
+    "total_malaria_episodes",
+    "study_arm",
+    "education_level",
+    "adverse_birth_outcome"
+  )]
+)
+options(datadist = "dd")
+
+# now fit with rms
+rms_model <- lrm(
+  adverse_birth_outcome ~ 
+    gravidity + total_malaria_episodes + study_arm + education_level,
+  data = train_data,
+  x = TRUE, y = TRUE
+)
+
+# bootstrap‐calibrated calibration curve
+cal <- calibrate(rms_model, method = "boot", B = 200)
+plot(
+  cal,
+  xlab = "Predicted probability",
+  ylab = "Observed proportion"
+)
+
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+# 1) Get predictions on the train set
+train_data <- train_data %>%
+  mutate(
+    pred   = predict(model_gravidity, newdata = ., type = "response"),
+    decile = ntile(pred, 10)
+  )
+
+# 2) Summarize observed vs. predicted in each decile (explicitly using dplyr)
+calib_df <- train_data %>%
+  dplyr::group_by(decile) %>%
+  dplyr::summarize(
+    mean_pred = mean(pred, na.rm = TRUE),
+    obs_rate  = mean(as.numeric(adverse_birth_outcome) - 1, na.rm = TRUE)
+  )
+
+# 3) Plot calibration curve
+ggplot(calib_df, aes(x = mean_pred, y = obs_rate)) +
+  geom_point(size = 3) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
+  labs(
+    x     = "Mean predicted probability",
+    y     = "Observed event rate",
+    title = "Calibration plot (deciles)"
+  ) +
+  theme_minimal()
+
+```
+
+
+
+
+
+
+
+
+
+
+################################################################################################################################################################## 
+
+
+
+
+
+### Improved ML: Elastic Net with Feature Engineering
+
+
+
+
+
+```{r ml_improved_recipe, message=FALSE, warning=FALSE}
+# 0) Cast to correct classes *before* creating cv_folds
+train_data <- train_data %>%
+  mutate(
+    total_malaria_episodes = as.numeric(total_malaria_episodes),
+    gravidity              = as.numeric(gravidity),
+    adverse_birth_outcome  = factor(adverse_birth_outcome, levels = c(0,1))
+  )
+
+test_data <- test_data %>%
+  mutate(
+    total_malaria_episodes = as.numeric(total_malaria_episodes),
+    gravidity              = as.numeric(gravidity),
+    adverse_birth_outcome  = factor(adverse_birth_outcome, levels = c(0,1))
+  )
+
+# 0b) Now create your 10-fold resamples on the cleaned train_data
+cv_folds <- vfold_cv(train_data, v = 10, strata = adverse_birth_outcome)
+
+# 1) Build the recipe: dummies, features, SMOTE, normalize
+improved_recipe <- recipe(adverse_birth_outcome ~ 
+                             total_malaria_episodes +
+                             study_arm +
+                             age_at_enrollment_years +
+                             gravidity +
+                             education_level,
+                           data = train_data) %>%
+  step_dummy(all_nominal_predictors(), one_hot = TRUE) %>%
+  step_mutate(
+    malaria_sq       = total_malaria_episodes^2,
+    malaria_DP_inter = total_malaria_episodes * study_arm_DP
+  ) %>%
+  step_smote(adverse_birth_outcome) %>%
+  step_normalize(all_numeric_predictors())
+
+# 2) Specify elastic-net logistic regression
+enet_spec <- logistic_reg(
+    penalty = tune(),
+    mixture = tune()
+  ) %>%
+  set_engine("glmnet")
+
+# 3) Assemble into a workflow
+enet_wf <- workflow() %>%
+  add_recipe(improved_recipe) %>%
+  add_model(enet_spec)
+
+# 4) Tuning grid & 10-fold CV
+enet_grid <- grid_regular(
+  penalty(range = c(-5, -1), trans = log10_trans()),  # from 1e-5 to 1e-1
+  mixture(range = c(0, 1)),
+  levels = 5
+)
+
+enet_tune <- tune_grid(
+  enet_wf,
+  resamples = cv_folds,
+  grid      = enet_grid,
+  metrics   = metric_set(roc_auc)
+)
+
+# 5) Show the top AUC
+enet_tune %>%
+  collect_metrics() %>%
+  filter(.metric == "roc_auc") %>%
+  arrange(desc(mean))
+```
+
+```{r}
+library(dplyr)
+
+# Get top 5 elastic‐net hyperparameter combinations and print as a regular tibble
+top5_enet <- enet_tune %>%
+  collect_metrics() %>%
+  filter(.metric == "roc_auc") %>%
+  arrange(desc(mean)) %>%
+  slice_head(n = 5) %>%
+  mutate(`AUC (mean ± SE)` = sprintf("%.3f ± %.3f", mean, std_err)) %>%
+  dplyr::select(penalty, mixture, `AUC (mean ± SE)`)
+
+# Print the table
+print(top5_enet)
+
+```
+
+```{r}
+library(dplyr)
+
+# Extract and print the top 5 elastic-net tuning results as a regular tibble
+top5_enet <- enet_tune %>%
+  collect_metrics() %>%
+  filter(.metric == "roc_auc") %>%
+  arrange(desc(mean)) %>%
+  slice_head(n = 5) %>%
+  mutate(`AUC (mean ± SE)` = sprintf("%.3f ± %.3f", mean, std_err)) %>%
+  dplyr::select(penalty, mixture, `AUC (mean ± SE)`)
+
+print(top5_enet)
+
+```
+
+```{r}
+library(ggplot2)
+
+enet_tune %>% 
+  collect_metrics() %>% 
+  filter(.metric=="roc_auc") %>% 
+  ggplot(aes(x = log10(penalty), y = mixture, fill = mean)) +
+    geom_tile() +
+    scale_fill_viridis_c(name = "AUC") +
+    labs(
+      x = expression(log[10](lambda)),
+      y = expression(alpha),
+      title = "Heatmap of cross-validated AUC\nfor Elastic-net hyperparameter grid"
+    ) +
+    theme_minimal(base_size = 12)
+
+```
+
+
+
+
+
+
+
+
+
+################################################################################################################################################################## 
+
+
+## Elastic Net Logistic Regression: Specification, Tuning & Evaluation
+
+
+
+
+```{r feature-engineering}
+
+library(dplyr)
+library(lubridate)
+library(rsample)
+library(tidymodels)
+library(themis)    # for step_smote()
+library(scales)    # for log10_trans()
+
+set.seed(1234)
+
+# 1) PREPARE full_data (no complex imputation needed)
+full_data <- promo_data_clean %>%
+  mutate(
+    adverse_birth_outcome               = factor(adverse_birth_outcome, levels = c(0,1), labels = c("no","yes")),
+    total_malaria_episodes              = as.integer(total_malaria_episodes),
+    gravidity                           = as.integer(gravidity),
+    gestational_age_at_enrollment_weeks = as.numeric(gestational_age_at_enrollment_weeks),
+    malaria_infection_rate_during_pregnancy = as.numeric(malaria_infection_rate_during_pregnancy),
+    placental_malaria_by_rogerson_criteria = factor(placental_malaria_by_rogerson_criteria)
+  ) %>%
+  drop_na(
+    adverse_birth_outcome,
+    total_malaria_episodes,
+    gravidity,
+    gestational_age_at_enrollment_weeks,
+    malaria_infection_rate_during_pregnancy,
+    placental_malaria_by_rogerson_criteria,
+    study_arm,
+    age_at_enrollment_years,
+    education_level
+  )
+
+# 2) Split 70/30 (unstratified)
+split_obj  <- initial_split(full_data, prop = 0.7)
+train_data <- training(split_obj)
+test_data  <- testing(split_obj)
+
+# 3) Recipe (no more enroll_month or episodes_per_trimester)
+enet_recipe <- recipe(adverse_birth_outcome ~
+                        total_malaria_episodes +
+                        gravidity +
+                        gestational_age_at_enrollment_weeks +
+                        malaria_infection_rate_during_pregnancy +
+                        placental_malaria_by_rogerson_criteria +
+                        study_arm +
+                        age_at_enrollment_years +
+                        education_level,
+                      data = train_data) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_smote(adverse_birth_outcome) %>%
+  step_normalize(all_numeric_predictors())
+
+# 4) Model spec & workflow
+enet_spec <- logistic_reg(penalty = tune(), mixture = tune()) %>%
+  set_engine("glmnet") %>%
+  set_mode("classification")
+
+enet_wf <- workflow() %>%
+  add_recipe(enet_recipe) %>%
+  add_model(enet_spec)
+
+# 5) Tuning grid
+enet_grid <- grid_regular(
+  penalty(range = c(-5, -1), trans = log10_trans()),
+  mixture(range = c(0, 1)),
+  levels = 5
+)
+
+# 6) CV folds
+cv_folds <- vfold_cv(train_data, v = 5)
+
+# 7) Tune
+enet_tune <- tune_grid(
+  enet_wf,
+  resamples = cv_folds,
+  grid      = enet_grid,
+  metrics   = metric_set(roc_auc)
+)
+
+# 8) Select best & refit
+best_params   <- select_best(enet_tune, metric = "roc_auc")
+final_enet_wf <- finalize_workflow(enet_wf, best_params)
+enet_fit      <- fit(final_enet_wf, data = train_data)
+
+# 9) Evaluate on test set
+enet_preds <- predict(enet_fit, new_data = test_data, type = "prob") %>%
+  bind_cols(test_data)
+
+print( roc_auc(enet_preds, truth = adverse_birth_outcome, .pred_yes) )
+
+```
+
+```{r}
+library(tidymodels)
+
+# (A) Tune hyperparameters via grid search
+enet_tune <- tune_grid(
+  enet_wf,               # your workflow
+  resamples = cv_folds,  # the vfold_cv object
+  grid      = enet_grid, # grid of penalty/mixture values
+  metrics   = metric_set(roc_auc)
+)
+
+# (B) Look at the tuning results for ROC AUC
+roc_results <- collect_metrics(enet_tune) %>%
+  filter(.metric == "roc_auc") %>%
+  arrange(desc(mean))
+
+print(roc_results)
+
+# (C) Pick the best parameters (note the named argument)
+best_params <- select_best(enet_tune, metric = "roc_auc")
+
+# (D) Finalize & refit on all of train_data
+final_enet_wf <- finalize_workflow(enet_wf, best_params)
+enet_fit      <- fit(final_enet_wf, data = train_data)
+
+# (E) Evaluate on the test set
+enet_preds <- predict(enet_fit, new_data = test_data, type = "prob") %>%
+  bind_cols(test_data)
+
+enet_auc <- roc_auc(enet_preds, truth = adverse_birth_outcome, .pred_yes)
+print(enet_auc)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+################################################################################################################################################################## 
+
+
+
+# More Machine Learning Analysis
+To explore whether flexible, data‐driven classifiers could outperform our regression models in predicting the composite adverse birth outcome, we built a standardized ML pipeline using **tidymodels**. We compared three algorithms—LASSO‐penalized logistic regression, random forest, and XGBoost—each trained on the same predictors: maternal age, gravidity, education level, total malaria episodes, treatment arm, and socioeconomic status.
+
+
+
+
+```{r}
+library(tidymodels)
+library(readr)
+library(here)
+
+# 2. Read & split data
+df <- read_csv(here("data","clean","PROMO_Data_clean.csv")) %>%
+  mutate(adverse_birth_outcome = factor(adverse_birth_outcome, levels = c(0,1)))
+
+set.seed(2025)
+splits    <- initial_split(df, prop = 0.7, strata = adverse_birth_outcome)
+train     <- training(splits)
+test      <- testing(splits)
+cv_folds  <- vfold_cv(train, v = 5, strata = adverse_birth_outcome)
+
+# 3. Preprocessing recipe
+ml_rec <- recipe(adverse_birth_outcome ~ 
+                   age_at_enrollment_years +
+                   gravidity +
+                   total_malaria_episodes +
+                   education_level +
+                   study_arm +
+                   normalized_malaria_rate,   # ← replaced here
+                 data = train) %>%
+  step_dummy(all_nominal_predictors()) %>%  # one‐hot encode
+  step_zv(all_predictors()) %>%             # remove zero‐variance
+  step_normalize(all_numeric_predictors())  # center & scale
+
+# 4. Model specifications & workflows
+
+## (a) LASSO‐penalized logistic regression
+lasso_mod <- logistic_reg(penalty = tune(), mixture = 1) %>%
+  set_engine("glmnet") %>%
+  set_mode("classification")
+
+lasso_wf  <- workflow() %>% 
+  add_model(lasso_mod) %>% 
+  add_recipe(ml_rec)
+
+## (b) Random forest
+rf_mod <- rand_forest(mtry = tune(), trees = 1000, min_n = tune()) %>%
+  set_engine("ranger") %>%
+  set_mode("classification")
+
+rf_wf  <- workflow() %>% 
+  add_model(rf_mod) %>% 
+  add_recipe(ml_rec)
+
+## (c) XGBoost
+xgb_mod <- boost_tree(trees = tune(),
+                      tree_depth = tune(),
+                      learn_rate = tune()) %>%
+  set_engine("xgboost") %>%
+  set_mode("classification")
+
+xgb_wf <- workflow() %>% 
+  add_model(xgb_mod) %>% 
+  add_recipe(ml_rec)
+
+# 5. Tuning grids & 5‐fold CV
+set.seed(2025)
+
+lasso_grid <- grid_regular(penalty(), levels = 20)
+
+rf_params <- parameters(rf_mod) %>%
+  update(mtry = mtry(c(1, 6)))
+rf_grid   <- grid_latin_hypercube(rf_params, size = 20)
+
+xgb_params <- parameters(xgb_mod)
+xgb_grid   <- grid_latin_hypercube(xgb_params, size = 30)
+
+ml_metrics <- metric_set(roc_auc)
+
+lasso_res <- tune_grid(lasso_wf, resamples = cv_folds,
+                       grid = lasso_grid, metrics = ml_metrics)
+
+rf_res    <- tune_grid(rf_wf,    resamples = cv_folds,
+                       grid = rf_grid,    metrics = ml_metrics)
+
+xgb_res   <- tune_grid(xgb_wf,   resamples = cv_folds,
+                       grid = xgb_grid,   metrics = ml_metrics)
+
+library(dplyr)
+library(knitr)
+
+# 6) Pull the metrics into plain tibbles
+lasso_metrics <- collect_metrics(lasso_res)
+rf_metrics    <- collect_metrics(rf_res)
+xgb_metrics   <- collect_metrics(xgb_res)
+
+# 7) Summarize AUC for each model
+lasso_auc <- lasso_metrics %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean),
+    SE   = mean(std_err)
+  ) %>%
+  mutate(Model = "LASSO")
+
+rf_auc <- rf_metrics %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean),
+    SE   = mean(std_err)
+  ) %>%
+  mutate(Model = "Random Forest")
+
+xgb_auc <- xgb_metrics %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean),
+    SE   = mean(std_err)
+  ) %>%
+  mutate(Model = "XGBoost")
+
+library(dplyr)
+library(knitr)
+
+# 8) Combine into one data frame and print as a plain table
+table6 <- bind_rows(lasso_auc, rf_auc, xgb_auc) %>%
+  dplyr::select(Model, Mean, SE)
+
+print(table6)
+
+```
+
+```{r}
+library(tidymodels)  # for collect_metrics()
+
+# 1) Collect tuning metrics into plain tibbles
+lasso_metrics <- collect_metrics(lasso_res)
+rf_metrics    <- collect_metrics(rf_res)
+xgb_metrics   <- collect_metrics(xgb_res)
+
+# 2) Summarize ROC AUC for each model
+lasso_auc <- lasso_metrics %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean),
+    SE   = mean(std_err)
+  ) %>%
+  mutate(Model = "LASSO")
+
+rf_auc <- rf_metrics %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean),
+    SE   = mean(std_err)
+  ) %>%
+  mutate(Model = "Random Forest")
+
+xgb_auc <- xgb_metrics %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean),
+    SE   = mean(std_err)
+  ) %>%
+  mutate(Model = "XGBoost")
+
+# 3) Combine into one table
+auc_table <- bind_rows(lasso_auc, rf_auc, xgb_auc)
+
+# 4) Print Table 6
+auc_table %>%
+  dplyr::select(Model, Mean, SE) %>%
+  knitr::kable(
+    digits  = 3,
+    caption = "Table 6: 5‑fold CV ROC AUC for Each Model"
+  )
+# 4) Print as a plain data frame (regular table)
+print(auc_table)
+
+```
+
+```{r}
+ml_rec <- recipe(adverse_birth_outcome ~
+                   age_at_enrollment_years +
+                   gravidity +
+                   total_malaria_episodes +
+                   education_level +
+                   study_arm +
+                   normalized_malaria_rate,
+                 data = train) %>%
+  step_dummy(all_nominal_predictors()) %>%   # one‑hot encode factors
+  step_zv(all_predictors()) %>%              # drop zero‑variance
+  step_normalize(all_numeric_predictors())   # center & scale numerics
+
+```
+
+```{r}
+# 4. Model specifications & workflows
+
+## (a) LASSO‐penalized logistic regression
+lasso_mod <- logistic_reg(penalty = tune(), mixture = 1) %>%
+  set_engine("glmnet") %>%
+  set_mode("classification")
+
+lasso_wf  <- workflow() %>% add_model(lasso_mod) %>% add_recipe(ml_rec)
+
+## (b) Random forest
+rf_mod <- rand_forest(mtry = tune(), trees = 1000, min_n = tune()) %>%
+  set_engine("ranger") %>%
+  set_mode("classification")
+
+rf_wf  <- workflow() %>% add_model(rf_mod) %>% add_recipe(ml_rec)
+
+## (c) XGBoost
+xgb_mod <- boost_tree(trees = tune(),
+                      tree_depth = tune(),
+                      learn_rate = tune()) %>%
+  set_engine("xgboost") %>%
+  set_mode("classification")
+
+xgb_wf <- workflow() %>% add_model(xgb_mod) %>% add_recipe(ml_rec)
+
+```
+
+```{r}
+# 5. Tuning grids & 5‐fold CV
+set.seed(2025)
+
+lasso_grid <- grid_regular(penalty(), levels = 20)
+
+rf_params <- parameters(rf_mod) %>%
+  update(mtry = mtry(c(1, 6)))
+rf_grid   <- grid_latin_hypercube(rf_params, size = 20)
+
+xgb_params <- parameters(xgb_mod)
+xgb_grid   <- grid_latin_hypercube(xgb_params, size = 30)
+
+ml_metrics <- metric_set(roc_auc)
+
+lasso_res <- tune_grid(lasso_wf, resamples = cv_folds,
+                       grid = lasso_grid, metrics = ml_metrics)
+
+rf_res    <- tune_grid(rf_wf,    resamples = cv_folds,
+                       grid = rf_grid,    metrics = ml_metrics)
+
+xgb_res   <- tune_grid(xgb_wf,   resamples = cv_folds,
+                       grid = xgb_grid,   metrics = ml_metrics)
+
+```
+
+```{r}
+library(dplyr)
+
+# 6) Pull the AUC metrics out and summarize
+lasso_auc <- collect_metrics(lasso_res) %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean, na.rm = TRUE),
+    SE   = mean(std_err, na.rm = TRUE)
+  ) %>%
+  mutate(Model = "LASSO")
+
+rf_auc <- collect_metrics(rf_res) %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean, na.rm = TRUE),
+    SE   = mean(std_err, na.rm = TRUE)
+  ) %>%
+  mutate(Model = "Random Forest")
+
+xgb_auc <- collect_metrics(xgb_res) %>%
+  filter(.metric == "roc_auc") %>%
+  dplyr::summarise(
+    Mean = mean(mean, na.rm = TRUE),
+    SE   = mean(std_err, na.rm = TRUE)
+  ) %>%
+  mutate(Model = "XGBoost")
+
+# 7) Combine & print
+auc_table <- bind_rows(lasso_auc, rf_auc, xgb_auc) %>%
+  dplyr::select(Model, Mean, SE)
+
+print(auc_table)
+
+```
+
+
+
+
+################################################################################################################################################################## 
+
+
+*END*
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
